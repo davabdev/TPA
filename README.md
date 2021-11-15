@@ -5,21 +5,64 @@ Pre-Alpha Release.
 
 |Features                                                                                    | Status                                        |
 |--------------------------------------------------------------------------------------------|-----------------------------------------------|
-|Runtime ISA extension detection                                                             |(complete)                                     |
-|Runtime Detection of Hybrid Architecture                                                    |(complete)                                     |
-|Cross-platform thread affinty and thread dispatch                                           |(not yet implemented)                          |
-|An Optimized Thread Pool                                                                    |(complete, subject to change)                  |
-|Functions to utilize intrinics directly on std::array-like and std::vector-like structures  |(incomplete, subject to change)                |
-|Paralellized & vectorized basic math                                                        |(complete, subject to change)                  |
-|Paralellized & vectorized comparisions                                                      |(complete, subject to change)                  |
-|Paralellized & vectorized cmath functions                                                   |(complete, subject to change)                  |
-|Paralellized & vectorized type converstion (static_cast)                                    |(not yet implemented)                          |
-|Paralellized & vectorized implementation of std::algorithims                                |(very, very incomplete!, subject to change)    |
-|Paralellized & vectorized implementation of std::numeric                                    |(very, very incomplete!, subject to change)    |
+|Runtime ISA extension detection                                                             |complete                                       |
+|Runtime Detection of Hybrid Architecture                                                    |complete                                       |
+|Cross-platform thread affinty and thread dispatch                                           |not yet implemented                            |
+|An Optimized Thread Pool                                                                    |complete, subject to change                    |
+|Functions to utilize intrinics directly on std::array-like and std::vector-like structures  |incomplete, subject to change                  |
+|Paralellized & vectorized basic math                                                        |complete, subject to change                    |
+|Paralellized & vectorized comparisions                                                      |complete, subject to change                    |
+|Paralellized & vectorized cmath functions                                                   |complete, subject to change                    |
+|Paralellized & vectorized type converstion (static_cast)                                    |not yet implemented                            |
+|Paralellized & vectorized implementation of std::algorithims                                |very, very incomplete!, subject to change      |
+|Paralellized & vectorized implementation of std::numeric                                    |very, very incomplete!, subject to change      |
+|Paralellized & vectorized string functions                                                  |not yet implemented                            |
+|Paralellized & vectorized bitwise operations                                                |complete, subject to change                    |
+|Paralellized & vectorized advanced bit manipulation                                         |not yet implemented                            |
 
 Requires C++20 or newer.
 
-Detailed documentation of how to use this library will be provided at a later date, as all the information would be subject to major changes at this time. This is a pre-alpha release and this library is not intended to be widely usable at this time.
+Detailed documentation of how to use this library will be provided at a later date, as all the information would be subject to major changes at this time. This is a pre-alpha release and this library is not intended to be widely usable at this time. See the "Testing" Solution to get an idea of how to use this library and the performance benefits available. 
+
+ISA Support (including rutime detection and dispatch) as of 2021-11-15 (this list is incomplete)
+|ISA         |Run-time Detection|Dispatch & Exectuon   |
+|------------|------------------|----------------------|
+|MMX         |Yes               |No*                   |
+|3DNow!      |Yes               |No**                  |
+|3DNow! EXT  |Yes               |No**                  |
+|SSE         |Yes               |Yes, where applicable |
+|SSE2        |Yes               |Yes, where applicable |
+|SSE3        |Yes               |Yes, where applicable |
+|SSSE3       |Yes               |Yes, where applicable |
+|SSE4a       |Yes               |No                    |
+|XOP         |Yes               |No                    |
+|SSE4.1      |Yes               |Yes, where applicable |
+|SSE4.2      |Yes               |Yes, where applicable |
+|AVX         |Yes               |Yes, where applicable |
+|AVX-2       |Yes               |Yes, where applicable |
+|FMA         |Yes               |Yes, where applicable |
+|AVX-VNNI    |Yes               |Coming later          |
+|AVX-512F    |Yes               |Yes, where applicable |
+|AVX-512BW   |Yes               |Yes, where applicable |
+|AVX-512DQ   |Yes               |Yes, where applicable |
+|AVX-512PF   |Yes               |No                    |
+|AVX-512ER   |Yes               |No                    |
+|AVX-512CD   |Yes               |No                    |
+|AVX-512VL   |Yes               |No                    |
+|AVX-512VBMI |Yes               |Coming later          |
+|AVX-512VBMI2|Yes               |Coming later          |
+|AVX-512VNNI |Yes               |Coming later          |
+|AVX-512BF   |Yes               |No                    |
+|AVX-512F16  |Yes               |No                    |
+|AVX512-AMX  |Yes               |No                    |
+|BMI1        |Yes               |Coming later          |
+|BMI2        |Yes               |Coming later          |
+|NEON        |No***             |Yes                   |
+
+*MMX has been deprecated on Intel CPUs for years and is not utlized in this library.
+**3DNow! has never been avilable on Intel and has been removed on AMD since First Gen Ryzen. 3DNow! Extented has possibly never been implemented.
+***NEON is required when compiling for ARM
+
 
 Compiler Support as of 2021-11-15:
 
