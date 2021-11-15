@@ -61,7 +61,7 @@ ISA Support (including rutime detection and dispatch) as of 2021-11-15 (this lis
 
 *MMX has been deprecated on Intel CPUs for years and is not utlized in this library.
 
-**3DNow! has never been avilable on Intel and has been removed on AMD since First Gen Ryzen. 3DNow! Extented has possibly never been implemented.
+**3DNow! has never been available on Intel and has been removed on AMD since First Gen Ryzen. 3DNow! Extented has possibly never been implemented.
 
 ***NEON is required when compiling for ARM
 
