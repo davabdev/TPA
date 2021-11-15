@@ -24,7 +24,7 @@ Requires C++20 or newer.
 
 Detailed documentation of how to use this library will be provided at a later date, as all the information would be subject to major changes at this time. This is a pre-alpha release and this library is not intended to be widely usable at this time. See the "Testing" Solution to get an idea of how to use this library and the performance benefits available. 
 
-ISA Support (including rutime detection and dispatch) as of 2021-11-15 (this list is incomplete)
+ISA Support (including runtime detection and dispatch) as of 2021-11-15 (this list is incomplete)
 |ISA         |Run-time Detection|Dispatch & Exectuon   |
 |------------|------------------|----------------------|
 |MMX         |Yes               |No*                   |
