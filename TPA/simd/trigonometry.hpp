@@ -67,9 +67,11 @@ namespace tpa::simd
 #pragma region generic
 
 	/// <summary>
-	/// <para>Computes trigonometic functions on an std::vector storing the result in a 2nd std::vector.</para>
-	/// <para>This function can only take advantage of SIMD if both containers' value_type is float or both double (much, much faster!). </para>
-	/// <para>Else uses only multi-threading and the results are static_cast to the value_type of the destination container. Passing containers of non-standard value_types is allowed but may deliver truncted or incorrect results as this function relies on standard cmath functions.</para>
+	/// <para>Computes trigonometic functions on a container storing the result in a 2nd cotnainer.</para>
+	/// <para>Uses Multi-threading and SIMD (where available).</para>
+	/// <para>It is reccomended to use containers with the same value type as this is required for SIMD.</para>
+	/// <para>Using same-width value_types also allows for SIMD in SOME cases. i.e. float->int32_t or double->int64_t</para>
+	/// <para>Passing containers of non-standard value_types is allowed but may deliver truncted or incorrect results as this function relies on standard cmath functions.</para>
 	/// <para>Containers do not have to be a particular size</para>
 	/// <para>It is recommened to use Radians as opposed to Degrees as Degrees often have to be converted to Radians and thus a small performance hit is incurred.</para>
 	/// <para>Takes 2 templated predicates: tpa::trig and tpa::angle</para>
@@ -3606,8 +3608,9 @@ namespace tpa::simd
 	
 	/// <summary>
 	/// <para>Computes the arc tangent of numbers in 'source1' and 'source2' using the signs of arguments to determine the correct quadrant storing the results in 'dest'</para>
-	/// <para>This function can only take advantage of SIMD if all containers' value_type is float or both double (much, much faster!). </para>
-	/// <para>Else uses only multi-threading and the results are static_cast to the value_type of the destination container. Passing containers of non-standard value_types is allowed but may deliver truncted or incorrect results as this function relies on standard cmath functions.</para>
+	/// <para>It is reccomended to use containers with the same value type as this is required for SIMD.</para>
+	/// <para>Using same-width value_types also allows for SIMD in SOME cases. i.e. float->int32_t or double->int64_t</para>
+	/// <para>Passing containers of non-standard value_types is allowed but may deliver truncted or incorrect results as this function relies on standard cmath functions.</para>
 	/// <para>Containers do not have to be a particular size</para>
 	/// <para>It is recommened to use Radians as opposed to Degrees as Degrees often have to be converted to Radians and thus a small performance hit is incurred.</para>
 	/// </summary>
@@ -3769,6 +3772,176 @@ namespace tpa::simd
 #endif
 					}//End if
 #pragma endregion
+#pragma region int32-to-float
+					else if constexpr (std::is_same<T, int32_t>() && std::is_same<T2, int32_t>() && std::is_same<RES, float>())
+					{
+#ifdef _M_AMD64
+						if (tpa::hasAVX512)
+						{
+							__m512i _source1int, _source2int;
+							__m512 _source1, _source2, _dest;
+
+							for (; (i + 16uz) < end; i += 16uz)
+							{
+								//Set Values
+								_source1int = _mm512_load_epi32(&source1[i]);
+								_source2int = _mm512_load_epi32(&source2[i]);
+
+								_source1 = _mm512_cvtepi32_ps(_source1int);
+								_source2 = _mm512_cvtepi32_ps(_source2int);
+								_dest = _mm512_setzero_ps();
+
+								//atan2
+								if constexpr (ANG == tpa::angle::RADIANS)
+								{
+									_dest = _mm512_atan2_ps(_source1, _source2);
+								}//End if
+								else if constexpr (ANG == tpa::angle::DEGREES)
+								{
+									_dest = tpa::util::radians_to_degrees(_mm512_atan2_ps(
+										tpa::util::degrees_to_radians(_source1),
+										tpa::util::degrees_to_radians(_source2))
+									);
+								}//End else
+								else
+								{
+									[] <bool flag = false>()
+									{
+										static_assert(flag, " You have specifed an invalid angle prdicate in tpa::simd::atan2<__UNDEFINED_PREDICATE__>(CONTAINER<float>).");
+									}();
+								}//End else
+
+								//Store Result
+								_mm512_store_ps(&dest[i], _dest);
+							}//End for
+						}//End of hasAVX512
+						else if (tpa::hasAVX)
+						{
+							__m256i _source1int, _source2int;
+							__m256 _source1, _source2, _dest;
+
+							for (; (i + 8uz) < end; i += 8uz)
+							{
+								//Set Values
+								_source1int = _mm256_load_si256((__m256i*) &source1[i]);
+								_source2int = _mm256_load_si256((__m256i*) &source2[i]);
+
+								_source1 = _mm256_cvtepi32_ps(_source1int);
+								_source2 = _mm256_cvtepi32_ps(_source2int);
+								_dest = _mm256_setzero_ps();
+
+								//atan2
+								if constexpr (ANG == tpa::angle::RADIANS)
+								{
+									_dest = _mm256_atan2_ps(_source1, _source2);
+								}//End if
+								else if constexpr (ANG == tpa::angle::DEGREES)
+								{
+									_dest = tpa::util::radians_to_degrees(_mm256_atan2_ps(
+										tpa::util::degrees_to_radians(_source1),
+										tpa::util::degrees_to_radians(_source2))
+									);
+								}//End else
+								else
+								{
+									[] <bool flag = false>()
+									{
+										static_assert(flag, " You have specifed an invalid angle prdicate in tpa::simd::atan2<__UNDEFINED_PREDICATE__>(CONTAINER<float>).");
+									}();
+								}//End else
+
+								//Store Result
+								_mm256_store_ps(&dest[i], _dest);
+							}//End for
+						}//End of hasAVX
+						else if (tpa::has_SSE2)
+						{
+							__m128i _source1int, _source2int;
+							__m128 _source1, _source2, _dest;
+
+							for (; (i + 4uz) < end; i += 4uz)
+							{
+								//Set Values
+								_source1int = _mm_load_si128((__m128i*) &source1[i]);
+								_source2int = _mm_load_si128((__m128i*) &source2[i]);
+
+								_source1 = _mm_cvtepi32_ps(_source1int);
+								_source2 = _mm_cvtepi32_ps(_source2int);
+								_dest = _mm_setzero_ps();
+
+								//atan2
+								if constexpr (ANG == tpa::angle::RADIANS)
+								{
+									_dest = _mm_atan2_ps(_source1, _source2);
+								}//End if
+								else if constexpr (ANG == tpa::angle::DEGREES)
+								{
+									_dest = tpa::util::radians_to_degrees(_mm_atan2_ps(
+										tpa::util::degrees_to_radians(_source1),
+										tpa::util::degrees_to_radians(_source2))
+									);
+								}//End else
+								else
+								{
+									[] <bool flag = false>()
+									{
+										static_assert(flag, " You have specifed an invalid angle prdicate in tpa::simd::atan2<__UNDEFINED_PREDICATE__>(CONTAINER<float>).");
+									}();
+								}//End else
+
+								//Store Result
+								_mm_store_ps(&dest[i], _dest);
+							}//End for
+						}//End of has_SSE
+#endif
+					}//End if
+#pragma endregion
+#pragma region uint32-to_float
+					else if constexpr (std::is_same<T, uint32_t>() && std::is_same<T2, uint32_t>() && std::is_same<RES, float>())
+					{
+#ifdef _M_AMD64
+					if (tpa::hasAVX512)
+					{
+						__m512i _source1int, _source2int;
+						__m512 _source1, _source2, _dest;
+
+						for (; (i + 16uz) < end; i += 16uz)
+						{
+							//Set Values
+							_source1int = _mm512_load_epi32(&source1[i]);
+							_source2int = _mm512_load_epi32(&source2[i]);
+
+							_source1 = _mm512_cvtepu32_ps(_source1int);
+							_source2 = _mm512_cvtepu32_ps(_source2int);
+							_dest = _mm512_setzero_ps();
+
+							//atan2
+							if constexpr (ANG == tpa::angle::RADIANS)
+							{
+								_dest = _mm512_atan2_ps(_source1, _source2);
+							}//End if
+							else if constexpr (ANG == tpa::angle::DEGREES)
+							{
+								_dest = tpa::util::radians_to_degrees(_mm512_atan2_ps(
+									tpa::util::degrees_to_radians(_source1),
+									tpa::util::degrees_to_radians(_source2))
+								);
+							}//End else
+							else
+							{
+								[] <bool flag = false>()
+								{
+									static_assert(flag, " You have specifed an invalid angle prdicate in tpa::simd::atan2<__UNDEFINED_PREDICATE__>(CONTAINER<float>).");
+								}();
+							}//End else
+
+							//Store Result
+							_mm512_store_ps(&dest[i], _dest);
+						}//End for
+					}//End of hasAVX512					
+#endif
+					}//End if
+#pragma endregion
 #pragma region double
 					else if constexpr (std::is_same<T, double>() && std::is_same<T2, double>() && std::is_same<RES, double>())
 					{
@@ -3881,6 +4054,98 @@ namespace tpa::simd
 #endif
 					}//End if
 #pragma endregion
+#pragma region int64-to-double
+					else if constexpr (std::is_same<T, int64_t>() && std::is_same<T2, int64_t>() && std::is_same<RES, double>())
+					{
+#ifdef _M_AMD64
+					if (tpa::hasAVX512_DWQW)
+					{
+						__m512i _source1int, _source2int;
+						__m512d _source1, _source2, _dest;
+
+						for (; (i + 8uz) < end; i += 8uz)
+						{
+							//Set Values
+							_source1int = _mm512_load_epi64(&source1[i]);
+							_source2int = _mm512_load_epi64(&source2[i]);
+
+							_source1 = _mm512_cvtepi64_pd(_source1int);
+							_source2 = _mm512_cvtepi64_pd(_source2int);
+							_dest = _mm512_setzero_pd();
+
+							//atan2
+							if constexpr (ANG == tpa::angle::RADIANS)
+							{
+								_dest = _mm512_atan2_pd(_source1, _source2);
+							}//End if
+							else if constexpr (ANG == tpa::angle::DEGREES)
+							{
+								_dest = tpa::util::radians_to_degrees(_mm512_atan2_pd(
+									tpa::util::degrees_to_radians(_source1),
+									tpa::util::degrees_to_radians(_source2))
+								);
+							}//End else
+							else
+							{
+								[] <bool flag = false>()
+								{
+									static_assert(flag, " You have specifed an invalid angle prdicate in tpa::simd::atan2<__UNDEFINED_PREDICATE__>(CONTAINER<double>).");
+								}();
+							}//End else
+
+							//Store Result
+							_mm512_store_pd(&dest[i], _dest);
+						}//End for
+					}//End of hasAVX512					
+#endif
+					}//End if
+#pragma endregion
+#pragma region uint64-to-double
+					else if constexpr (std::is_same<T, uint64_t>() && std::is_same<T2, uint64_t>() && std::is_same<RES, double>())
+					{
+#ifdef _M_AMD64
+					if (tpa::hasAVX512_DWQW)
+					{
+						__m512i _source1int, _source2int;
+						__m512d _source1, _source2, _dest;
+
+						for (; (i + 8uz) < end; i += 8uz)
+						{
+							//Set Values
+							_source1int = _mm512_load_epi64(&source1[i]);
+							_source2int = _mm512_load_epi64(&source2[i]);
+
+							_source1 = _mm512_cvtepu64_pd(_source1int);
+							_source2 = _mm512_cvtepu64_pd(_source2int);
+							_dest = _mm512_setzero_pd();
+
+							//atan2
+							if constexpr (ANG == tpa::angle::RADIANS)
+							{
+								_dest = _mm512_atan2_pd(_source1, _source2);
+							}//End if
+							else if constexpr (ANG == tpa::angle::DEGREES)
+							{
+								_dest = tpa::util::radians_to_degrees(_mm512_atan2_pd(
+									tpa::util::degrees_to_radians(_source1),
+									tpa::util::degrees_to_radians(_source2))
+								);
+							}//End else
+							else
+							{
+								[] <bool flag = false>()
+								{
+									static_assert(flag, " You have specifed an invalid angle prdicate in tpa::simd::atan2<__UNDEFINED_PREDICATE__>(CONTAINER<double>).");
+								}();
+							}//End else
+
+							//Store Result
+							_mm512_store_pd(&dest[i], _dest);
+						}//End for
+					}//End of hasAVX512					
+#endif
+					}//End if
+#pragma endregion
 #pragma region generic
 					for (; i != end; ++i)
 					{
@@ -3957,8 +4222,10 @@ namespace tpa::simd
 
 	/// <summary>
 	/// <para>Computes the square root of the sum of the squares of numbers in 'source1' and 'source2', without undue overflow or underflow at intermediate stages of the computation storing the results in 'dest'.</para>
-	/// <para>This function can only take advantage of SIMD if all containers' value_type is float or both double (much, much faster!). </para>
-	/// <para>Else uses only multi-threading and the results are static_cast to the value_type of the destination container. Passing contianers of non-standard value_types is allowed but may deliver truncted or incorrect results as this function relies on standard cmath functions.</para>
+	///<para>It is reccomended to use containers with the same value type as this is required for SIMD.
+	/// </para>
+	/// <para>Using same-width value_types also allows for SIMD in SOME cases. i.e. float->int32_t or double->int64_t</para>
+	/// <para>Passing containers of non-standard value_types is allowed but may deliver truncted or incorrect results as this function relies on standard cmath functions.</para>
 	/// <para>Containers do not have to be a particular size</para>
 	/// </summary>
 	/// <typeparam name="CONTAINER_A"></typeparam>
@@ -4065,6 +4332,108 @@ namespace tpa::simd
 #endif
 						}//End if
 #pragma endregion
+#pragma region int32-to-float
+						else if constexpr (std::is_same<T, int32_t>() && std::is_same<T2, int32_t>() && std::is_same<RES, float>())
+						{
+#ifdef _M_AMD64
+							if (tpa::hasAVX512)
+							{
+								__m512i _source1int, _source2int;
+								__m512 _source1, _source2, _dest;
+
+								for (; (i + 16uz) < end; i += 16uz)
+								{
+									//Set Values
+									_source1int = _mm512_load_epi32(&source1[i]);
+									_source2int = _mm512_load_epi32(&source2[i]);
+
+									_source1 = _mm512_cvtepi32_ps(_source1int);
+									_source2 = _mm512_cvtepi32_ps(_source2int);
+									_dest = _mm512_setzero_ps();
+
+									//hypot									
+									_dest = _mm512_hypot_ps(_source1, _source2);
+									
+									//Store Result
+									_mm512_store_ps(&dest[i], _dest);
+								}//End for
+							}//End of hasAVX512
+							else if (tpa::hasAVX)
+							{
+								__m256i _source1int, _source2int;
+								__m256 _source1, _source2, _dest;
+
+								for (; (i + 8uz) < end; i += 8uz)
+								{
+									//Set Values
+									_source1int = _mm256_load_si256((__m256i*) & source1[i]);
+									_source2int = _mm256_load_si256((__m256i*) & source2[i]);
+
+									_source1 = _mm256_cvtepi32_ps(_source1int);
+									_source2 = _mm256_cvtepi32_ps(_source2int);
+									_dest = _mm256_setzero_ps();
+
+									//hypot
+									_dest = _mm256_hypot_ps(_source1, _source2);
+									
+									//Store Result
+									_mm256_store_ps(&dest[i], _dest);
+								}//End for
+							}//End of hasAVX
+							else if (tpa::has_SSE2)
+							{
+								__m128i _source1int, _source2int;
+								__m128 _source1, _source2, _dest;
+
+								for (; (i + 4uz) < end; i += 4uz)
+								{
+									//Set Values
+									_source1int = _mm_load_si128((__m128i*) & source1[i]);
+									_source2int = _mm_load_si128((__m128i*) & source2[i]);
+
+									_source1 = _mm_cvtepi32_ps(_source1int);
+									_source2 = _mm_cvtepi32_ps(_source2int);
+									_dest = _mm_setzero_ps();
+
+									//hypot
+									_dest = _mm_hypot_ps(_source1, _source2);
+									
+									//Store Result
+									_mm_store_ps(&dest[i], _dest);
+								}//End for
+							}//End of has_SSE
+#endif
+						}//End if
+#pragma endregion
+#pragma region uint32-to_float
+						else if constexpr (std::is_same<T, uint32_t>() && std::is_same<T2, uint32_t>() && std::is_same<RES, float>())
+						{
+#ifdef _M_AMD64
+							if (tpa::hasAVX512)
+							{
+								__m512i _source1int, _source2int;
+								__m512 _source1, _source2, _dest;
+
+								for (; (i + 16uz) < end; i += 16uz)
+								{
+									//Set Values
+									_source1int = _mm512_load_epi32(&source1[i]);
+									_source2int = _mm512_load_epi32(&source2[i]);
+
+									_source1 = _mm512_cvtepu32_ps(_source1int);
+									_source2 = _mm512_cvtepu32_ps(_source2int);
+									_dest = _mm512_setzero_ps();
+
+									//hypot
+									_dest = _mm512_hypot_ps(_source1, _source2);
+									
+									//Store Result
+									_mm512_store_ps(&dest[i], _dest);
+								}//End for
+							}//End of hasAVX512					
+#endif
+						}//End if
+#pragma endregion
 #pragma region double
 						else if constexpr (std::is_same<T, double>() && std::is_same<T2, double>() && std::is_same<RES, double>())
 						{
@@ -4122,6 +4491,64 @@ namespace tpa::simd
 							}//End of has_SSE2
 #endif
 						}//End if
+#pragma endregion
+#pragma region int64-to-double
+						else if constexpr (std::is_same<T, int64_t>() && std::is_same<T2, int64_t>() && std::is_same<RES, double>())
+					{
+#ifdef _M_AMD64
+					if (tpa::hasAVX512_DWQW)
+					{
+						__m512i _source1int, _source2int;
+						__m512d _source1, _source2, _dest;
+
+						for (; (i + 8uz) < end; i += 8uz)
+						{
+							//Set Values
+							_source1int = _mm512_load_epi64(&source1[i]);
+							_source2int = _mm512_load_epi64(&source2[i]);
+
+							_source1 = _mm512_cvtepi64_pd(_source1int);
+							_source2 = _mm512_cvtepi64_pd(_source2int);
+							_dest = _mm512_setzero_pd();
+
+							//hypot
+							_dest = _mm512_hypot_pd(_source1, _source2);
+							
+							//Store Result
+							_mm512_store_pd(&dest[i], _dest);
+						}//End for
+					}//End of hasAVX512					
+#endif
+					}//End if
+#pragma endregion
+#pragma region uint64-to-double
+						else if constexpr (std::is_same<T, uint64_t>() && std::is_same<T2, uint64_t>() && std::is_same<RES, double>())
+					{
+#ifdef _M_AMD64
+					if (tpa::hasAVX512_DWQW)
+					{
+						__m512i _source1int, _source2int;
+						__m512d _source1, _source2, _dest;
+
+						for (; (i + 8uz) < end; i += 8uz)
+						{
+							//Set Values
+							_source1int = _mm512_load_epi64(&source1[i]);
+							_source2int = _mm512_load_epi64(&source2[i]);
+
+							_source1 = _mm512_cvtepu64_pd(_source1int);
+							_source2 = _mm512_cvtepu64_pd(_source2int);
+							_dest = _mm512_setzero_pd();
+
+							//hypot
+							_dest = _mm512_hypot_pd(_source1, _source2);
+							
+							//Store Result
+							_mm512_store_pd(&dest[i], _dest);
+						}//End for
+					}//End of hasAVX512					
+#endif
+					}//End if
 #pragma endregion
 #pragma region generic
 						for (; i != end; ++i)
