@@ -68,12 +68,12 @@ ISA Support (including runtime detection and dispatch) as of 2021-11-15 (this li
 
 Compiler Support as of 2021-11-15:
 
-|Platform   | MSVC  | Intel (Windows)  | Intel (Linux)   |  AMD AOCC (Linux Only)  | Clang (Windows)  | Clang (Linux)   |GCC (Linux)    |    
-|-----------|-------|------------------|-----------------|-------------------------|------------------|-----------------|---------------|
-|AMD-64     |YES    |No, Coming Soon   |No, Coming Soon  |No, Coming Later         |No, Coming later  |No, Coming Later |No, Coming Soon|
-|x86        |Yes*   |No, Coming Soon   |No, Coming Soon  |No, Coming Later         |No, Coming later  |No, Coming Later |No, Coming Soon|
-|ARM-64     |Yes**  |No, Coming Soon   |No, Coming Soon  |No, Coming Later         |No, Coming later  |No, Coming Later |No, Coming Soon|
-|ARM-32***  |No     |No                |No               |No                       |No                |No               |No             |
+|Platform   | MSVC  | Intel (Windows)  | Intel (Linux)   |  AMD AOCC (Linux Only)  | Clang (Windows)  | Clang (Linux)   |GCC (Linux)    | NVCC |
+|-----------|-------|------------------|-----------------|-------------------------|------------------|-----------------|---------------|------|
+|AMD-64     |YES    |No, Coming Soon   |No, Coming Soon  |No, Coming Later         |No, Coming later  |No, Coming Later |No, Coming Soon| No   |
+|x86        |Yes*   |No, Coming Soon   |No, Coming Soon  |No, Coming Later         |No, Coming later  |No, Coming Later |No, Coming Soon| No   |
+|ARM-64     |Yes**  |No, Coming Soon   |No, Coming Soon  |No, Coming Later         |No, Coming later  |No, Coming Later |No, Coming Soon| No   |
+|ARM-32***  |No     |No                |No               |No                       |No                |No               |No             | No   |
 
 *Building for x86 is not officially supported on any platform, it may work but I do not intend to support or make any considerations for 32-bit platforms.
 
@@ -81,4 +81,4 @@ Compiler Support as of 2021-11-15:
 
 ***There will never be any support official or otherwise for building on ARM-32 as (eventually) NEON instructions will be a requirement of this library when building for ARM and there is no good way to detect the presence of the NEON instruction set extentions on ARM-32 at runtime, they are part of the base feature set of ARM-64.
 
-
+The Nvidia CUDA C++ Compiler still has zero C++20 support as of 2021-12-06. Until C++20 is avaialble on NVCC, there will be no support official or unofficial for compiling with NVCC whatsoever. 
