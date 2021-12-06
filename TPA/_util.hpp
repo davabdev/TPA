@@ -23,9 +23,12 @@
 #include <chrono>
 #include <mutex>
 #include <numbers>
+#include <bitset>
+#include <bit>
 
 #include "ThreadPool.hpp"
 #include "excepts.hpp"
+#include "size_t_lit.hpp"
 
 #ifdef _M_AMD64
 	#include <immintrin.h>
@@ -44,31 +47,6 @@
 #undef pow
 #undef sqrt
 #undef cbrt
-
-#ifndef __cpp_size_t_suffix
-/// <summary>
-/// <para>Literal Suffix for size_t</para>
-/// <para>Manually implemented in tpa/_util.hpp before C++23</para>
-/// </summary>
-/// <param name="n"></param>
-/// <returns></returns>
-consteval std::size_t operator ""uz(std::size_t n)
-{
-	return n;
-}
-
-/// <summary>
-/// <para>Literal Suffix for size_t</para>
-/// <para>Manually implemented in tpa/_util.hpp before C++23</para>
-/// </summary>
-/// <param name="n"></param>
-/// <returns></returns>
-consteval std::size_t operator ""UZ(std::size_t n)
-{
-	return n;
-}
-
-#endif
 
 /// <summary>
 /// The tpa::util namespace provides utility functions for TPA, it is not inteded to be accessed by users of this library. However you may find something useful.
@@ -89,6 +67,30 @@ namespace tpa::util
 		{cont[index]} -> std::convertible_to<const VAL&>;
 		std::contiguous_iterator<ITER>;
 	};	
+
+	/// <summary>
+	/// <para>Converts any variable or object to a bitset</para>
+	/// <para>Padding bits may be included depending on your compiler.</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="var"></param>
+	template<typename T, size_t SIZE = (sizeof(T) * CHAR_BIT)>
+	std::bitset<SIZE> as_bits(T var) noexcept
+	{
+		if constexpr (SIZE < 32)//Size in bits
+		{
+			int32_t temp = 0;
+			std::memmove(&temp, &var, sizeof(T));
+
+			std::bitset<SIZE> bits = var;
+			return bits;
+		}//End if
+		else
+		{
+			std::bitset<SIZE> bits = std::bit_cast<std::bitset<SIZE>, T>(var);
+			return bits;
+		}//End else
+	}//End of as_bits
 
 	/// <summary>
 	/// <para>Branchless min value function</para>
@@ -253,7 +255,7 @@ namespace tpa::util
 			return false;
 		}//End if
 
-		size_t i = 2;
+		size_t i = 2uz;
 
 		for (; static_cast<size_t>(i * i) <= n; ++i) 
 		{
@@ -817,7 +819,7 @@ namespace tpa::util
 		try
 		{
 			#ifdef _DEBUG
-				if (arr_size < 1ull) [[unlikely]]
+				if (arr_size < 1uz) [[unlikely]]
 				{
 					throw tpa::exceptions::EmptyArray();
 				}//End if
@@ -968,7 +970,7 @@ namespace tpa
 	/// <para>Provides a list of valid floating-point SIMD rounding modes</para>
 	/// <para>Please note that some ARM CPUs do not support IEEE-754 rounding modes</para>
 	/// </summary>
-	const enum class rnd : int8_t {
+	const enum class rnd {
 #if defined(_M_AMD64)
 		NEAREST_INT = _MM_FROUND_TO_NEAREST_INT,//SIMD eqivilant of FE_TONEAREST
 		DOWN = _MM_FROUND_TO_NEG_INF,//SIMD eqivilant of FE_DOWNWARD
@@ -1178,9 +1180,10 @@ namespace tpa::util {
 		try
 		{
 #ifdef _M_AMD64
-			if (tpa::has_SSE2)
+			if constexpr (std::is_same<T, float>())
 			{
-				if constexpr (std::is_same<T, float>())
+				//Use SSE for better defined behavior if possible
+				if (tpa::has_SSE)
 				{
 					const __m128 f1 = _mm_set1_ps(num1);
 					const __m128 f2 = _mm_set1_ps(num2);
@@ -1214,8 +1217,45 @@ namespace tpa::util {
 #else	
 					return static_cast<T>(result[0]);
 #endif
-				}//End if
-				else if constexpr (std::is_same<T, double>())
+				}//End if hasSSE
+				else
+				{
+					static_assert(sizeof(float) == sizeof(int32_t), "Size of float must equal int32_t");
+
+					const int32_t num1_as_int = *reinterpret_cast<int32_t*>(&num1);
+					const int32_t num2_as_int = *reinterpret_cast<int32_t*>(&num2);
+					int32_t int_res = {};
+
+					if constexpr (INSTR == tpa::bit::AND)
+					{
+						int_res = num1_as_int & num2_as_int;
+					}//End if
+					else if constexpr (INSTR == tpa::bit::OR)
+					{
+						int_res = num1_as_int | num2_as_int;
+					}//End if
+					else if constexpr (INSTR == tpa::bit::XOR)
+					{
+						int_res = num1_as_int ^ num2_as_int;
+					}//End if
+					else if constexpr (INSTR == tpa::bit::AND_NOT)
+					{
+						int_res = ~num1_as_int & num2_as_int;
+					}//End if
+					else
+					{
+						[] <bool flag = false>()
+						{
+							static_assert(flag, "INVALID PREDICATED passed in tpa::util::fp_bitwise()");
+						}();
+					}//End else
+
+					return reinterpret_cast<float*>(&int_res);
+				}//End else
+			}//End if
+			else if constexpr (std::is_same<T, double>())
+			{
+				if (tpa::has_SSE2)
 				{
 					const __m128d d1 = _mm_set1_pd(num1);
 					const __m128d d2 = _mm_set1_pd(num2);
@@ -1243,45 +1283,36 @@ namespace tpa::util {
 						{
 							static_assert(flag, "INVALID PREDICATED passed in tpa::util::fp_bitwise()");
 						}();
-					}
+					}//End else
 #ifdef _WIN32
 					return static_cast<T>(result.m128d_f64[0]);
 #else	
 					return static_cast<T>(result[0]);
 #endif
-				}//End if
+				}//End if has SSE2
 				else
 				{
-					[] <bool flag = false>()
-					{
-						static_assert(flag, "tpa::util::fp_bitwise() requires float or double.");
-					}();
-				}//End else
-			}//End if hasSSE2
-#elif defined(_M_ARM64)
-			if (tpa::hasNeon)
-			{
-				if constexpr (std::is_same<T, float>())
-				{
-					const float32x4_t f1 = vld1q_f32(num1);
-					const float32x4_t f2 = vld1q_f32(num2);
-					float32x4_t result = {0.0f, 0.0f, 0.0f, 0.0f};
+					static_assert(sizeof(double) == sizeof(int64_t), "Size of double must equal int64_t");
+
+					const int64_t num1_as_int = *reinterpret_cast<int64_t*>(&num1);
+					const int64_t num2_as_int = *reinterpret_cast<int64_t*>(&num2);
+					int64_t int_res = {};
 
 					if constexpr (INSTR == tpa::bit::AND)
 					{
-						result = vandq_s32(vreinterpret_f32_s32(f1), vreinterpret_f32_s32(f2));
+						int_res = num1_as_int & num2_as_int;
 					}//End if
 					else if constexpr (INSTR == tpa::bit::OR)
 					{
-						result = vorrq_s32(vreinterpret_f32_s32(f1), vreinterpret_f32_s32(f2));
+						int_res = num1_as_int | num2_as_int;
 					}//End if
 					else if constexpr (INSTR == tpa::bit::XOR)
 					{
-						result = veorq_s32(vreinterpret_f32_s32(f1), vreinterpret_f32_s32(f2));
+						int_res = num1_as_int ^ num2_as_int;
 					}//End if
 					else if constexpr (INSTR == tpa::bit::AND_NOT)
 					{
-						result = vandq_s32(vmvnq_s32(vreinterpret_f32_s32(f1)), vreinterpret_f32_s32(f2));
+						int_res = ~num1_as_int & num2_as_int;
 					}//End if
 					else
 					{
@@ -1291,53 +1322,93 @@ namespace tpa::util {
 						}();
 					}//End else
 
-					return static_cast<T>(result.n128_f32[0]);
+					return reinterpret_cast<double*>(&int_res);
 				}//End if
-				else if constexpr (std::is_same<T, double>())
-				{
-					const float64x2_t f1 = vld1q_f64(num1);
-					const float64x2_t f2 = vld1q_f64(num2);
-					float64x2_t result = {0.0, 0.0};
-
-					if constexpr (INSTR == tpa::bit::AND)
-					{
-						result = vandq_s64(vreinterpret_f64_s64(f1), vreinterpret_f64_s64(f2));
-					}//End if
-					else if constexpr (INSTR == tpa::bit::OR)
-					{
-						result = vorrq_s64(vreinterpret_f64_s64(f1), vreinterpret_f64_s64(f2));
-					}//End if
-					else if constexpr (INSTR == tpa::bit::XOR)
-					{
-						result = veorq_s64(vreinterpret_f64_s64(f1), vreinterpret_f64_s64(f2));
-					}//End if
-					else if constexpr (INSTR == tpa::bit::AND_NOT)
-					{
-						result = vandq_s64(vmvnq_s64(vreinterpret_f64_s64(f1)), vreinterpret_f64_s64(f2));
-					}//End if
-					else
-					{
-						[] <bool flag = false>()
-						{
-							static_assert(flag, "INVALID PREDICATED passed in tpa::util::fp_bitwise()");
-						}();
-					}//End else
-
-					return static_cast<T>(result.n128_f64[0]);
-				}//End if
-				else
-				{
-					[] <bool flag = false>()
-					{
-						static_assert(flag, "tpa::util::fp_bitwise() requires float or double.");
-					}();
-				}//End else
-			}//End if hasNEON
-#endif
+			}//End else
 			else
 			{
-				throw tpa::exceptions::SIMDUnavailable();
+				[] <bool flag = false>()
+				{
+					static_assert(flag, "tpa::util::fp_bitwise() requires float or double.");
+				}();
 			}//End else
+#else
+			if constexpr (std::is_same<T, float>())
+			{
+				static_assert(sizeof(float) == sizeof(int32_t), "Size of float must equal int32_t");
+
+				const int32_t num1_as_int = *reinterpret_cast<int32_t*>(&num1);
+				const int32_t num2_as_int = *reinterpret_cast<int32_t*>(&num2);
+				int32_t int_res = {};
+
+				if constexpr (INSTR == tpa::bit::AND)
+				{
+					int_res = num1_as_int & num2_as_int;
+				}//End if
+				else if constexpr (INSTR == tpa::bit::OR)
+				{
+					int_res = num1_as_int | num2_as_int;
+				}//End if
+				else if constexpr (INSTR == tpa::bit::XOR)
+				{
+					int_res = num1_as_int ^ num2_as_int;
+				}//End if
+				else if constexpr (INSTR == tpa::bit::AND_NOT)
+				{
+					int_res = ~num1_as_int & num2_as_int;
+				}//End if
+				else
+				{
+					[] <bool flag = false>()
+					{
+						static_assert(flag, "INVALID PREDICATED passed in tpa::util::fp_bitwise()");
+					}();
+				}//End else
+
+				return reinterpret_cast<float*>(&int_res);
+			}//End if
+			else if constexpr (std::is_same<T, double>())
+			{
+				static_assert(sizeof(double) == sizeof(int64_t), "Size of double must equal int64_t");
+
+				const int64_t num1_as_int = *reinterpret_cast<int64_t*>(&num1);
+				const int64_t num2_as_int = *reinterpret_cast<int64_t*>(&num2);
+				int64_t int_res = {};
+
+				if constexpr (INSTR == tpa::bit::AND)
+				{
+					int_res = num1_as_int & num2_as_int;
+				}//End if
+				else if constexpr (INSTR == tpa::bit::OR)
+				{
+					int_res = num1_as_int | num2_as_int;
+				}//End if
+				else if constexpr (INSTR == tpa::bit::XOR)
+				{
+					int_res = num1_as_int ^ num2_as_int;
+				}//End if
+				else if constexpr (INSTR == tpa::bit::AND_NOT)
+				{
+					int_res = ~num1_as_int & num2_as_int;
+				}//End if
+				else
+				{
+					[] <bool flag = false>()
+					{
+						static_assert(flag, "INVALID PREDICATED passed in tpa::util::fp_bitwise()");
+					}();
+				}//End else
+
+				return reinterpret_cast<double*>(&int_res);
+			}//End if
+			else
+			{
+				[] <bool flag = false>()
+				{
+					static_assert(flag, "tpa::util::fp_bitwise() requires float or double.");
+				}();
+			}//End else
+#endif
 		}//End try
 		catch (const std::bad_alloc& ex)
 		{
@@ -1449,7 +1520,7 @@ namespace tpa::util {
 	/// <returns>__m128</returns>
 	[[nodiscard]] inline __m128 _mm_abs_ps(const __m128& x) noexcept
 	{
-		const __m128 sign_mask = _mm_set1_ps(-0.f);
+		constexpr __m128 sign_mask = {-0.0f, -0.0f, -0.0f, -0.0f};
 		return _mm_andnot_ps(sign_mask, x);
 	}//End of _mm_abs_ps
 
@@ -1463,7 +1534,7 @@ namespace tpa::util {
 	/// <returns>__m128d</returns>
 	[[nodiscard]] inline __m128d _mm_abs_pd(const __m128d& x) noexcept
 	{
-		const __m128d sign_mask = _mm_set1_pd(-0.0);
+		constexpr __m128d sign_mask = {-0.0, -0.0};
 		return _mm_andnot_pd(sign_mask, x);
 	}//End of _mm_abs_pd
 
@@ -1477,7 +1548,7 @@ namespace tpa::util {
 	/// <returns>__m256</returns>
 	[[nodiscard]] inline __m256 _mm256_abs_ps(const __m256& x) noexcept
 	{
-		const __m256 sign_mask = _mm256_set1_ps(-0.f);
+		constexpr __m256 sign_mask = {-0.0f, -0.0f, -0.0f, -0.0f, -0.0f, -0.0f, -0.0f, -0.0f};
 		return _mm256_andnot_ps(sign_mask, x);
 	}//End of _mm256_abs_ps
 
@@ -1491,7 +1562,7 @@ namespace tpa::util {
 	/// <returns>__m256d</returns>
 	[[nodiscard]] inline __m256d _mm256_abs_pd(const __m256d& x) noexcept
 	{
-		const __m256d sign_mask = _mm256_set1_pd(-0.0);
+		constexpr __m256d sign_mask = {-0.0, -0.0, -0.0, -0.0};
 		return _mm256_andnot_pd(sign_mask, x);
 	}//End of _mm256_abs_pd
 #endif

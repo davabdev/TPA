@@ -40,6 +40,8 @@
 #endif
 #endif
 
+#include "size_t_lit.hpp"
+
 /// <summary>
 /// <para>CPUID Functions</para>
 /// <para>By David Aaron Braun</para>
@@ -60,62 +62,287 @@ namespace tpa_cpuid_private {
 
 #if defined(_M_AMD64)        
         
-        //MMX
+#pragma region SIMD
+        /// <summary>
+        /// <para>CPU has Multi-Media eXtentions instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#techs=MMX</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
         bool MMX(void) const noexcept { return f_1_EDX_[23]; }
-        bool MMXEXT(void) const noexcept { return isAMD_ && f_81_EDX_[22]; }
-
-        //3D_Now!
-        bool _3DNOW(void) const noexcept { return isAMD_ && f_81_EDX_[31]; }
-        bool _3DNOWEXT(void) const noexcept { return isAMD_ && f_81_EDX_[30]; }
-
-        //SSE
-        bool SSE(void) const noexcept { return f_1_EDX_[25]; }
-        bool SSE2(void) const noexcept { return f_1_EDX_[26]; }
-        bool SSE3(void) const noexcept { return f_1_ECX_[0]; }
-        bool SSSE3(void) const noexcept { return f_1_ECX_[9]; }
-        bool SSE4a(void) const noexcept { return isAMD_ && f_81_ECX_[6]; }
-        bool SSE41(void) const noexcept { return f_1_ECX_[19]; }
-        bool SSE42(void) const noexcept { return f_1_ECX_[20]; }
-        bool XOP(void) const noexcept { return isAMD_ && f_81_ECX_[11]; }
-
-        //AVX
-        bool AVX(void) const noexcept { return f_1_ECX_[28]; }
-        bool AVX2(void) const noexcept { return f_7_EBX_[5]; }
-        bool FMA(void) const noexcept { return f_1_ECX_[12]; }
-        bool AVX_VNNI(void) const noexcept { return f_7_ECX_[4]; /*eax bit 4*/ }
-
-        //AVX-512 and extentions
-        bool AVX512F(void) const noexcept { return f_7_EBX_[16]; }
-        bool AVX512PF(void) const noexcept { return f_7_EBX_[26]; }
-        bool AVX512ER(void) const noexcept { return f_7_EBX_[27]; }
-        bool AVX512CD(void) const noexcept { return f_7_EBX_[28]; }
-
-        bool AVX512BW(void) const noexcept { return f_7_EBX_[30]; }
-        bool AVX512VL(void) const noexcept { return f_7_EBX_[31]; }
-        bool AVX512DQ(void) const noexcept { return f_7_EBX_[17]; }
-
-        bool IFMA(void) const noexcept { return f_7_EBX_[21]; }
-
-        bool VBMI(void) const noexcept { return f_7_ECX_[1]; }
-        bool VBMI2(void) const noexcept { return f_7_ECX_[6]; }
-
-        bool VNNI(void) const noexcept { return f_7_ECX_[11]; }
-        bool FOUR_VNNIW(void) const noexcept { return f_81_EDX_[2]; }
-        bool FOUR_MAPS(void) const noexcept { return f_81_EDX_[3]; }
-
-        bool VPOPCNTDQ(void) const noexcept { return f_7_EBX_[32]; }
-
-        bool BITALG(void) const noexcept { return f_7_ECX_[12]; }
-
-        bool VP2INTERSECT(void) const noexcept { return f_81_EDX_[8]; }
-
-        bool GFNI(void) const noexcept { return f_7_ECX_[8]; }
-        bool VPCLMULQDQ(void) const noexcept { return f_7_ECX_[10]; }
-        
-        bool PREFETCHWT1(void) const noexcept { return f_7_ECX_[0]; }
 
         /// <summary>
-        /// Knights Landing
+        /// <para>CPU has Extended Multi-Media eXtentions instructions if returns true</para>
+        /// <para>See: https://en.wikipedia.org/wiki/Extended_MMX</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool MMXEXT(void) const noexcept { return isAMD_ && f_81_EDX_[22]; }
+
+        /// <summary>
+        /// <para>CPU has 3DNow! instructions if returns true</para>
+        /// <para>See: https://en.wikipedia.org/wiki/3DNow!</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool _3DNOW(void) const noexcept { return isAMD_ && f_81_EDX_[31]; }
+
+        /// <summary>
+        /// <para>CPU has Extended 3DNow! / 3DNow! Enchanced / 3DNow!+ instructions if returns true</para>
+        /// <para>See: https://en.wikipedia.org/wiki/3DNow!</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool _3DNOWEXT(void) const noexcept { return isAMD_ && f_81_EDX_[30]; }
+
+        /// <summary>
+        /// <para>CPU has Streaming SIMD (Singe Instruction Multiple Data) Extentions instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#techs=SSE</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool SSE(void) const noexcept { return f_1_EDX_[25]; }
+
+        /// <summary>
+        /// <para>CPU has Streaming SIMD (Singe Instruction Multiple Data) Extentions 2.0 instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#techs=SSE2</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool SSE2(void) const noexcept { return f_1_EDX_[26]; }
+
+        /// <summary>
+        /// <para>CPU has Streaming SIMD (Singe Instruction Multiple Data) Extentions 3.0 instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#techs=SSE3</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool SSE3(void) const noexcept { return f_1_ECX_[0]; }
+
+        /// <summary>
+        /// <para>CPU has Supplemental Streaming SIMD (Singe Instruction Multiple Data) Extentions 3.0 instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#techs=SSSE3</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool SSSE3(void) const noexcept { return f_1_ECX_[9]; }
+
+        /// <summary>
+        /// <para>CPU has Streaming SIMD (Singe Instruction Multiple Data) Extentions 4.0a instructions if returns true</para>
+        /// <para>See: https://en.wikipedia.org/wiki/SSE4#SSE4a</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool SSE4a(void) const noexcept { return isAMD_ && f_81_ECX_[6]; }
+
+        /// <summary>
+        /// <para>CPU has Streaming SIMD (Singe Instruction Multiple Data) Extentions 4.1 instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#techs=SSE4_1</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool SSE41(void) const noexcept { return f_1_ECX_[19]; }
+
+        /// <summary>
+        /// <para>CPU has Streaming SIMD (Singe Instruction Multiple Data) Extentions 4.2 instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#techs=SSE4_2</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool SSE42(void) const noexcept { return f_1_ECX_[20]; }
+
+        /// <summary>
+        /// <para>CPU has eXtended Operations instructions if returns true</para>
+        /// <para>See: https://en.wikipedia.org/wiki/XOP_instruction_set</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool XOP(void) const noexcept { return isAMD_ && f_81_ECX_[11]; }
+
+        /// <summary>
+        /// <para>CPU has Advanced Vector eXtentions instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#techs=AVX</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool AVX(void) const noexcept { return f_1_ECX_[28]; }
+
+        /// <summary>
+        /// <para>CPU has Advanced Vector eXtentions 2.0 instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#techs=AVX2</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool AVX2(void) const noexcept { return f_7_EBX_[5]; }
+
+        /// <summary>
+        /// <para>CPU has Fused Multiply Add 3.0 instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#techs=FMA</para>
+        /// <para>Note: Older AMD CPUs may also support the FMA 4.0 instruction set. This function does not detect FMA 4.0 as FMA 4.0 has been removed on AMD since Zen1 and was never implemented on Intel. </para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool FMA(void) const noexcept { return f_1_ECX_[12]; }
+
+        /// <summary>
+        /// <para>CPU has Advanced Vector eXtentions Vector Neural Network Instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#techs=AVX_VNNI</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool AVX_VNNI(void) const noexcept { return f_7_ECX_[4]; /*eax bit 4*/ }
+
+        /// <summary>
+        /// <para>CPU has Advanced Vector eXtentions 512-Bit Foundation instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#avx512techs=AVX512F</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool AVX512F(void) const noexcept { return f_7_EBX_[16]; }
+
+        /// <summary>
+        /// <para>CPU has Advanced Vector eXtentions 512-Bit Prefetch instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#avx512techs=AVX512PF</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool AVX512PF(void) const noexcept { return f_7_EBX_[26]; }
+
+        /// <summary>
+        /// <para>CPU has Advanced Vector eXtentions 512-Bit Exponential and Reciprocal Instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#avx512techs=AVX512ER</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool AVX512ER(void) const noexcept { return f_7_EBX_[27]; }
+
+        /// <summary>
+        /// <para>CPU has Advanced Vector eXtentions 512-Bit Conflict Detection Instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#avx512techs=AVX512CD</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool AVX512CD(void) const noexcept { return f_7_EBX_[28]; }
+
+        /// <summary>
+        /// <para>CPU has Advanced Vector eXtentions 512-Bit Byte and Word Instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#avx512techs=AVX512BW</para>
+        /// <para>512-bit vector operations overloaded for vectors of bytes (unsigned char / uint8_t / char / int8_t) and shorts (uint16_t / int16_t)</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool AVX512BW(void) const noexcept { return f_7_EBX_[30]; }
+
+        /// <summary>
+        /// <para>CPU has Advanced Vector eXtentions 512-Bit Vector Length Extensions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#avx512techs=AVX512VL</para>
+        /// <para>AVX512-VL provides 128-bit and 256-bit overloads for most AVX-512 instructions</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool AVX512VL(void) const noexcept { return f_7_EBX_[31]; }
+
+        /// <summary>
+        /// <para>CPU has Advanced Vector eXtentions 512-Bit Doubleword and Quadword Instructions Instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#avx512techs=AVX512DQ</para>
+        /// <para>Essential instructions for bitwise operations on floats (from SSE and AVX) as well as 64-bit integer multiply</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool AVX512DQ(void) const noexcept { return f_7_EBX_[17]; }
+
+        /// <summary>
+        /// <para>CPU has Advanced Vector eXtentions 512-Bit Integer Fused Multiply Add Instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#avx512techs=AVX512IFMA52</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool IFMA(void) const noexcept { return f_7_EBX_[21]; }
+
+        /// <summary>
+        /// <para>CPU has Advanced Vector eXtentions 512-Bit Vector Byte Manipulation 1.0 Instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#avx512techs=AVX512_VBMI</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool VBMI(void) const noexcept { return f_7_ECX_[1]; }
+
+        /// <summary>
+        /// <para>CPU has Advanced Vector eXtentions 512-Bit Vector Byte Manipulation 2.0 Instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#avx512techs=AVX512_VBMI2</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool VBMI2(void) const noexcept { return f_7_ECX_[6]; }
+
+        /// <summary>
+        /// <para>CPU has Advanced Vector eXtentions 512-Bit Vector Neural Network Instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#avx512techs=AVX512_VNNI</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool VNNI(void) const noexcept { return f_7_ECX_[11]; }
+
+        /// <summary>
+        /// <para>CPU has Advanced Vector eXtentions 512-Bit Vector Neural Network Instructions Word variable precision Instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#avx512techs=AVX512_4VNNIW</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool FOUR_VNNIW(void) const noexcept { return f_81_EDX_[2]; }
+
+        /// <summary>
+        /// <para>CPU has Advanced Vector eXtentions 512-Bit Vector Fused Multiply Accumulation Packed Single precision Instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#avx512techs=AVX512_4FMAPS</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool FOUR_MAPS(void) const noexcept { return f_81_EDX_[3]; }
+
+        /// <summary>
+        /// <para>CPU has Advanced Vector eXtentions 512-Bit Vector Population Count Instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#avx512techs=AVX512VPOPCNTDQ</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool VPOPCNTDQ(void) const noexcept { return f_7_EBX_[32]; }
+
+        /// <summary>
+        /// <para>CPU has Advanced Vector eXtentions 512-Bit Bit Algorithms Instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#avx512techs=AVX512_BITALG</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool BITALG(void) const noexcept { return f_7_ECX_[12]; }
+
+        /// <summary>
+        /// <para>CPU has Advanced Vector eXtentions 512-Bit Vector Pair Intersection Instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#avx512techs=AVX512_VP2INTERSECT</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool VP2INTERSECT(void) const noexcept { return f_81_EDX_[8]; }
+
+        /// <summary>
+        /// <para>CPU has Advanced Vector eXtentions 512-Bit Galois Field Instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#othertechs=GFNI</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool GFNI(void) const noexcept { return f_7_ECX_[8]; }
+
+        /// <summary>
+        /// <para>CPU has Advanced Vector eXtentions 512-Bit Carry-Less Multiply Instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#othertechs=VPCLMULQDQ </para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool VPCLMULQDQ(void) const noexcept { return f_7_ECX_[10]; }
+        
+        /// <summary>
+        /// <para>CPU has Knights Landing Architecture if returns true</para>
+        /// <para>(AVX-512F, CD, ER, PF)</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#techs=KNC</para>
         /// </summary>
         /// <param name=""></param>
         /// <returns></returns>
@@ -125,56 +352,216 @@ namespace tpa_cpuid_private {
                 f_7_EBX_[27] && f_7_EBX_[26];
         }
 
-        //AMX
-        bool AMXBF16(void) const noexcept { return f_81_EDX_[22]; /*eax bit 5*/ }
+#pragma endregion 
+
+        /// <summary>
+        /// <para>CPU has Advanced Vector eXtension 512-Bit (Brain Float 16) Instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#avx512techs=AVX512_BF16</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
         bool AVX512_FP16(void) const noexcept { return f_81_EDX_[23]; }
+
+        /// <summary>
+        /// <para>CPU has Advanced Matrix eXtension (Brain Float 16) Instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#amxtechs=AMXBF16</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool AMXBF16(void) const noexcept { return f_81_EDX_[22]; /*eax bit 5*/ }
+           
+        /// <summary>
+        /// <para>CPU has Advanced Matrix eXtension Tile Instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#amxtechs=AMXTILE</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
         bool AMXTILE(void) const noexcept { return f_81_EDX_[24]; }
+
+        /// <summary>
+        /// <para>CPU has Advanced Matrix eXtension (byte/ char) Instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#amxtechs=AMXINT8</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
         bool AMXINT8(void) const noexcept { return f_81_EDX_[25]; }
 
-        /*
-        * Cryptography & Security
-        */
-
+#pragma region security
+        /// <summary>
+        /// <para>CPU has Advanced Encryption Standard Instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#othertechs=AES</para>
+        /// <para>See also: https://en.wikipedia.org/wiki/Advanced_Encryption_Standard</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
         bool AES(void) const noexcept { return f_1_ECX_[25]; }
 
-        //AVX-512 (Vector AES)
+        /// <summary>
+        /// <para>CPU has Advanced Vector eXtensions (512-Bit) Advanced Encryption Standard Instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#othertechs=VAES</para>
+        /// <para>See also: https://en.wikipedia.org/wiki/Advanced_Encryption_Standard</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
         bool VAES(void) const noexcept { return f_7_ECX_[9]; }
 
+        /// <summary>
+        /// <para>CPU has Secure Hash Algorithim Instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#othertechs=SHA</para>
+        /// <para>See also: https://en.wikipedia.org/wiki/Secure_Hash_Algorithms</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
         bool SHA(void) const noexcept { return f_7_EBX_[29]; }
 
+        /// <summary>
+        /// <para>CPU has Software Guard eXtention Instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#ig_expand=3769,2723&text=sgx</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
         bool SGX(void) const noexcept { return f_7_EBX_[2]; }
 
+        /// <summary>
+        /// <para>CPU has Keylocker Instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#othertechs=KEYLOCKER</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
         bool KEYLOCKER(void) const noexcept { return f_1_ECX_[23]; }
-        bool AESKLE(void) const noexcept { return f_7_EBX_[0]; }
 
-        //Suppervisor Mode Access Prevention
+        /// <summary>
+        /// <para>CPU has Keylocker Wide Instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#othertechs=KEYLOCKER_WIDE</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool KEYLOCKER_WIDE(void) const noexcept { return f_7_EBX_[0]; }
+
+        // <summary>
+        /// <para>CPU has Supervisor Mode Access Prevention if returns true</para>
+        /// <para>See: https://en.wikipedia.org/wiki/Supervisor_Mode_Access_Prevention</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
         bool SMAP(void) const noexcept { return f_7_EBX_[20]; }
 
-        //Suppervisor Mode Execution Prevention
+        /// <summary>
+        /// <para>CPU has Supervisor Mode Execution Prevention if returns true</para>
+        /// <para>See: https://en.wikipedia.org/wiki/Supervisor_Mode_Access_Prevention</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
         bool SMEP(void) const noexcept { return f_7_EBX_[7]; }
 
-        //User Mode Instruction Prevention
+        /// <summary>
+        /// <para>CPU has User Mode Instruction Prevention if returns true</para>
+        /// <para>See: https://cateee.net/lkddb/web-lkddb/X86_INTEL_UMIP.html</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
         bool UMIP(void) const noexcept { return f_1_ECX_[2]; }
 
-        //Protected Keys for Suppervisor Mode
+        /// <summary>
+        /// <para>CPU has Protected Keys for Supervisor Mode if returns true</para>
+        /// <para>See: https://en.wikipedia.org/wiki/Supervisor_Mode_Access_Prevention</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
         bool PKS(void) const noexcept { return f_1_ECX_[31]; }
 
-        //Protected Keys for User Mode
+        /// <summary>
+        /// <para>CPU has Protected Keys for User Mode if returns true</para>
+        /// <para>See: https://en.wikipedia.org/wiki/Supervisor_Mode_Access_Prevention</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
         bool PKU(void) const noexcept { return f_7_ECX_[3]; }
-        bool OSPKE(void) const noexcept {  return f_7_ECX_[4]; }
 
+        /// <summary>
+        /// <para>CPU has Operating System Protected Keys for User Mode if returns true</para>
+        /// <para>See: https://en.wikipedia.org/wiki/Supervisor_Mode_Access_Prevention</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool OSPKE(void) const noexcept { return f_7_ECX_[4]; }
+
+        /// <summary>
+        /// <para>CPU has Trusted Domain eXtensions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/developer/articles/technical/intel-trust-domain-extensions.html</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
         bool TDX(void) const noexcept { return false; }
 
+        /// <summary>
+        /// <para>CPU has Virtual Machine eXtensions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/develop/documentation/debug-extensions-windbg-hyper-v-user-guide/top/vmx-instructions-for-intel-64-and-ia-32-architectures.html</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
         bool VMX(void) const noexcept { return f_1_ECX_[5]; }
+
+        /// <summary>
+        /// <para>CPU has Safe Mode eXtensions if returns true</para>
+        /// <para>See: https://en.wikipedia.org/wiki/Safe_mode</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
         bool SMX(void) const noexcept { return f_1_ECX_[6]; }
 
-        //Bit Manipulation
+#pragma endregion
+
+#pragma region bit_mapiulation 
+        /// <summary>
+        /// <para>CPU has Bit Manipulation Instructions 1.0 if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#othertechs=BMI1</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
         bool BMI1(void) const noexcept { return f_7_EBX_[3]; }
+
+        /// <summary>
+        /// <para>CPU has Bit Manipulation Instructions 2.0 if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#othertechs=BMI2</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
         bool BMI2(void) const noexcept { return f_7_EBX_[8]; }
+
+        /// <summary>
+        /// <para>CPU has Advanced Bit Manipulation Instructions if returns true</para>
+        /// <para>See: https://en.wikipedia.org/wiki/X86_Bit_manipulation_instruction_set#ABM_(Advanced_Bit_Manipulation)</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
         bool ABM(void) const noexcept { return isAMD_ && f_81_ECX_[5]; }
+
+        /// <summary>
+        /// <para>CPU has Trailing Bit Manipulation Instructions if returns true</para>
+        /// <para>See: https://en.wikipedia.org/wiki/X86_Bit_manipulation_instruction_set#TBM_(Trailing_Bit_Manipulation)</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
         bool TBM(void) const noexcept { return isAMD_ && f_81_ECX_[21]; }
+
+        /// <summary>
+        /// <para>CPU has Population Count Instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#othertechs=POPCNT</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
         bool POPCNT(void) const noexcept { return f_1_ECX_[23]; }
+
+        /// <summary>
+        /// <para>CPU has Leading-Zero Count Instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#othertechs=LZCNT</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
         bool LZCNT(void) const noexcept { return isIntel_ && f_81_ECX_[5]; }
+
+#pragma endregion
 
         //Advanced Move Instructions
         bool CMOV(void) const noexcept { return f_1_EDX_[15]; }
@@ -243,6 +630,14 @@ namespace tpa_cpuid_private {
         bool RDTSCP(void) const noexcept { return isIntel_ && f_81_EDX_[27]; }
 
         /// <summary>
+        /// <para>CPU has the Prefetch Instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#othertechs=PREFETCHWT1</para>
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool PREFETCHWT1(void) const noexcept { return f_7_ECX_[0]; }
+
+        /// <summary>
         /// <para>Prints the 'common' or 'interesting' CPU features to the console.</para>
         /// <para>This is not an exhaustive list, the InstructionSet class has many more functions available and is capable of determining the presence of all CPU features known as of 2021-10-28.</para>
         /// </summary>
@@ -298,6 +693,21 @@ namespace tpa_cpuid_private {
 
             std::cout << std::left << std::setw(21) << "XOP: " <<
                 std::setw(25) << std::setfill(' ') << std::boolalpha << XOP() << "\n";
+
+            std::cout << std::left << std::setw(21) << "BMI1: " <<
+                std::setw(25) << std::setfill(' ') << std::boolalpha << BMI1() << "\n";
+
+            std::cout << std::left << std::setw(21) << "BMI2: " <<
+                std::setw(25) << std::setfill(' ') << std::boolalpha << BMI2() << "\n";
+
+            std::cout << std::left << std::setw(21) << "POPCNT: " <<
+                std::setw(25) << std::setfill(' ') << std::boolalpha << POPCNT() << "\n";
+
+            std::cout << std::left << std::setw(21) << "LZCNT: " <<
+                std::setw(25) << std::setfill(' ') << std::boolalpha << LZCNT() << "\n";
+
+            std::cout << std::left << std::setw(21) << "ABM: " <<
+                std::setw(25) << std::setfill(' ') << std::boolalpha << ABM() << "\n";
 
             std::cout << std::left << std::setw(21) << "AVX: " <<
                 std::setw(25) << std::setfill(' ') << std::boolalpha << AVX() << "\n";
@@ -412,7 +822,7 @@ namespace tpa_cpuid_private {
             CPUID(cpui.data(), 0);
             nIds_ = cpui[0];
 
-            for (size_t i = 0; i <= nIds_; ++i)
+            for (size_t i = 0uz; i <= nIds_; ++i)
             {
                 CPUIDEX(cpui.data(), static_cast<int32_t>(i), 0);
                 data_.emplace_back(cpui);
@@ -518,8 +928,8 @@ static const bool has_SSE = runtime_instruction_set.SSE();//Automatically set to
 static const bool has_SSE2 = runtime_instruction_set.SSE2();//Automatically set to true if system has SSE2 at runtime
 static const bool has_SSE3 = runtime_instruction_set.SSE3();//Automatically set to true if system has SSE3 at runtime
 static const bool has_SSSE3 = runtime_instruction_set.SSSE3();//Automatically set to true if system has SSSE3 at runtime
-static const bool has_SSE41 = runtime_instruction_set.SSE41();//Automatically set to true if system has SSE41 at runtime
-static const bool has_SSE42 = runtime_instruction_set.SSE42();//Automatically set to true if system has SSE42 at runtime
+static const bool has_SSE41 = runtime_instruction_set.SSE41();//Automatically set to true if system has SSE4.1 at runtime
+static const bool has_SSE42 = runtime_instruction_set.SSE42();//Automatically set to true if system has SSE4.2 at runtime
 
 static const bool hasAVX = runtime_instruction_set.AVX();//Automatically set to true if system has AVX at runtime
 static const bool hasAVX2 = runtime_instruction_set.AVX2();//Automatically set to true if system has AVX2 at runtime
@@ -527,6 +937,13 @@ static const bool hasFMA = runtime_instruction_set.FMA();//Automatically set to 
 static const bool hasAVX512 = runtime_instruction_set.AVX512F();//Automatically set to true if system has AVX512 (foundation) at runtime
 static const bool hasAVX512_ByteWord = runtime_instruction_set.AVX512BW();//Automatically set to true if system has AVX512 Byte & Word Instructions at runtime
 static const bool hasAVX512_DWQW = runtime_instruction_set.AVX512DQ();//Automatically set to true if system has AVX512 Double-Word and Quad-Word Instructions at runtime
+
+static const bool hasBMI1 = runtime_instruction_set.BMI1();//Automatically set to true if system has BMI1 Instructions at runtime
+static const bool hasBMI2 = runtime_instruction_set.BMI2();//Automatically set to true if system has BMI2 Instructions at runtime
+static const bool hasPOPCNT = runtime_instruction_set.POPCNT();//Automatically set to true if system has POP COUNT Instructions at runtime
+static const bool hasLZCNT = runtime_instruction_set.LZCNT();//Automatically set to true if system has Leading Zero Count Instructions at runtime
+static const bool hasABM = runtime_instruction_set.ABM();//Automatically set to true if system has ABM Instructions at runtime
+
 #elif defined(_M_ARM64)
     
 static const bool hasNeon = runtime_instruction_set.NEON(); // Automatically set to true if system has NEON Instructions at compile time (required for TPA on ARM)

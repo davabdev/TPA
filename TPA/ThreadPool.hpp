@@ -24,6 +24,9 @@
 #include <future>
 #include <memory>
 
+#include "InstructionSet.hpp"
+#include "size_t_lit.hpp"
+
 //#define USE_GENERIC_THREAD_POOL
 
 /// <summary>
@@ -142,17 +145,16 @@ namespace tpa_thread_pool_private {
 
 			//Prepare Threads
 			threads.reserve(tpa::nThreads);
-			for (size_t i = 0; i != tpa::nThreads; ++i)
+			for (size_t i = 0uz; i != tpa::nThreads; ++i)
 			{
 				threads.emplace_back(CreateThread(NULL, 0, StaticThreadStart, NULL, 0, NULL));
-			}//End for 
+			}//End for
 
-			//Set to higher priority
-			for (size_t i = 0; i != threads.size(); ++i)
+			//Set to higher priority and pin each thread to a logical core
+			for (size_t i = 0uz; i < threads.size(); ++i)
 			{
 				SetThreadPriority(threads[i], THREAD_PRIORITY_HIGHEST);
-				//SetThreadIdealProcessor(threads[i], static_cast<DWORD>(0));
-				//SetThreadAffinityMask(threads[i], static_cast<DWORD_PTR>(1 << i));
+				SetThreadAffinityMask(threads[i], static_cast<DWORD_PTR>(1ull << i));
 			}//End for
 
 			//Set Barrier
@@ -304,7 +306,7 @@ namespace tpa_thread_pool_private {
 #endif
 			//Prepare Threads
 			threads.reserve(tpa::nThreads);
-			for (size_t i = 0; i != tpa::nThreads; ++i)
+			for (size_t i = 0uz; i != tpa::nThreads; ++i)
 			{
 				threads.emplace_back([this] { this->performTask(); });
 			}//End for 
