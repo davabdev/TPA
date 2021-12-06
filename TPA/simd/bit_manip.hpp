@@ -20,8 +20,8 @@
 #include <future>
 #include <iostream>
 #include <functional>
-#include <vector>
-#include <array>
+#include <bitset>
+#include <bit>
 
 #ifdef _M_AMD64
 #include <immintrin.h>
@@ -36,7 +36,656 @@
 #include "../_util.hpp"
 #include "../ThreadPool.hpp"
 #include "../excepts.hpp"
+#include "../size_t_lit.hpp"
 
+/// <summary>
+/// <para>Truly Parallel Algorithms</para>
+/// <para>Bit Manipulation Functions.</para>
+/// <para>By David Aaron Braun</para>
+/// <para>Version 0.1</para> 
+/// </summary>
+namespace tpa::bit_manip
+{
+	/// <summary>
+	/// <para>Sets a bit to 1 at the specified position</para>
+	/// <para>The bit to be set must be within the bounds of 'x'</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <param name="pos"></param>
+	/// <returns></returns>
+	template<typename T>
+	inline void set(T& x, const uint64_t pos)
+	{
+		try
+		{
+			//Check Bounds
+			if (pos < 0ull || pos > static_cast<uint64_t>((sizeof(T) * CHAR_BIT)-1))
+			{
+				throw std::out_of_range("Position must be within the bounds of T");
+			}//End if
+
+			if constexpr (std::is_integral<T>())
+			{
+				x = (1ull << pos) | x;
+			}//End if
+			else if constexpr (std::is_same<T, float>())
+			{
+				int32_t x_as_int = *reinterpret_cast<int32_t*>(&x);
+
+				x_as_int = (1ull << pos) | x_as_int;
+
+				x = *reinterpret_cast<float*>(&x_as_int);
+			}//End if
+			else if constexpr (std::is_same<T, double>())
+			{
+				int64_t x_as_int = *reinterpret_cast<int64_t*>(&x);
+
+				x_as_int = (1ull << pos) | x_as_int;
+
+				x = *reinterpret_cast<double*>(&x_as_int);
+			}//End if
+			else
+			{
+				[] <bool flag = false>()
+				{
+					static_assert(flag, "Non-standard types are not supported.");
+				}();
+			}//End else
+		}//End of try
+		catch (const std::exception& ex)
+		{
+			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
+			std::cerr << "Exception thrown in tpa::bit_manip::set: " << ex.what() << "\n";
+		}//End catch
+		catch (...)
+		{
+			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
+			std::cerr << "Exception thrown in tpa::bit_manip::set: unknown!\n";
+		}//End catch
+	}//End of set
+
+	/// <summary>
+	/// <para>Sets a bit to 0 at the specified position</para>
+	/// <para>The bit to be cleared must be within the bounds of 'x'</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <param name="pos"></param>
+	/// <returns></returns>
+	template<typename T>
+	inline void clear(T& x, const uint64_t pos)
+	{
+		try
+		{
+			//Check Bounds
+			if (pos < 0ull || pos > static_cast<uint64_t>((sizeof(T) * CHAR_BIT) - 1))
+			{
+				throw std::out_of_range("Position must be within the bounds of T");
+			}//End if
+
+			if constexpr (std::is_integral<T>())
+			{
+				x = ~(1ull << pos) & x;
+			}//End if
+			else if constexpr (std::is_same<T, float>())
+			{
+				int32_t x_as_int = *reinterpret_cast<int32_t*>(&x);
+
+				x_as_int = ~(1ull << pos) & x_as_int;
+
+				x = *reinterpret_cast<float*>(&x_as_int);
+			}//End if
+			else if constexpr (std::is_same<T, double>())
+			{
+				int64_t x_as_int = *reinterpret_cast<int64_t*>(&x);
+
+				x_as_int = ~(1ull << pos) & x_as_int;
+
+				x = *reinterpret_cast<double*>(&x_as_int);
+			}//End if
+			else
+			{
+				[] <bool flag = false>()
+				{
+					static_assert(flag, "Non-standard types are not supported.");
+				}();
+			}//End else
+		}//End of try
+		catch (const std::exception& ex)
+		{
+			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
+			std::cerr << "Exception thrown in tpa::bit_manip::clear: " << ex.what() << "\n";
+		}//End catch
+		catch (...)
+		{
+			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
+			std::cerr << "Exception thrown in tpa::bit_manip::clear: unknown!\n";
+		}//End catch
+	}//End of bit_clear
+
+	/// <summary>
+	/// <para>Toggles (flips) a bit at the specified position</para>
+	/// <para>The bit to be toggled must be within the bounds of 'x'</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <param name="pos"></param>
+	/// <returns></returns>
+	template<typename T>
+	inline void toggle(T& x, const uint64_t pos)
+	{
+		try
+		{
+			//Check Bounds
+			if (pos < 0ull || pos > static_cast<uint64_t>((sizeof(T) * CHAR_BIT) - 1))
+			{
+				throw std::out_of_range("Position must be within the bounds of T");
+			}//End if
+
+			if constexpr (std::is_integral<T>())
+			{
+				x = (1ull << pos) ^ x;
+			}//End if
+			else if constexpr (std::is_same<T, float>())
+			{
+				int32_t x_as_int = *reinterpret_cast<int32_t*>(&x);
+
+				x_as_int = (1ull << pos) ^ x_as_int;
+
+				x = *reinterpret_cast<float*>(&x_as_int);
+			}//End if
+			else if constexpr (std::is_same<T, double>())
+			{
+				int64_t x_as_int = *reinterpret_cast<int64_t*>(&x);
+
+				x_as_int = (1ull << pos) ^ x_as_int;
+
+				x = *reinterpret_cast<double*>(&x_as_int);
+			}//End if
+			else
+			{
+				[] <bool flag = false>()
+				{
+					static_assert(flag, "Non-standard types are not supported.");
+				}();
+			}//End else
+		}//End of try
+		catch (const std::exception& ex)
+		{
+			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
+			std::cerr << "Exception thrown in tpa::bit_manip::toggle: " << ex.what() << "\n";
+		}//End catch
+		catch (...)
+		{
+			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
+			std::cerr << "Exception thrown in tpa::bit_manip::toggle: unknown!\n";
+		}//End catch
+	}//End of toggle
+
+	/// <summary>
+	/// <para>Sets all trailing zeros (0) to one (1)</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <returns></returns>
+	template<typename T>
+	inline void set_trailing_zeros(T& x) noexcept
+	{
+		if constexpr (std::is_integral<T>())
+		{
+			x = (x - 1) | x;
+		}//End if
+		else if constexpr (std::is_same<T, float>())
+		{
+			int32_t x_as_int = *reinterpret_cast<int32_t*>(&x);
+
+			x_as_int = (x_as_int - 1) | x_as_int;
+
+			x = *reinterpret_cast<float*>(&x_as_int);
+		}//End if
+		else if constexpr (std::is_same<T, double>())
+		{
+			int64_t x_as_int = *reinterpret_cast<int64_t*>(&x);
+
+			x_as_int = (x_as_int - 1) | x_as_int;
+
+			x = *reinterpret_cast<double*>(&x_as_int);
+		}//End if
+		else
+		{
+			[] <bool flag = false>()
+			{
+				static_assert(flag, "Non-standard types are not supported.");
+			}();
+		}//End else		
+	}//End of set_trailing_zeros
+
+	/// <summary>
+	/// <para>Sets all trailing ones (1) to zero (0)</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <returns></returns>
+	template<typename T>
+	inline void clear_trailing_ones(T& x) noexcept
+	{
+		if constexpr (std::is_integral<T>())
+		{
+			x = (x + 1) & x;
+		}//End if
+		else if constexpr (std::is_same<T, float>())
+		{
+			int32_t x_as_int = *reinterpret_cast<int32_t*>(&x);
+
+			x_as_int = (x_as_int + 1) & x_as_int;
+
+			x = *reinterpret_cast<float*>(&x_as_int);
+		}//End if
+		else if constexpr (std::is_same<T, double>())
+		{
+			int64_t x_as_int = *reinterpret_cast<int64_t*>(&x);
+
+			x_as_int = (x_as_int + 1) & x_as_int;
+
+			x = *reinterpret_cast<double*>(&x_as_int);
+		}//End if
+		else
+		{
+			[] <bool flag = false>()
+			{
+				static_assert(flag, "Non-standard types are not supported.");
+			}();
+		}//End else		
+	}//End of set_trailing_zeros
+
+	/// <summary>
+	/// <para>Sets all leading zeros (0) to one (1)</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <returns></returns>
+	template<typename T>
+	inline void set_leading_zeros(T& x) noexcept
+	{
+		if constexpr (std::is_integral<T>())
+		{
+			int32_t count = 0;
+			int32_t copy = x;
+
+			while (!(copy & (~INT_MAX)))
+			{
+				count++;
+				copy <<= 1;
+			}//End while
+
+			for (int32_t i = 0; i < count; ++i)
+			{
+				tpa::bit_manip::set(x, (((sizeof(T) * CHAR_BIT)-1) - i));
+			}//End for
+
+			x = *reinterpret_cast<float*>(&x);
+		}//End if
+		else if constexpr (std::is_same<T, float>())
+		{
+			int32_t x_as_int = *reinterpret_cast<int32_t*>(&x);
+
+			int32_t count = 0;
+			int32_t copy = x_as_int;
+
+			while (!(copy & (~INT_MAX)))
+			{
+				count++;
+				copy <<= 1;
+			}//End while
+
+			for (int32_t i = 0; i < count; ++i)
+			{
+				tpa::bit_manip::set(x_as_int, (((sizeof(float) * CHAR_BIT)-1) -i));
+			}//End for
+
+			x = *reinterpret_cast<float*>(&x_as_int);
+		}//End if
+		else if constexpr (std::is_same<T, double>())
+		{
+			int64_t x_as_int = *reinterpret_cast<int64_t*>(&x);
+
+			int64_t count = 0;
+			int64_t copy = x_as_int;
+
+			while (!(copy & (~INT_MAX)))
+			{
+				count++;
+				copy <<= 1;
+			}//End while
+
+			for (int64_t i = 0; i < count; ++i)
+			{
+				tpa::bit_manip::set(x_as_int, (((sizeof(double)*CHAR_BIT)-1) - i));
+			}//End for
+
+			x = *reinterpret_cast<double*>(&x_as_int);
+		}//End if
+		else
+		{
+			[] <bool flag = false>()
+			{
+				static_assert(flag, "Non-standard types are not supported.");
+			}();
+		}//End else		
+	}//End of set_leading_zeros
+
+	/// <summary>
+	/// <para>Sets all leading ones (1) to zero (0)</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <returns></returns>
+	template<typename T>
+	inline void clear_leading_ones(T& x) noexcept
+	{
+		if constexpr (std::is_integral<T>())
+		{
+			x = -x & x;
+		}//End if
+		else if constexpr (std::is_same<T, float>())
+		{
+			int32_t x_as_int = *reinterpret_cast<int32_t*>(&x);
+
+			x_as_int = -x_as_int & (x_as_int);
+
+			x = *reinterpret_cast<float*>(&x_as_int);
+		}//End if
+		else if constexpr (std::is_same<T, double>())
+		{
+			int64_t x_as_int = *reinterpret_cast<int64_t*>(&x);
+
+			x_as_int = -x_as_int & x_as_int;
+
+			x = *reinterpret_cast<double*>(&x_as_int);
+		}//End if
+		else
+		{
+			[] <bool flag = false>()
+			{
+				static_assert(flag, "Non-standard types are not supported.");
+			}();
+		}//End else		
+	}//End of clear_leading_ones
+
+	/// <summary>
+	/// <para>Extracts the lowest set 1 bit</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <returns></returns>
+	template<typename T>
+	inline T extract_lsb(T& x) noexcept
+	{
+		T ret = {};
+
+		if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>() ||
+			std::is_same<T, int16_t>() || std::is_same<T, uint16_t>())
+		{
+			ret = x & -x;
+		}//End if
+		else if constexpr (std::is_same<T, int32_t>() || std::is_same<T, uint32_t>())
+		{
+#ifdef _M_AMD64
+			if (tpa::hasBMI1)
+			{
+				ret = _blsi_u32(x);
+			}//End if
+			else
+			{
+				ret = x & -x;
+			}//End else
+#else
+			ret = x & -x;
+#endif
+		}//End if
+		else if constexpr (std::is_same<T, int64_t>() || std::is_same<T, uint64_t>())
+		{
+#ifdef _M_AMD64
+			if (tpa::hasBMI1)
+			{
+				ret = _blsi_u64(x);
+			}//End if
+			else
+			{
+				ret = x & -x;
+			}//End else
+#else
+			ret = x & -x;
+#endif
+		}//End if
+		else if constexpr (std::is_same<T, float>())
+		{
+			int32_t x_as_int = *reinterpret_cast<int32_t*>(&x);
+
+#ifdef _M_AMD64
+			if (tpa::hasBMI1)
+			{
+				x_as_int = _blsi_u32(x_as_int);
+			}//End if
+			else
+			{
+				x_as_int = x_as_int & -x_as_int;
+			}//End else
+#else
+			x_as_int = x_as_int & -x_as_int;
+#endif
+
+			ret = *reinterpret_cast<float*>(&x_as_int);
+		}//End if
+		else if constexpr (std::is_same<T, double>())
+		{
+			int64_t x_as_int = *reinterpret_cast<int64_t*>(&x);
+
+#ifdef _M_AMD64
+			if (tpa::hasBMI1)
+			{
+				x_as_int = _blsi_u64(x_as_int);
+			}//End if
+			else
+			{
+				x_as_int = x_as_int & -x_as_int;
+			}//End else
+#else
+			x_as_int = x_as_int & -x_as_int;
+#endif
+
+			ret = *reinterpret_cast<double*>(&x_as_int);
+		}//End if
+		else
+		{
+			[] <bool flag = false>()
+			{
+				static_assert(flag, "Non-standard types are not supported.");
+			}();
+		}//End else
+
+		return ret;
+	}//End of extract_lsb
+
+	/// <summary>
+	/// <para>Extracts the highest (most significant) set 1 bit</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <returns></returns>
+	template<typename T>
+	inline T extract_msb(T& x) noexcept
+	{
+		T ret = {};
+
+		if constexpr (std::is_integral<T>())
+		{
+			x |= (x >> 1);
+			x |= (x >> 2);
+			x |= (x >> 4);
+			x |= (x >> 8);
+			x |= (x >> 16);
+			ret = x - (x >> 1);
+
+		}//End if
+		else if constexpr (std::is_same<T, float>())
+		{
+			uint32_t x_as_int = *reinterpret_cast<uint32_t*>(&x);
+			
+			x_as_int |= (x_as_int >> 1);
+			x_as_int |= (x_as_int >> 2);
+			x_as_int |= (x_as_int >> 4);
+			x_as_int |= (x_as_int >> 8);
+			x_as_int |= (x_as_int >> 16);
+			x_as_int = x_as_int - (x_as_int >> 1);
+
+			ret = *reinterpret_cast<float*>(&x_as_int);
+		}//End if
+		else if constexpr (std::is_same<T, double>())
+		{
+			int64_t x_as_int = *reinterpret_cast<int64_t*>(&x);
+
+			x_as_int |= (x_as_int >> 1);
+			x_as_int |= (x_as_int >> 2);
+			x_as_int |= (x_as_int >> 4);
+			x_as_int |= (x_as_int >> 8);
+			x_as_int |= (x_as_int >> 16);
+			x_as_int |= (x_as_int >> 32);
+			x_as_int = x_as_int - (x_as_int >> 1);
+
+			ret = *reinterpret_cast<double*>(&x_as_int);
+		}//End if
+		else
+		{
+			[] <bool flag = false>()
+			{
+				static_assert(flag, "Non-standard types are not supported.");
+			}();
+		}//End else
+
+		return ret;
+	}//End of extract_msb
+
+	/// <summary>
+	/// <para>Returns the number of set one (1) bits in 'x'</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <returns></returns>
+	template<typename T>
+	inline constexpr uint32_t pop_count(T& x) noexcept
+	{
+		if constexpr (std::is_integral<T>())
+		{
+#ifdef _M_AMD64
+			if (tpa::hasPOPCNT)
+			{
+				if constexpr (std::is_same<T, uint64_t>() || std::is_same<T, int64_t>())
+				{
+					return _mm_popcnt_u64(x);
+				}//End if
+				else
+				{
+					return _mm_popcnt_u32(x);
+				}//End else
+			}//End if
+			else
+			{
+				uint32_t c = 0;
+				for (; x != 0; ++c)
+				{
+					x = x & (x - 1);
+				}//End for
+
+				return c;
+#else
+			uint32_t c = 0;
+			for (; x != 0; ++c)
+			{
+				x = x & (x - 1);
+			}//End for
+
+			return c;
+#endif
+#ifdef _M_AMD64
+			}//End else
+#endif
+		}//End if
+		else if constexpr (std::is_same<T, float>())
+		{
+			uint32_t temp = *reinterpret_cast<uint32_t*>(&x);
+#ifdef _M_AMD64
+			if (tpa::hasPOPCNT)
+			{
+				return _mm_popcnt_u32(temp);
+			}//End if
+			else
+			{
+				uint32_t c = 0;
+				for (; temp != 0; ++c)
+				{
+					temp = temp & (temp - 1);
+				}//End for
+
+				return c;
+			}//End else
+#else
+			uint32_t c = 0;
+			for (; temp != 0; ++c)
+			{
+				temp = temp & (temp - 1);
+			}//End for
+
+			return c;
+#endif
+#ifdef _M_AMD64
+		}//End if
+#endif
+		else if constexpr (std::is_same<T, double>())
+		{
+			uint64_t temp = *reinterpret_cast<uint64_t*>(&x);
+#ifdef _M_AMD64
+			if (tpa::hasPOPCNT)
+			{
+				return _mm_popcnt_u64(temp);
+			}//End if
+			else
+			{
+				uint32_t c = 0;
+				for (; temp != 0; ++c)
+				{
+					temp = temp & (temp - 1);
+				}//End for
+
+				return c;
+#else
+			uint32_t c = 0;
+			for (; temp != 0; ++c)
+			{
+				temp = temp & (temp - 1);
+			}//End for
+
+			return c;
+#endif
+#ifdef _M_AMD64
+			}//End else
+#endif
+		}//End if
+	}//End of pop_count
+
+	/// <summary>
+	/// <para>Returns the number of clear zero (0) bits in 'x'</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <returns></returns>
+	template<typename T>
+	inline constexpr uint32_t zero_count(T& x) noexcept
+	{
+		return static_cast<uint32_t>(sizeof(T) * CHAR_BIT) - tpa::bit_manip::pop_count(x);
+	}//End of zero_count
+}//End of namespace
 
 /// <summary>
 /// <para>Truly Parallel Algorithms</para>
@@ -48,7 +697,7 @@ namespace tpa::simd
 {
 #pragma region generic
 	/// <summary>
-	/// <para>Manipulates bits on primitives in 2 aligned containers storing the result in a 3rd aligned container.</para> 
+	/// <para>Performs bitwise operations on 2 aligned containers storing the result in a 3rd aligned container.</para> 
 	/// <para> Containers of different types are allowed but not recomended.</para>
 	/// <para> Containers of different value types are NOT allowed</para>
 	/// <para> Containers do not have to be a particular size</para>
@@ -1459,7 +2108,7 @@ namespace tpa::simd
 	}//End of bitwise()
 
 	/// <summary>
-	/// <para>Manipulates bits on primitives in 1 aligned container and a constant value storing the result in a 2nd aligned container.</para> 
+	/// <para>Performs bitwise operations on 1 aligned container and a constant value storing the result in a 2nd aligned container.</para> 
 	/// <para> Containers of different types are allowed but not recomended.</para>
 	/// <para> Containers of different value types are NOT allowed</para>
 	/// <para> Containers do not have to be a particular size</para>
