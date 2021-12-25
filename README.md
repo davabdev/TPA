@@ -18,7 +18,7 @@ Pre-Alpha Release.
 |Paralellized & vectorized implementation of std::numeric                                    |very, very incomplete!, subject to change      |
 |Paralellized & vectorized string functions                                                  |not yet implemented                            |
 |Paralellized & vectorized bitwise operations                                                |complete, subject to change                    |
-|bit twiddling                                                                               |complete                                       |
+|Bit Twiddling                                                                               |complete                                       |
 |Paralellized & vectorized advanced bit manipulation                                         |incomplete, subject to change                  |
 
 Requires C++20 or newer.
