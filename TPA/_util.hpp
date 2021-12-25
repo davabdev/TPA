@@ -1175,7 +1175,7 @@ namespace tpa::util {
 	/// <param name="num2"></param>
 	/// <returns></returns>
 	template<tpa::bit INSTR, typename T>
-	[[nodiscard]] inline constexpr T fp_bitwise(const T num1, const T num2)
+	[[nodiscard]] inline constexpr T fp_bitwise(T num1, T num2)
 	{
 		try
 		{
@@ -1250,7 +1250,7 @@ namespace tpa::util {
 						}();
 					}//End else
 
-					return reinterpret_cast<float*>(&int_res);
+					return *reinterpret_cast<float*>(&int_res);
 				}//End else
 			}//End if
 			else if constexpr (std::is_same<T, double>())
@@ -1365,7 +1365,7 @@ namespace tpa::util {
 					}();
 				}//End else
 
-				return reinterpret_cast<float*>(&int_res);
+				return *reinterpret_cast<T*>(&int_res);
 			}//End if
 			else if constexpr (std::is_same<T, double>())
 			{
@@ -1399,7 +1399,7 @@ namespace tpa::util {
 					}();
 				}//End else
 
-				return reinterpret_cast<double*>(&int_res);
+				return *reinterpret_cast<T*>(&int_res);
 			}//End if
 			else
 			{
@@ -1438,7 +1438,7 @@ namespace tpa::util {
 	/// <param name=""></param>
 	/// <returns></returns>
 	template<typename T>
-	[[nodiscard]] inline constexpr T fp_bitwise_not(const T num)
+	[[nodiscard]] inline constexpr T fp_bitwise_not(T num)
 	{
 		return tpa::util::fp_bitwise<tpa::bit::XOR>(num, std::numeric_limits<T>::max());
 	}//End of fp_bitwise_not
