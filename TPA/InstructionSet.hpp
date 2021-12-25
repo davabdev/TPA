@@ -779,6 +779,21 @@ namespace tpa_cpuid_private {
 
             std::cout << "-----------------------------\n\n";
         }//End of output_CPU_info
+#else
+        void output_CPU_info() const noexcept
+        {
+            std::cout << "CPU Info\n";
+            std::cout << "-----------------------------\n";
+
+            std::cout << std::left << std::setw(21) << "CPU Vendor: " <<
+            std::setw(20) << std::setfill(' ') << Vendor() << "\n";
+
+            std::cout << std::left << std::setw(21) << "CPU Brand: " <<
+            std::setw(49) << std::setfill(' ') << Brand() << "\n";
+
+            std::cout << std::left << std::setw(21) << "Logical Threads: " <<
+            std::setw(49) << std::setfill(' ') << std::thread::hardware_concurrency() << "\n";
+        }//End of output_CPU_info()
 #endif
 
     private:
@@ -888,7 +903,7 @@ namespace tpa_cpuid_private {
                 brand_ = brand;
             }//End if
         };//End of constructor
-#elif defined (_M_ARM64)
+#elif defined(_M_ARM64)
 public:
         /// <summary>
         /// Construct Instruction Set Availability Object
