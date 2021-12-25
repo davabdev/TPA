@@ -56,8 +56,8 @@ ISA Support (including runtime detection and dispatch) as of 2021-11-15 (this li
 |AVX-512BF   |Yes               |No                    |
 |AVX-512F16  |Yes               |No                    |
 |AVX512-AMX  |Yes               |No                    |
-|BMI1        |Yes               |Coming later          |
-|BMI2        |Yes               |Coming later          |
+|BMI1        |Yes               |Yes                   |
+|BMI2        |Yes               |Yes                   | 
 |NEON        |No***             |Yes                   |
 
 *MMX has been deprecated on Intel CPUs for years and is not utlized in this library.
