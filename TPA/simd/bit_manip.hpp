@@ -2,7 +2,7 @@
 /*
 *	SIMD Bit Manipulation functions for TPA Library
 *	By: David Aaron Braun
-*	2021-10-08
+*	2021-12-24
 */
 
 /*
@@ -1705,14 +1705,14 @@ namespace tpa::bit_manip
 		if constexpr (std::is_integral<T>())
 		{
 			T temp = (x | (x - 1)) + 1;
-			return temp | ((((temp & -temp) / (x & -x) >> 1) - 1);
+			return temp | (((temp & -temp) / (x & -x) >> 1) - 1);
 		}//End if
 		else if constexpr (std::is_same<T, float>())
 		{
 			int32_t x_as_f = *reinterpret_cast<int32_t*>(&x);
 
 			int32_t temp = (x_as_f | (x_as_f - 1)) + 1;
-			temp = temp | ((((temp & -temp) / (x_as_f & -x_as_f) >> 1) - 1);
+			temp = temp | (((temp & -temp) / (x_as_f & -x_as_f) >> 1) - 1);
 
 			return *reinterpret_cast<float*>(&temp);
 		}//End if
@@ -1721,7 +1721,7 @@ namespace tpa::bit_manip
 			int64_t x_as_f = *reinterpret_cast<int64_t*> (&x);
 
 			int64_t temp = (x_as_f | (x_as_f - 1)) + 1;
-			temp = temp | ((((temp & -temp) / (x_as_f & -x_as_f) >> 1) - 1);
+			temp = temp | (((temp & -temp) / (x_as_f & -x_as_f) >> 1) - 1);
 
 			return *reinterpret_cast<double*>(&temp);
 		}//End if
@@ -1734,6 +1734,501 @@ namespace tpa::bit_manip
 		}//End else
 #endif
 	}//End of next_lexicographic_permutation
+
+	/// <summary>
+	/// <para>Returns true if the bit specidied by 'pos' in 'x' is set to one (1)</para>
+	/// <para>If 'pos' is outside the bounds of 'x' will throw an std::out_of_range exception.</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <param name="pos"></param>
+	/// <returns></returns>
+	template<typename T>
+	inline constexpr bool is_set(T x, uint64_t pos)
+	{
+		try
+		{
+			//Check Bounds
+			if (pos < 0ull || pos > static_cast<uint64_t>((sizeof(T) * CHAR_BIT) - 1))
+			{
+				throw std::out_of_range("Position must be within the bounds of T");
+			}//End if
+
+			if constexpr (std::is_integral<T>())
+			{
+				return (x & (1 << pos));
+			}//End if 
+			else if constexpr (std::is_same<T, float>())
+			{
+				int32_t temp = *reinterpret_cast<int32_t*>(&x);
+
+				return (temp & (1 << pos));
+			}//End if
+			else if constexpr (std::is_same<T, double>())
+			{
+				int64_t temp = *reinterpret_cast<int64_t*>(&x);
+
+				return (temp & (1ll << pos));
+			}//End if
+			else
+			{
+				return (x & (1 << pos));
+			}//End else
+		}//End try
+		catch (const std::exception& ex)
+		{
+			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
+			std::cerr << "Exception thrown in tpa::bit_manip::is_set: " << ex.what() << "\n";
+			return false;
+		}//End catch
+		catch (...)
+		{
+			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
+			std::cerr << "Exception thrown in tpa::bit_manip::is_set: unknown!\n";
+			return false;
+		}//End catch
+	}//End of is_set
+
+	/// <summary>
+	/// <para>Returns true if the bit specidied by 'pos' in 'x' is set to zero (0)</para>
+	/// <para>If 'pos' is outside the bounds of 'x' will throw an std::out_of_range exception.</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <param name="pos"></param>
+	/// <returns></returns>
+	template<typename T>
+	inline constexpr bool is_clear(T x, uint64_t pos)
+	{
+		try
+		{
+			//Check Bounds
+			if (pos < 0ull || pos > static_cast<uint64_t>((sizeof(T) * CHAR_BIT) - 1))
+			{
+				throw std::out_of_range("Position must be within the bounds of T");
+			}//End if
+
+			if constexpr (std::is_integral<T>())
+			{
+				return !(x & (1 << pos));
+			}//End if 
+			else if constexpr (std::is_same<T, float>())
+			{
+				int32_t temp = *reinterpret_cast<int32_t*>(&x);
+
+				return !(temp & (1 << pos));
+			}//End if
+			else if constexpr (std::is_same<T, double>())
+			{
+				int64_t temp = *reinterpret_cast<int64_t*>(&x);
+
+				return !(temp & (1ll << pos));
+			}//End if
+			else
+			{
+				return !(x & (1 << pos));
+			}//End else
+		}//End try
+		catch (const std::exception& ex)
+		{
+			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
+			std::cerr << "Exception thrown in tpa::bit_manip::is_clear: " << ex.what() << "\n";
+			return false;
+		}//End catch
+		catch (...)
+		{
+			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
+			std::cerr << "Exception thrown in tpa::bit_manip::is_clear: unknown!\n";
+			return false;
+		}//End catch
+	}//End of is_clear
+
+	/// <summary>
+	/// <para>Sets all the bits in 'x' to one (1)</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <returns></returns>
+	template<typename T>
+	inline constexpr void set_all(T& x) noexcept
+	{
+		if constexpr (std::is_integral<T>())
+		{
+			x = ~(x & 0ll);
+		}//End if
+		else if constexpr (std::is_same<T, float>())
+		{
+			int32_t temp = *reinterpret_cast<int32_t*>(&x);
+
+			temp = ~(temp & 0);
+
+			x = *reinterpret_cast<float*>(&temp);
+		}//End if
+		else if constexpr (std::is_same<T, double>())
+		{
+			int64_t temp = *reinterpret_cast<int64_t*>(&x);
+
+			temp = ~(temp & 0ll);
+
+			x = *reinterpret_cast<double*>(&temp);
+		}//End if
+		else
+		{
+			x = ~(x & 0ll);
+		}//End else
+	}//End of set_all
+
+	/// <summary>
+	/// <para>Sets all the bits in 'x' to zero (0)</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <returns></returns>
+	template<typename T>
+	inline constexpr void clear_all(T& x) noexcept
+	{
+		if constexpr (std::is_integral<T>())
+		{
+			x = (x & 0ll);
+		}//End if
+		else if constexpr (std::is_same<T, float>())
+		{
+			int32_t temp = *reinterpret_cast<int32_t*>(&x);
+
+			temp = (temp & 0);
+
+			x = *reinterpret_cast<float*>(&temp);
+		}//End if
+		else if constexpr (std::is_same<T, double>())
+		{
+			int64_t temp = *reinterpret_cast<int64_t*>(&x);
+
+			temp = (temp & 0ll);
+
+			x = *reinterpret_cast<double*>(&temp);
+		}//End if
+		else
+		{
+			x = (x & 0ll);
+		}//End else
+	}//End of clear_all
+
+	/// <summary>
+	/// <para>Returns a type T which has had its bits set to the same as bits specificed in 'x' starting from 'start' and ending at 'start' + 'len'</para>
+	/// <para>Warning: Currently only works as expected when start is set to bit# 0, bug fix coming.</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <param name="start"></param>
+	/// <param name="len"></param>
+	/// <returns></returns>
+	template<typename T>
+	inline constexpr T extract(T x, uint64_t start, uint64_t len)
+	{
+		try
+		{
+			//Check Bounds
+			if (start < 0ull || start > static_cast<uint64_t>((sizeof(T) * CHAR_BIT) - 1))
+			{
+				throw std::out_of_range("'start' must be within the bounds of T");
+			}//End if
+
+			if ((start + len) < 0ull || (start + len) > static_cast<uint64_t>((sizeof(T) * CHAR_BIT) - 1))
+			{
+				throw std::out_of_range("'start + len' must be within the bounds of T");
+			}//End if
+
+#ifdef _M_AMD64
+			if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>() || std::is_same<T, int16_t>() ||
+				std::is_same<T, uint16_t>())
+			{
+				if (tpa::hasBMI1)
+				{
+					uint32_t temp = 0u;
+					std::memmove(&temp, &x, sizeof(T));
+					return static_cast<T>(_bextr_u32(temp, static_cast<uint32_t>(start), static_cast<uint32_t>(len)));
+				}//End if
+				else
+				{
+					x >>= start;
+					const T mask = (1 << len) - 1;
+					return x & mask;
+				}//End else
+			}//End if
+			else if constexpr (std::is_same<T, int32_t>() || std::is_same<T, uint32_t>())
+			{
+				if (tpa::hasBMI1)
+				{
+					return static_cast<T>(_bextr_u32(x, static_cast<uint32_t>(start), static_cast<uint32_t>(len)));
+				}//End if
+				else
+				{
+					x >>= start;
+					const T mask = (1 << len) - 1;
+					return x & mask;
+				}//End else
+			}//End else
+			else if constexpr (std::is_same<T, int64_t>() || std::is_same<T, uint64_t>())
+			{
+				if (tpa::hasBMI1)
+				{
+					return static_cast<T>(_bextr_u64(x, static_cast<uint32_t>(start), static_cast<uint32_t>(len)));
+				}//End if
+				else
+				{
+					x >>= start;
+					const T mask = (1ll << len) - 1ll;
+					return x & mask;
+				}//End else
+			}//End if
+			else if constexpr (std::is_same<T, float>())
+			{
+				uint32_t temp = *reinterpret_cast<uint32_t*>(&x);
+
+				if (tpa::hasBMI1)
+				{
+					temp = static_cast<T>(_bextr_u32(temp, static_cast<uint32_t>(start), static_cast<uint32_t>(len)));
+					return *reinterpret_cast<float*>(&temp);
+				}//End if
+				else
+				{
+					temp >>= start;
+					const uint32_t mask = (1u << len) - 1u;
+					temp = temp & mask;
+
+					return *reinterpret_cast<float*>(&temp);
+				}//End else
+			}//End if
+			else if constexpr (std::is_same<T, double>())
+			{
+				uint64_t temp = *reinterpret_cast<uint64_t*>(&x);
+
+				if (tpa::hasBMI1)
+				{
+					temp = static_cast<T>(_bextr_u64(temp, static_cast<uint32_t>(start), static_cast<uint32_t>(len)));
+					return *reinterpret_cast<double*>(&temp);
+				}//End if
+				else
+				{
+					temp >>= start;
+					const uint64_t mask = (1ull << len) - 1ull;
+					temp = temp & mask;
+
+					return *reinterpret_cast<double*>(&temp);
+				}//End else
+			}//End if
+			else
+			{
+				x >>= start;
+				const T mask = (1ull << len) - 1ull;
+				return x & mask;
+			}//End else
+
+#elif defined(_M_ARM)
+			if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>() || std::is_same<T, int16_t>() ||
+				std::is_same<T, uint16_t>())
+			{
+				uint32_t temp = 0u;
+				std::memmove(&temp, &x, sizeof(T));
+				return static_cast<T>(_arm_ubfx(temp, static_cast<uint32_t>(start), static_cast<uint32_t>(len)));
+			}//End if
+			else if constexpr (std::is_same<T, int32_t>() || std::is_same<T, uint32_t>())
+			{
+				return static_cast<T>(_arm_ubfx(x, static_cast<uint32_t>(start), static_cast<uint32_t>(len)));
+			}//End else
+			else if constexpr (std::is_same<T, int64_t>() || std::is_same<T, uint64_t>())
+			{
+				x >>= start;
+				const T mask = (1ll << len) - 1ll;
+				return x & mask;
+			}//End if
+			else if constexpr (std::is_same<T, float>())
+			{
+				uint32_t temp = *reinterpret_cast<uint32_t*>(&x);
+
+				temp = static_cast<T>(_arm_ubfx(temp, static_cast<uint32_t>(start), static_cast<uint32_t>(len)));
+				return *reinterpret_cast<float*>(&temp);
+			}//End if
+			else if constexpr (std::is_same<T, double>())
+			{
+				uint64_t temp = *reinterpret_cast<uint64_t*>(&x);
+
+				temp >>= start;
+				const uint64_t mask = (1ull << len) - 1ull;
+				temp = temp & mask;
+
+				return *reinterpret_cast<double*>(&temp);
+			}//End if
+			else
+			{
+				x >>= start;
+				const T mask = (1ull << len) - 1ull;
+				return x & mask;
+			}//End else
+#else
+			if constexpr (std::is_integral<T>())
+			{
+				x >>= start;
+				const T mask = (1ull << len) - 1ull;
+				return x & mask;
+			}//End if
+			else if constexpr (std::is_same<T, float>())
+			{
+				uint32_t temp = *reinterpret_cast<uint32_t*>(&x);
+
+				temp >>= start;
+				const uint32_t mask = (1u << len) - 1u;
+				temp = temp & mask;
+
+				return *reinterpret_cast<float*>(&temp);
+			}//End if
+			else if constexpr (std::is_same<T, double>())
+			{
+				uint64_t temp = *reinterpret_cast<uint64_t*>(&x);
+
+				temp >>= start;
+				const uint64_t mask = (1ull << len) - 1ull;
+				temp = temp & mask;
+
+				return *reinterpret_cast<double*>(&temp);
+			}//End if
+			else
+			{
+				x >>= start;
+				const T mask = (1ull << len) - 1ull;
+				return x & mask;
+			}//End else
+#endif
+
+		}//End try
+		catch (const std::exception& ex)
+		{
+			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
+			std::cerr << "Exception thrown in tpa::bit_manip::extract: " << ex.what() << "\n";
+			return static_cast<T>(0);
+		}//End catch
+		catch (...)
+		{
+			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
+			std::cerr << "Exception thrown in tpa::bit_manip::extract: unknown!\n";
+			return static_cast<T>(0);
+		}//End catch
+	}//End of extract
+
+	/// <summary>
+	/// <para>Copy bits from 'b' into 'a' where the corresponding bit in 'mask' is set a one (1)</para>
+	/// <para>Different types are allowed but must be intentically sized.</para>
+	/// </summary>
+	/// <typeparam name="T1"></typeparam>
+	/// <typeparam name="T2"></typeparam>
+	/// <typeparam name="MASK"></typeparam>
+	/// <param name="a"></param>
+	/// <param name="b"></param>
+	/// <param name="mask"></param>
+	/// <returns></returns>
+	template<typename T1, typename T2, typename MASK>
+	inline constexpr void masked_copy(T1& a, T2& b, MASK& mask) noexcept
+	{
+		static_assert(sizeof(T1) == sizeof(T2) && sizeof(T1) == sizeof(MASK), "'a', 'b', and 'mask' must be equally sized.");
+
+		if constexpr (std::is_integral<T1>() && std::is_integral<T2>() && std::is_integral<MASK>())
+		{
+			a = ((b & mask) | (a & ~mask));
+		}//End if
+		else if constexpr (std::is_same<T1, float>() || std::is_same<T2, float>() || std::is_same<MASK, float>())
+		{
+			int32_t temp_a = *reinterpret_cast<int32_t*>(&a);
+			int32_t temp_b = *reinterpret_cast<int32_t*>(&b);
+			int32_t temp_mask = *reinterpret_cast<int32_t*>(&mask);
+			int32_t res = 0;
+
+			res = ((temp_b & temp_mask) | (temp_a & ~temp_mask));
+
+			a = *reinterpret_cast<T1*>(&res);
+		}//End if
+		else if constexpr (std::is_same<T1, double>() || std::is_same<T2, double>() || std::is_same<MASK, double>())
+		{
+			int64_t temp_a = *reinterpret_cast<int64_t*>(&a);
+			int64_t temp_b = *reinterpret_cast<int64_t*>(&b);
+			int64_t temp_mask = *reinterpret_cast<int64_t*>(&mask);
+			int64_t res = 0;
+
+			res = ((temp_b & temp_mask) | (temp_a & ~temp_mask));
+
+			a = *reinterpret_cast<T1*>(&res);
+		}//End if
+		else
+		{
+			a = ((b & mask) | (a & ~mask));
+		}//End else
+	}//End of masked_copy
+
+	/// <summary>
+	/// <para>Swaps the bits in 'x' at indices 'a' and 'b'</para>
+	/// <para>'a' and 'b' must be within the bounds of 'x' or will 
+	/// throw an std::out_of_range exception</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <param name="a"></param>
+	/// <param name="b"></param>
+	template<typename T>
+	inline constexpr void bit_swap(T& x, uint64_t a, uint64_t b)
+	{
+		try
+		{
+			//Check Bounds
+			if (a < 0ull || a > static_cast<uint64_t>((sizeof(T) * CHAR_BIT) - 1))
+			{
+				throw std::out_of_range("'a' must be within the bounds of T");
+			}//End if
+
+			if (b < 0ull || b > static_cast<uint64_t>((sizeof(T) * CHAR_BIT) - 1))
+			{
+				throw std::out_of_range("'b' must be within the bounds of T");
+			}//End if
+
+			if constexpr (std::is_integral<T>())
+			{
+				x ^= (1 << a);
+				x ^= (1 << b);
+			}//End if
+			else if constexpr (std::is_same<T, float>())
+			{
+				int32_t x_as_int = *reinterpret_cast<int32_t*>(&x);
+
+				x_as_int ^= (1 << a);
+				x_as_int ^= (1 << b);
+
+				x = *reinterpret_cast<float*>(&x_as_int);
+			}//End if
+			else if constexpr (std::is_same<T, double>())
+			{
+				int64_t x_as_int = *reinterpret_cast<int64_t*>(&x);
+
+				x_as_int ^= (1ll << a);
+				x_as_int ^= (1ll << b);
+
+				x = *reinterpret_cast<double*>(&x_as_int);
+			}//End if
+			else
+			{
+				x ^= (1 << a);
+				x ^= (1 << b);
+			}//End else
+		}//End try
+		catch (const std::exception& ex)
+		{
+			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
+			std::cerr << "Exception thrown in tpa::bit_manip::bit_swap: " << ex.what() << "\n";
+		}//End catch
+		catch (...)
+		{
+			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
+			std::cerr << "Exception thrown in tpa::bit_manip::bit_swap: unknown!\n";
+		}//End catch
+	}//End of bit_swap
+
 }//End of namespace
 
 /// <summary>
