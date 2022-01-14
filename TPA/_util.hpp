@@ -981,6 +981,11 @@ namespace tpa
 		DOWN = FE_DOWNWARD,
 		UP = FE_UPWARD,
 		TRUNCATE_TO_ZERO = FE_TOWARDZERO
+#else
+		NEAREST_INT = FE_TONEAREST,
+		DOWN = FE_DOWNWARD,
+		UP = FE_UPWARD,
+		TRUNCATE_TO_ZERO = FE_TOWARDZERO
 #endif
 	};
 
@@ -1023,10 +1028,13 @@ namespace tpa
 	{
 		EVEN,	//Generates a sequence of even numbers starting at the specifed number in param
 		ODD,	//Generates a sequence of odd numbers starting at the specified number in param
-		ALL_LESS_THAN,//Generates a sequence of all numbers less than the specified param upto the item_count (3rd parameter) or the container's size if not specified
 
+		ALL_LESS_THAN,//Generates a sequence of all numbers less than the specified param upto the item_count (3rd parameter) or the container's size if not specified
 		ALL_GREATER_THAN,//Generates a sequence of all numbers greater than the specified param upto the item_count (3rd parameter) or the container's size if not specified, functionally equivilent to tpa::iota<T>()
 
+		XOR_SHIFT,//'param' is the minimum random number and 'param2' is the maximum random number.
+		STD_RAND,//'param' is the minimum random number and 'param2' is the maximum random number.
+		SECURE_RAND, //'param' is the minimum random number and 'param2' is the maximum random number. Uses RD_RAND & RD_SEED where available, VERY, VERY slow!
 		UNIFORM,//'param' is the minimum random number and 'param2' is the maximum random number.
 		BERNOULLI,//'param' is the frequency of 'truths'
 		BINOMIAL,//'param' is the number of trials, 'param2' is the frequncy of of success
@@ -1565,6 +1573,276 @@ namespace tpa::util {
 		constexpr __m256d sign_mask = {-0.0, -0.0, -0.0, -0.0};
 		return _mm256_andnot_pd(sign_mask, x);
 	}//End of _mm256_abs_pd
+
+	///<summary>
+	/// <para>Converts packed uint64_t in 'x' to packed doubles</para>
+	/// <para>Full Range Supported.</para>
+	/// <para>Requires SSE4.1 at runtime.</para>
+	/// <para>Note: This is a function which is part of TPA and is not an instruction or intrinsic.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m128d</returns>
+	[[nodiscard]] inline __m128d _mm_cvtepu64_pd(const __m128i& x) noexcept
+	{
+		__m128i xH = _mm_srli_epi64(x, 32ll);
+		xH = _mm_or_si128(xH, _mm_castpd_si128(_mm_set1_pd(19342813113834066795298816.0)));          //  2^84
+		__m128i xL = _mm_blend_epi16(x, _mm_castpd_si128(_mm_set1_pd(0x0010000000000000)), 0xcc);   //  2^52
+		__m128d f = _mm_sub_pd(_mm_castsi128_pd(xH), _mm_set1_pd(19342813118337666422669312.));     //  2^84 + 2^52
+		
+		return _mm_add_pd(f, _mm_castsi128_pd(xL));
+	}//End of _mm_cvtepu64_pd
+
+	///<summary>
+	/// <para>Converts packed uint64_t in 'x' to packed doubles</para>
+	/// <para>Full Range Supported.</para>
+	/// <para>Requires AVX2 at runtime.</para>
+	/// <para>Note: This is a function which is part of TPA and is not an instruction or intrinsic.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m256d</returns>
+	[[nodiscard]] inline __m256d _mm256_cvtepu64_pd(const __m256i& x) noexcept
+	{
+		__m256i xH = _mm256_srli_epi64(x, 32ll);
+		xH = _mm256_or_si256(xH, _mm256_castpd_si256(_mm256_set1_pd(19342813113834066795298816.0)));          //  2^84
+		__m256i xL = _mm256_blend_epi16(x, _mm256_castpd_si256(_mm256_set1_pd(0x0010000000000000)), 0xcc);   //  2^52
+		__m256d f = _mm256_sub_pd(_mm256_castsi256_pd(xH), _mm256_set1_pd(19342813118337666422669312.));     //  2^84 + 2^52
+
+		return _mm256_add_pd(f, _mm256_castsi256_pd(xL));
+	}//End of _mm256_cvtepu64_pd
+	
+	///<summary>
+	/// <para>Converts packed int64_t in 'x' to packed doubles</para>
+	/// <para>Full Range Supported.</para>
+	/// <para>Requires SSE4.1 at runtime.</para>
+	/// <para>Note: This is a function which is part of TPA and is not an instruction or intrinsic.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m128d</returns>
+	[[nodiscard]] inline __m128d _mm_cvtepi64_pd(const __m128i& x) noexcept
+	{
+		__m128i xH = _mm_srai_epi32(x, 16);
+		xH = _mm_blend_epi16(xH, _mm_setzero_si128(), 0x33);
+		xH = _mm_add_epi64(xH, _mm_castpd_si128(_mm_set1_pd(442721857769029238784.)));              //  3*2^67
+		__m128i xL = _mm_blend_epi16(x, _mm_castpd_si128(_mm_set1_pd(0x0010000000000000)), 0x88);   //  2^52
+		__m128d f = _mm_sub_pd(_mm_castsi128_pd(xH), _mm_set1_pd(442726361368656609280.));          //  3*2^67 + 2^52
+		
+		return _mm_add_pd(f, _mm_castsi128_pd(xL));
+	}//End of _mm_cvtepi64_pd
+
+	///<summary>
+	/// <para>Converts packed int64_t in 'x' to packed doubles</para>
+	/// <para>Full Range Supported.</para>
+	/// <para>Requires AVX2 at runtime.</para>
+	/// <para>Note: This is a function which is part of TPA and is not an instruction or intrinsic.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m256d</returns>
+	[[nodiscard]] inline __m256d _mm256_cvtepi64_pd(const __m256i& x) noexcept
+	{
+		__m256i xH = _mm256_srai_epi32(x, 16);
+		xH = _mm256_blend_epi16(xH, _mm256_setzero_si256(), 0x33);
+		xH = _mm256_add_epi64(xH, _mm256_castpd_si256(_mm256_set1_pd(442721857769029238784.0)));              //  3*2^67
+		__m256i xL = _mm256_blend_epi16(x, _mm256_castpd_si256(_mm256_set1_pd(0x0010000000000000)), 0x88);   //  2^52
+		__m256d f = _mm256_sub_pd(_mm256_castsi256_pd(xH), _mm256_set1_pd(442726361368656609280.0));          //  3*2^67 + 2^52
+
+		return _mm256_add_pd(f, _mm256_castsi256_pd(xL));
+	}//End of _mm256_cvtepi64_pd
+
+	///<summary>
+	/// <para>Converts packed doubles in 'x' to packed int64_t</para>
+	/// <para>Range: [0, 2^51]</para>
+	/// <para>Requires SSE2 at runtime.</para>
+	/// <para>Note: This is a function which is part of TPA and is not an instruction or intrinsic.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m128i</returns>
+	[[nodiscard]] inline __m128i _mm_cvtpd_epu64(__m128d& x) noexcept
+	{
+		x = _mm_add_pd(x, _mm_set1_pd(0x0010000000000000));
+		return _mm_xor_si128(
+			_mm_castpd_si128(x),
+			_mm_castpd_si128(_mm_set1_pd(0x0010000000000000))
+		);
+	}//End of _mm_cvtpd_epu64
+
+	///<summary>
+	/// <para>Converts packed doubles in 'x' to packed uint64_t</para>
+	/// <para>Range: [0, 2^51]</para>
+	/// <para>Requires AVX2 at runtime.</para>
+	/// <para>Note: This is a function which is part of TPA and is not an instruction or intrinsic.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m256d</returns>
+	[[nodiscard]] inline __m256i _mm256_cvtpd_epu64(__m256d& x) noexcept
+	{
+		x = _mm256_add_pd(x, _mm256_set1_pd(0x0010000000000000));
+		return _mm256_xor_si256(
+			_mm256_castpd_si256(x),
+			_mm256_castpd_si256(_mm256_set1_pd(0x0010000000000000))
+		);
+	}//End of _mm256_cvtpd_epu64
+
+	///<summary>
+	/// <para>Converts packed doubles in 'x' to packed uint64_t</para>
+	/// <para>Range: [-2^51, 2^51]</para>
+	/// <para>Requires SSE2 at runtime.</para>
+	/// <para>Note: This is a function which is part of TPA and is not an instruction or intrinsic.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m256d</returns>
+	[[nodiscard]] inline __m128i _mm_cvtpd_epi64(__m128d& x) noexcept
+	{
+		x = _mm_add_pd(x, _mm_set1_pd(0x0018000000000000));
+		return _mm_sub_epi64(
+			_mm_castpd_si128(x),
+			_mm_castpd_si128(_mm_set1_pd(0x0018000000000000))
+		);
+	}//End of _mm_cvtpd_epi64
+
+	///<summary>
+	/// <para>Converts packed doubles in 'x' to packed uint64_t</para>
+	/// <para>Range: [-2^51, 2^51]</para>
+	/// <para>Requires AVX2 at runtime.</para>
+	/// <para>Note: This is a function which is part of TPA and is not an instruction or intrinsic.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m256d</returns>
+	[[nodiscard]] inline __m256i _mm256_cvtpd_epi64(__m256d& x) noexcept
+	{
+		x = _mm256_add_pd(x, _mm256_set1_pd(0x0018000000000000));
+		return _mm256_sub_epi64(
+			_mm256_castpd_si256(x),
+			_mm256_castpd_si256(_mm256_set1_pd(0x0018000000000000))
+		);
+	}//End of _mm256_cvtpd_epi64
+
+	///<summary>
+	/// <para>Narrow numbers in 'bits' to a certain range.</para>
+	/// <para>Much faster replacement for _mm_rem_epi32 / _mm_rem_epu32 for random number range generation</para>
+	/// <para>Requires SSE2 instruction set at runtime.</para>
+	///</summary>
+	/// <param name="bits"></param>
+	/// <param name="range"></param>
+	/// <returns>__m128i</returns>
+	[[nodiscard]] inline __m128i _mm_narrow_epi32(const __m128i& bits, const uint32_t range) noexcept
+	{
+		const __m128i mantissaMask = _mm_set1_epi32(0x7FFFFF);
+		const __m128i mantissa = _mm_and_si128(bits, mantissaMask);
+		const __m128 one = _mm_set1_ps(1.0f);
+		__m128 val = _mm_or_ps(_mm_castsi128_ps(mantissa), one);
+
+		const __m128 rf = _mm_set1_ps((float)range);
+		val = _mm_mul_ps(val, rf);
+		val = _mm_sub_ps(val, rf);
+
+		return _mm_cvttps_epi32(val);
+	}//End of _mm_narrow_epi32
+
+	///<summary>
+	/// <para>Narrow numbers in 'bits' to a certain range.</para>
+	/// <para>Much faster replacement for _mm_rem_epi64 / _mm_rem_epu64 for random number range generation</para>
+	/// <para>Requires SSE2 instruction set at runtime.</para>
+	///</summary>
+	/// <param name="bits"></param>
+	/// <param name="range"></param>
+	/// <returns>__m128i</returns>
+	[[nodiscard]] inline __m128i _mm_narrow_epi64(const __m128i& bits, const uint64_t range) noexcept
+	{
+		const __m128i mantissaMask = _mm_set1_epi64x(0x7FFFFFFFFFFFFFFF);
+		const __m128i mantissa = _mm_and_si128(bits, mantissaMask);
+		const __m128d one = _mm_set1_pd(1.0);
+		__m128d val = _mm_or_pd(_mm_castsi128_pd(mantissa), one);
+
+		const __m128d rf = _mm_set1_pd((double)range);
+		val = _mm_mul_pd(val, rf);
+		val = _mm_sub_pd(val, rf);
+
+		return tpa::util::_mm_cvtpd_epi64(val);
+	}//End of _mm_narrow_epi64
+
+	///<summary>
+	/// <para>Narrow numbers in 'bits' to a certain range.</para>
+	/// <para>Much faster replacement for _mm256_rem_epi32 / _mm256_rem_epu32 for random number range generation</para>
+	/// <para>Requires AVX2 and FMA instruction sets at runtime.</para>
+	///</summary>
+	/// <param name="bits"></param>
+	/// <param name="range"></param>
+	/// <returns>__m256i</returns>
+	[[nodiscard]] inline __m256i _mm256_narrow_epi32(const __m256i& bits, const uint32_t range) noexcept
+	{		
+		const __m256i mantissaMask = _mm256_set1_epi32(0x7FFFFF);
+		const __m256i mantissa = _mm256_and_si256(bits, mantissaMask);
+		const __m256 one = _mm256_set1_ps(1.0f);
+		__m256 val = _mm256_or_ps(_mm256_castsi256_ps(mantissa), one);
+
+		const __m256 rf = _mm256_set1_ps((float)range);
+		val = _mm256_fmsub_ps(val, rf, rf);
+
+		return _mm256_cvttps_epi32(val);
+	}//End of _mm256_narrow_epi32
+
+	///<summary>
+	/// <para>Narrow numbers in 'bits' to a certain range.</para>
+	/// <para>Much faster replacement for _mm256_rem_epi64 / _mm256_rem_epu64 for random number range generation</para>
+	/// <para>Requires AVX2 and FMA instruction sets at runtime.</para>
+	///</summary>
+	/// <param name="bits"></param>
+	/// <param name="range"></param>
+	/// <returns>__m256i</returns>
+	[[nodiscard]] inline __m256i _mm256_narrow_epi64(const __m256i& bits, const uint64_t range) noexcept
+	{
+		const __m256i mantissaMask = _mm256_set1_epi64x(0x7FFFFFFFFFFFFFFF);
+		const __m256i mantissa = _mm256_and_si256(bits, mantissaMask);
+		const __m256d one = _mm256_set1_pd(1.0);
+		__m256d val = _mm256_or_pd(_mm256_castsi256_pd(mantissa), one);
+
+		const __m256d rf = _mm256_set1_pd((double)range);
+		val = _mm256_fmsub_pd(val, rf, rf);
+
+		return tpa::util::_mm256_cvtpd_epi64(val);
+	}//End of _mm256_narrow_epi64
+
+	///<summary>
+	/// <para>Narrow numbers in 'bits' to a certain range.</para>
+	/// <para>Much faster replacement for _mm512_rem_epi32 / _mm512_rem_epu32 for random number range generation</para>
+	/// <para>Requires AVX-512 (foundation) instruction set at runtime.</para>
+	///</summary>
+	/// <param name="bits"></param>
+	/// <param name="range"></param>
+	/// <returns>__m512i</returns>
+	[[nodiscard]] inline __m512i _mm512_narrow_epi32(const __m512i& bits, const uint32_t range) noexcept
+	{
+		const __m512i mantissaMask = _mm512_set1_epi64(0x7FFFFF);
+		const __m512i mantissa = _mm512_and_si512(bits, mantissaMask);
+		const __m512 one = _mm512_set1_ps(1.0f);
+		__m512 val = _mm512_or_ps(_mm512_castsi512_ps(mantissa), one);
+
+		const __m512 rf = _mm512_set1_ps((float)range);
+		val = _mm512_fmsub_ps(val, rf, rf);
+
+		return _mm512_cvttps_epi32(val);
+	}//End of _mm512_narrow_epi32
+
+	///<summary>
+	/// <para>Narrow numbers in 'bits' to a certain range.</para>
+	/// <para>Much faster replacement for _mm512_rem_epi64 / _mm512_rem_epu64 for random number range generation</para>
+	/// <para>Requires AVX-512 (foundation) and AVX-512 (Double Word Quad Word) instruction set at runtime.</para>
+	///</summary>
+	/// <param name="bits"></param>
+	/// <param name="range"></param>
+	/// <returns>__m512i</returns>
+	[[nodiscard]] inline __m512i _mm512_narrow_epi64(const __m512i& bits, const uint64_t range) noexcept
+	{
+		const __m512i mantissaMask = _mm512_set1_epi64(0x7FFFFFFFFFFFFFFF);
+		const __m512i mantissa = _mm512_and_si512(bits, mantissaMask);
+		const __m512d one = _mm512_set1_pd(1.0);
+		__m512d val = _mm512_or_pd(_mm512_castsi512_pd(mantissa), one);
+
+		const __m512d rf = _mm512_set1_pd((double)range);
+		val = _mm512_fmsub_pd(val, rf, rf);
+
+		return _mm512_cvttpd_epi64(val);
+	}//End of _mm512_narrow_epi64
 #endif
 #pragma endregion
 }//End of namespace

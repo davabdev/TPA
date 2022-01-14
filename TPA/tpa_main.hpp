@@ -13,6 +13,19 @@
 *           https://www.boost.org/LICENSE_1_0.txt)
 */
 
+/*
+* STD Headers
+*/
+#include <cstdlib>
+#include <cstdint>
+
+/*
+* TPA headers
+*/
+
+#include "_util.hpp"				//Utility Functions
+#include "size_t_lit.hpp"			//std::size_t literal suffix before C++23
+
 #include "InstructionSet.hpp"		//CPUID
 
 #include "numeric/iota.hpp"			//iota
@@ -29,8 +42,9 @@
 #include "simd/simd.hpp"			//SIMD
 #include "simd/fma.hpp"				//FMA
 #include "simd/trigonometry.hpp"	//Trigonometry
-#include "simd/bit_manip.hpp"		//Bit Manipulation
+#include "simd/bit_manip.hpp"		//Bit Manipulation & Bitwise operations
 #include "simd/rounding_math.hpp"   //abs, floor, ceil, round, round_nearest
 #include "simd/roots.hpp"			//sqrt, isqrt, cbrt, icbrt, nrt, inrt
 #include "simd/exponent.hpp"		//exp, exp2, exp10, expm1
 #include "simd/logarithm.hpp"		//log, log2, log10, loglp, logb
+#include "simd/convert.hpp"			//static_cast
