@@ -13,7 +13,7 @@ Pre-Alpha Release.
 |Paralellized & vectorized basic math                                                        |complete, subject to change                    |
 |Paralellized & vectorized comparisions                                                      |complete, subject to change                    |
 |Paralellized & vectorized cmath functions                                                   |complete, subject to change                    |
-|Paralellized & vectorized type converstion (static_cast)                                    |not yet implemented                            |
+|Paralellized & vectorized type converstion (static_cast)                                    |incomplete                                     |
 |Paralellized & vectorized implementation of std::algorithims                                |very, very incomplete!, subject to change      |
 |Paralellized & vectorized implementation of std::numeric                                    |very, very incomplete!, subject to change      |
 |Paralellized & vectorized string functions                                                  |not yet implemented                            |
