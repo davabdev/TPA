@@ -17,6 +17,7 @@ Pre-Alpha Release.
 |Paralellized & vectorized implementation of std::algorithims                                |very, very incomplete!, subject to change      |
 |Paralellized & vectorized implementation of std::numeric                                    |very, very incomplete!, subject to change      |
 |Paralellized & vectorized string functions                                                  |not yet implemented                            |
+|Paralellized & vectorized random number generators                                          |complete, subject to change                    |
 |Paralellized & vectorized bitwise operations                                                |complete, subject to change                    |
 |Bit Twiddling                                                                               |complete                                       |
 |Paralellized & vectorized advanced bit manipulation                                         |incomplete, subject to change                  |
