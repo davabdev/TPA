@@ -35,6 +35,7 @@
 #include "../tpa.hpp"
 #include "../ThreadPool.hpp"
 #include "../_util.hpp"
+#include "../size_t_lit.hpp"
 
 /// <summary>
 /// <para>Truly Parallel Algorithms</para>
@@ -42,6 +43,7 @@
 /// <para>Version 0.1</para> 
 /// </summary>
 namespace tpa {
+
 #pragma region generic
 
     /// <summary>
@@ -93,7 +95,7 @@ namespace tpa {
                         }//End for
 #pragma endregion
 
-                        return static_cast<uint32_t>(1);
+                        return 1u;
                     });//End of lambda
 
                 results.emplace_back(std::move(temp));
@@ -146,7 +148,6 @@ namespace tpa {
     /// <para>tpa::gen::ODD</para>	
     /// <para>tpa::gen::ALL_LESS_THAN</para>
     /// <para>tpa::gen::ALL_GREATER_THAN</para>
-    /// <para>tpa::gen::rand::...</para>
     /// </summary>
     /// <typeparam name="CONTAINER"></typeparam>
     /// <typeparam name="GENERATOR"></typeparam>
@@ -404,6 +405,63 @@ namespace tpa {
 
                                 arr[i] = paramVal;
                                 --paramVal;
+                            }//End for
+                        }//End if
+                        else if constexpr (INSTR == tpa::gen::STD_RAND)
+                        {
+                            std::srand(std::time(NULL));
+
+                            for (; i != end; ++i)
+                            {
+                                arr[i] = static_cast<T>(arg1 + (std::rand() % ((arg2 + 1u) - arg1)));
+                            }//End for
+
+                        }//End if
+                        else if constexpr (INSTR == tpa::gen::SECURE_RAND)
+                        {
+#ifdef _M_AMD64
+                            if (tpa::hasRD_RAND)
+                            {
+                                uint16_t random = 0u;
+                                for (; i != end; ++i)
+                                {
+                                    _rdrand16_step(&random);
+                                    arr[i] = static_cast<T>(arg1 + (random % ((arg2 + 1u) - arg1)));
+                                }
+
+                            }//End if
+                            else
+                            {
+                                std::srand(std::time(NULL));
+
+                                for (; i != end; ++i)
+                                {
+                                    arr[i] = static_cast<T>(arg1 + (std::rand() % ((arg2 + 1u) - arg1)));
+                                }//End for
+                            }//End else
+#else
+#pragma message("non-x86 architecture does not have secure random number generator hardware. Defaults to std::rand()")
+                            std::srand(std::time(NULL));
+
+                            for (; i != end; ++i)
+                            {
+                                arr[i] = static_cast<T>(arg1 + (std::rand() % ((arg2 + 1u) - arg1)));
+                            }//End for
+#endif
+                        }//End if
+                        else if constexpr (INSTR == tpa::gen::XOR_SHIFT)
+                        {
+                            std::srand(std::time(nullptr));
+                            std::mt19937_64 e(std::rand());
+                            uint8_t seed = static_cast<uint8_t>(e());
+
+                            for (; i != end; ++i)
+                            {
+                                seed ^= (seed << 3u);
+                                seed ^= (seed >> 7u);
+                                seed ^= (seed << 5u);
+
+                                arr[i] = static_cast<T>(arg1 + (seed % ((arg2 + 1u) - arg1)));
                             }//End for
                         }//End if
                         else if constexpr (INSTR == tpa::gen::UNIFORM)
@@ -825,6 +883,63 @@ namespace tpa {
                                 --paramVal;
                             }//End for
                         }//End if
+                        else if constexpr (INSTR == tpa::gen::STD_RAND)
+                        {
+                            std::srand(std::time(NULL));
+
+                            for (; i != end; ++i)
+                            {
+                                arr[i] = static_cast<T>(arg1 + (std::rand() % ((arg2 + 1u) - arg1)));
+                            }//End for
+
+                        }//End if
+                        else if constexpr (INSTR == tpa::gen::SECURE_RAND)
+                        {
+#ifdef _M_AMD64
+                            if (tpa::hasRD_RAND)
+                            {
+                                uint16_t random = 0u;
+                                for (; i != end; ++i)
+                                {
+                                    _rdrand16_step(&random);
+                                    arr[i] = static_cast<T>(arg1 + (random % ((arg2 + 1u) - arg1)));
+                                }
+
+                            }//End if
+                            else
+                            {
+                                std::srand(std::time(NULL));
+
+                                for (; i != end; ++i)
+                                {
+                                    arr[i] = static_cast<T>(arg1 + (std::rand() % ((arg2 + 1u) - arg1)));
+                                }//End for
+                            }//End else
+#else
+#pragma message("non-x86 architecture does not have secure random number generator hardware. Defaults to std::rand()")
+                            std::srand(std::time(NULL));
+
+                            for (; i != end; ++i)
+                            {
+                                arr[i] = static_cast<T>(arg1 + (std::rand() % ((arg2 + 1u) - arg1)));
+                            }//End for
+#endif
+                        }//End if
+                        else if constexpr (INSTR == tpa::gen::XOR_SHIFT)
+                        {
+                            std::srand(std::time(nullptr));
+                            std::mt19937_64 e(std::rand());
+                            uint8_t seed = static_cast<uint8_t>(e());
+
+                            for (; i != end; ++i)
+                            {
+                                seed ^= (seed << 3u);
+                                seed ^= (seed >> 7u);
+                                seed ^= (seed << 5u);
+
+                                arr[i] = static_cast<T>(arg1 + (seed % ((arg2 + 1u) - arg1)));
+                            }//End for
+                        }//End if
                         else if constexpr (INSTR == tpa::gen::UNIFORM)
                         {
                             //Generate Random Numbers with a UNIFORM_INT_DISTRIBTUION
@@ -1223,6 +1338,236 @@ namespace tpa {
 
                                 arr[i] = paramVal;
                                 --paramVal;
+                            }//End for
+                        }//End if
+                        else if constexpr (INSTR == tpa::gen::STD_RAND)
+                        {
+                            std::srand(std::time(NULL));
+
+                            for (; i != end; ++i)
+                            {
+                                arr[i] = static_cast<T>(arg1 + (std::rand() % ((arg2 + 1u) - arg1)));
+                            }//End for
+
+                        }//End if
+                        else if constexpr (INSTR == tpa::gen::SECURE_RAND)
+                        {
+#ifdef _M_AMD64
+                            if (tpa::hasRD_RAND)
+                            {
+                                uint16_t random = 0u;
+                                for (; i != end; ++i)
+                                {
+                                    _rdrand16_step(&random);
+                                    arr[i] = static_cast<T>(arg1 + (random % ((arg2 + 1u) - arg1)));
+                                }
+
+                            }//End if
+                            else
+                            {
+                                std::srand(std::time(NULL));
+
+                                for (; i != end; ++i)
+                                {
+                                    arr[i] = static_cast<T>(arg1 + (std::rand() % ((arg2 + 1u) - arg1)));
+                                }//End for
+                            }//End else
+#else
+#pragma message("non-x86 architecture does not have secure random number generator hardware. Defaults to std::rand()")
+                            std::srand(std::time(NULL));
+
+                            for (; i != end; ++i)
+                            {
+                                arr[i] = static_cast<T>(arg1 + (std::rand() % ((arg2 + 1u) - arg1)));
+                            }//End for
+#endif
+                        }//End if
+                        else if constexpr (INSTR == tpa::gen::XOR_SHIFT)
+                        {
+                            std::srand(std::time(nullptr));
+                            std::mt19937_64 e(std::rand());
+    #ifdef _M_AMD64
+                            if (tpa::hasAVX512)
+                            {
+                                constexpr uint16_t thirteen = 13u;
+                                constexpr uint16_t seven = 7u;
+                                constexpr uint16_t seventeen = 17u;
+
+                                const uint16_t range = ((arg2 + 1u) - arg1);
+
+                                const __m512i _one = _mm512_set1_epi16(1u);
+                                const __m512i _arg1 = _mm512_set1_epi16(static_cast<uint16_t>(arg1));
+                                const __m512i _arg2 = _mm512_set1_epi16(static_cast<uint16_t>(arg2));
+                                const __m512i _range = _mm512_sub_epi16(_mm512_add_epi16(_arg2, _one), _arg1);
+
+                                __m512i _temp = _mm512_setzero_si512();
+                                __m512i _res = _mm512_setzero_si512();
+
+                                __m512i _seed = _mm512_set_epi16(
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()));
+
+                                for (; (i + 32uz) < end; ++i)
+                                {
+                                    //Generate Random Numbers
+                                    _temp = _mm512_slli_epi16(_seed, thirteen);
+                                    _seed = _mm512_xor_si512(_seed, _temp);
+
+                                    _temp = _mm512_srli_epi16(_seed, seven);
+                                    _seed = _mm512_xor_si512(_seed, _temp);
+
+                                    _temp = _mm512_slli_epi16(_seed, seventeen);
+                                    _seed = _mm512_xor_si512(_seed, _temp);
+
+                                    //_temp = tpa::util::_mm512_narrow_epi32(_seed, range);
+                                    _temp = _mm512_rem_epu16(_seed, _range);
+                                    _res = _mm512_add_epi16(_temp, _arg1);
+
+                                    _mm512_storeu_epi16(&arr[i], _res);
+                                }//End for
+                            }//End if
+                            else if (tpa::hasAVX2 && tpa::hasFMA)
+                            {
+                                constexpr uint16_t thirteen = 13u;
+                                constexpr uint16_t seven = 7u;
+                                constexpr uint16_t seventeen = 17u;
+
+                                const uint16_t range = ((arg2 + 1u) - arg1);
+
+                                const __m256i _one = _mm256_set1_epi16(1u);
+                                const __m256i _arg1 = _mm256_set1_epi16(static_cast<uint16_t>(arg1));
+                                const __m256i _arg2 = _mm256_set1_epi16(static_cast<uint16_t>(arg2));
+                                const __m256i _range = _mm256_sub_epi16(_mm256_add_epi16(_arg2, _one), _arg1);
+
+                                __m256i _temp = _mm256_setzero_si256();
+                                __m256i _res = _mm256_setzero_si256();
+
+                                __m256i _seed = _mm256_set_epi16(
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()));
+
+                                for (; (i + 16uz) < end; ++i)
+                                {
+                                    //Generate Random Numbers
+                                    _temp = _mm256_slli_epi16(_seed, thirteen);
+                                    _seed = _mm256_xor_si256(_seed, _temp);
+
+                                    _temp = _mm256_srli_epi16(_seed, seven);
+                                    _seed = _mm256_xor_si256(_seed, _temp);
+
+                                    _temp = _mm256_slli_epi16(_seed, seventeen);
+                                    _seed = _mm256_xor_si256(_seed, _temp);
+
+                                    //Narrow Range                                    
+                                    _temp = _mm256_rem_epu16(_seed, _range);
+                                    _res = _mm256_add_epi16(_temp, _arg1);                                    
+                                    //_temp = tpa::util::_mm256_narrow_epi32(_seed, range);
+                                    //_res = _mm256_add_epi32(_temp, _arg1);
+
+                                    _mm256_store_si256((__m256i*) & arr[i], _res);
+                                }//End for
+                            }//End if
+                            else if (tpa::has_SSE2)
+                            {
+                                constexpr uint16_t thirteen = 13u;
+                                constexpr uint16_t seven = 7u;
+                                constexpr uint16_t seventeen = 17u;
+
+                                const uint16_t range = ((arg2 + 1u) - arg1);
+
+                                const __m128i _one = _mm_set1_epi16(1u);
+                                const __m128i _arg1 = _mm_set1_epi16(static_cast<uint16_t>(arg1));
+                                const __m128i _arg2 = _mm_set1_epi16(static_cast<uint16_t>(arg2));
+                                const __m128i _range = _mm_sub_epi16(_mm_add_epi16(_arg2, _one), _arg1);
+
+                                __m128i _temp = _mm_setzero_si128();
+                                __m128i _res = _mm_setzero_si128();
+
+                                __m128i _seed = _mm_set_epi16(
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()));
+
+                                for (; (i + 8uz) < end; ++i)
+                                {
+                                    //Generate Random Numbers
+                                    _temp = _mm_slli_epi16(_seed, thirteen);
+                                    _seed = _mm_xor_si128(_seed, _temp);
+
+                                    _temp = _mm_srli_epi16(_seed, seven);
+                                    _seed = _mm_xor_si128(_seed, _temp);
+
+                                    _temp = _mm_slli_epi16(_seed, seventeen);
+                                    _seed = _mm_xor_si128(_seed, _temp);
+
+                                    //Narrow Range                                    
+                                    _temp = _mm_rem_epu16(_seed, _range);
+                                    _res = _mm_add_epi16(_temp, _arg1);
+                                    //_temp = tpa::util::_mm256_narrow_epi32(_seed, range);
+                                    //_res = _mm256_add_epi32(_temp, _arg1);
+
+                                    _mm_store_si128((__m128i*) & arr[i], _res);
+                                }//End for
+                            }//End if
+    #endif                            
+                            uint16_t seed = static_cast<uint16_t>(e());
+
+                            for (; i != end; ++i)
+                            {
+                                seed ^= (seed << 13u);
+                                seed ^= (seed >> 7u);
+                                seed ^= (seed << 17u);
+
+                                arr[i] = static_cast<T>(arg1 + (seed % ((arg2 + 1u) - arg1)));
                             }//End for
                         }//End if
                         else if constexpr (INSTR == tpa::gen::UNIFORM)
@@ -1625,6 +1970,236 @@ namespace tpa {
                                 --paramVal;
                             }//End for
                         }//End if
+                        else if constexpr (INSTR == tpa::gen::STD_RAND)
+                        {
+                        std::srand(std::time(NULL));
+
+                        for (; i != end; ++i)
+                        {
+                            arr[i] = static_cast<T>(arg1 + (std::rand() % ((arg2 + 1u) - arg1)));
+                        }//End for
+
+                        }//End if
+                        else if constexpr (INSTR == tpa::gen::SECURE_RAND)
+                        {
+#ifdef _M_AMD64
+                            if (tpa::hasRD_RAND)
+                            {
+                                uint16_t random = 0u;
+                                for (; i != end; ++i)
+                                {
+                                    _rdrand16_step(&random);
+                                    arr[i] = static_cast<T>(arg1 + (random % ((arg2 + 1u) - arg1)));
+                                }
+
+                            }//End if
+                            else
+                            {
+                                std::srand(std::time(NULL));
+
+                                for (; i != end; ++i)
+                                {
+                                    arr[i] = static_cast<T>(arg1 + (std::rand() % ((arg2 + 1u) - arg1)));
+                                }//End for
+                            }//End else
+#else
+#pragma message("non-x86 architecture does not have secure random number generator hardware. Defaults to std::rand()")
+                        std::srand(std::time(NULL));
+
+                            for (; i != end; ++i)
+                            {
+                                arr[i] = static_cast<T>(arg1 + (std::rand() % ((arg2 + 1u) - arg1)));
+                            }//End for
+#endif
+                        }//End if
+                        else if constexpr (INSTR == tpa::gen::XOR_SHIFT)
+                        {
+                            std::srand(std::time(nullptr));
+                            std::mt19937_64 e(std::rand());
+    #ifdef _M_AMD64
+                            if (tpa::hasAVX512)
+                            {
+                                constexpr uint16_t thirteen = 13u;
+                                constexpr uint16_t seven = 7u;
+                                constexpr uint16_t seventeen = 17u;
+
+                                const uint16_t range = ((arg2 + 1u) - arg1);
+
+                                const __m512i _one = _mm512_set1_epi16(1u);
+                                const __m512i _arg1 = _mm512_set1_epi16(static_cast<uint16_t>(arg1));
+                                const __m512i _arg2 = _mm512_set1_epi16(static_cast<uint16_t>(arg2));
+                                const __m512i _range = _mm512_sub_epi16(_mm512_add_epi16(_arg2, _one), _arg1);
+
+                                __m512i _temp = _mm512_setzero_si512();
+                                __m512i _res = _mm512_setzero_si512();
+
+                                __m512i _seed = _mm512_set_epi16(
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()));
+
+                                for (; (i + 32uz) < end; ++i)
+                                {
+                                    //Generate Random Numbers
+                                    _temp = _mm512_slli_epi16(_seed, thirteen);
+                                    _seed = _mm512_xor_si512(_seed, _temp);
+
+                                    _temp = _mm512_srli_epi16(_seed, seven);
+                                    _seed = _mm512_xor_si512(_seed, _temp);
+
+                                    _temp = _mm512_slli_epi16(_seed, seventeen);
+                                    _seed = _mm512_xor_si512(_seed, _temp);
+
+                                    //_temp = tpa::util::_mm512_narrow_epi32(_seed, range);
+                                    _temp = _mm512_rem_epu16(_seed, _range);
+                                    _res = _mm512_add_epi16(_temp, _arg1);
+
+                                    _mm512_storeu_epi16(&arr[i], _res);
+                                }//End for
+                            }//End if
+                            else if (tpa::hasAVX2 && tpa::hasFMA)
+                            {
+                                constexpr uint16_t thirteen = 13u;
+                                constexpr uint16_t seven = 7u;
+                                constexpr uint16_t seventeen = 17u;
+
+                                const uint16_t range = ((arg2 + 1u) - arg1);
+
+                                const __m256i _one = _mm256_set1_epi16(1u);
+                                const __m256i _arg1 = _mm256_set1_epi16(static_cast<uint16_t>(arg1));
+                                const __m256i _arg2 = _mm256_set1_epi16(static_cast<uint16_t>(arg2));
+                                const __m256i _range = _mm256_sub_epi16(_mm256_add_epi16(_arg2, _one), _arg1);
+
+                                __m256i _temp = _mm256_setzero_si256();
+                                __m256i _res = _mm256_setzero_si256();
+
+                                __m256i _seed = _mm256_set_epi16(
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()));
+
+                                for (; (i + 16uz) < end; ++i)
+                                {
+                                    //Generate Random Numbers
+                                    _temp = _mm256_slli_epi16(_seed, thirteen);
+                                    _seed = _mm256_xor_si256(_seed, _temp);
+
+                                    _temp = _mm256_srli_epi16(_seed, seven);
+                                    _seed = _mm256_xor_si256(_seed, _temp);
+
+                                    _temp = _mm256_slli_epi16(_seed, seventeen);
+                                    _seed = _mm256_xor_si256(_seed, _temp);
+
+                                    //Narrow Range                                    
+                                    _temp = _mm256_rem_epu16(_seed, _range);
+                                    _res = _mm256_add_epi16(_temp, _arg1);
+                                    //_temp = tpa::util::_mm256_narrow_epi32(_seed, range);
+                                    //_res = _mm256_add_epi32(_temp, _arg1);
+
+                                    _mm256_store_si256((__m256i*) & arr[i], _res);
+                                }//End for
+                            }//End if
+                            else if (tpa::has_SSE2)
+                            {
+                                constexpr uint16_t thirteen = 13u;
+                                constexpr uint16_t seven = 7u;
+                                constexpr uint16_t seventeen = 17u;
+
+                                const uint16_t range = ((arg2 + 1u) - arg1);
+
+                                const __m128i _one = _mm_set1_epi16(1u);
+                                const __m128i _arg1 = _mm_set1_epi16(static_cast<uint16_t>(arg1));
+                                const __m128i _arg2 = _mm_set1_epi16(static_cast<uint16_t>(arg2));
+                                const __m128i _range = _mm_sub_epi16(_mm_add_epi16(_arg2, _one), _arg1);
+
+                                __m128i _temp = _mm_setzero_si128();
+                                __m128i _res = _mm_setzero_si128();
+
+                                __m128i _seed = _mm_set_epi16(
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()),
+                                    static_cast<uint16_t>(e()));
+
+                                for (; (i + 8uz) < end; ++i)
+                                {
+                                    //Generate Random Numbers
+                                    _temp = _mm_slli_epi16(_seed, thirteen);
+                                    _seed = _mm_xor_si128(_seed, _temp);
+
+                                    _temp = _mm_srli_epi16(_seed, seven);
+                                    _seed = _mm_xor_si128(_seed, _temp);
+
+                                    _temp = _mm_slli_epi16(_seed, seventeen);
+                                    _seed = _mm_xor_si128(_seed, _temp);
+
+                                    //Narrow Range                                    
+                                    _temp = _mm_rem_epu16(_seed, _range);
+                                    _res = _mm_add_epi16(_temp, _arg1);
+                                    //_temp = tpa::util::_mm256_narrow_epi32(_seed, range);
+                                    //_res = _mm256_add_epi32(_temp, _arg1);
+
+                                    _mm_store_si128((__m128i*) & arr[i], _res);
+                                }//End for
+                            }//End if
+    #endif                            
+                            uint16_t seed = static_cast<uint16_t>(e());
+
+                            for (; i != end; ++i)
+                            {
+                                seed ^= (seed << 13u);
+                                seed ^= (seed >> 7u);
+                                seed ^= (seed << 17u);
+
+                                arr[i] = static_cast<T>(arg1 + (seed % ((arg2 + 1u) - arg1)));
+                            }//End for
+                        }//End if
                         else if constexpr (INSTR == tpa::gen::UNIFORM)
                         {
                             //Generate Random Numbers with a UNIFORM_INT_DISTRIBTUION
@@ -2013,6 +2588,206 @@ namespace tpa {
 
                                 arr[i] = paramVal;
                                 --paramVal;
+                            }//End for
+                        }//End if
+                        else if constexpr (INSTR == tpa::gen::STD_RAND)
+                        {
+                            std::srand(std::time(NULL));
+
+                            for (; i != end; ++i)
+                            {
+                                arr[i] = static_cast<T>(arg1 + (std::rand() % ((arg2 + 1u) - arg1)));
+                            }//End for
+
+                        }//End if
+                        else if constexpr (INSTR == tpa::gen::SECURE_RAND)
+                        {
+#ifdef _M_AMD64
+                            if (tpa::hasRD_RAND)
+                            {
+                                uint32_t random = 0u;
+                                for (; i != end; ++i)
+                                {
+                                    _rdrand32_step(&random);
+                                    arr[i] = static_cast<T>(arg1 + (random % ((arg2 + 1u) - arg1)));
+                                }
+
+                            }//End if
+                            else
+                            {
+                                std::srand(std::time(NULL));
+
+                                for (; i != end; ++i)
+                                {
+                                    arr[i] = static_cast<T>(arg1 + (std::rand() % ((arg2 + 1u) - arg1)));
+                                }//End for
+                            }//End else
+#else
+#pragma message("non-x86 architecture does not have secure random number generator hardware. Defaults to std::rand()")
+                        std::srand(std::time(NULL));
+
+                        for (; i != end; ++i)
+                        {
+                            arr[i] = static_cast<T>(arg1 + (std::rand() % ((arg2 + 1u) - arg1)));
+                        }//End for
+#endif
+                        }//End if
+                        else if constexpr (INSTR == tpa::gen::XOR_SHIFT)
+                        {   
+                            std::srand(std::time(nullptr));
+                            std::mt19937_64 e(std::rand());
+#ifdef _M_AMD64
+                            if (tpa::hasAVX512)
+                            {
+                                constexpr uint32_t thirteen = 13u;
+                                constexpr uint32_t seven = 7u;
+                                constexpr uint32_t seventeen = 17u;
+
+                                const uint32_t range = ((arg2 + 1u) - arg1);
+
+                                const __m512i _one = _mm512_set1_epi32(1u);
+                                const __m512i _arg1 = _mm512_set1_epi32(static_cast<uint32_t>(arg1));
+                                const __m512i _arg2 = _mm512_set1_epi32(static_cast<uint32_t>(arg2));
+                                const __m512i _range = _mm512_sub_epi32(_mm512_add_epi32(_arg2, _one), _arg1);
+
+                                __m512i _temp = _mm512_setzero_si512();
+                                __m512i _res = _mm512_setzero_si512();
+
+                                __m512i _seed = _mm512_set_epi32(
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()));
+
+                                for (; (i + 16uz) < end; ++i)
+                                {
+                                    //Generate Random Numbers
+                                    _temp = _mm512_slli_epi32(_seed, thirteen);
+                                    _seed = _mm512_xor_si512(_seed, _temp);
+
+                                    _temp = _mm512_srli_epi32(_seed, seven);
+                                    _seed = _mm512_xor_si512(_seed, _temp);
+
+                                    _temp = _mm512_slli_epi32(_seed, seventeen);
+                                    _seed = _mm512_xor_si512(_seed, _temp);
+                                                                        
+                                    _temp = tpa::util::_mm512_narrow_epi32(_seed, range);
+                                    _res = _mm512_add_epi32(_temp, _arg1);
+
+                                    _mm512_store_epi32(&arr[i], _res);
+                                }//End for
+                            }//End if
+                            else if (tpa::hasAVX2 && tpa::hasFMA)
+                            {
+                                constexpr uint32_t thirteen = 13u;
+                                constexpr uint32_t seven = 7u;
+                                constexpr uint32_t seventeen = 17u;
+                                
+                                const uint32_t range = ((arg2 + 1u) - arg1);
+
+                                const __m256i _one = _mm256_set1_epi32(1u);
+                                const __m256i _arg1 = _mm256_set1_epi32(static_cast<uint32_t>(arg1));
+                                const __m256i _arg2 = _mm256_set1_epi32(static_cast<uint32_t>(arg2));   
+                                const __m256i _range = _mm256_sub_epi32(_mm256_add_epi32(_arg2, _one), _arg1);
+                               
+                                __m256i _temp = _mm256_setzero_si256();
+                                __m256i _res = _mm256_setzero_si256();
+                                                                
+                                __m256i _seed = _mm256_set_epi32(
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()));                              
+
+                                for (; (i + 8uz) < end; ++i)
+                                {
+                                    //Generate Random Numbers
+                                    _temp = _mm256_slli_epi32(_seed, thirteen);
+                                    _seed = _mm256_xor_si256(_seed, _temp);
+
+                                    _temp = _mm256_srli_epi32(_seed, seven);
+                                    _seed = _mm256_xor_si256(_seed, _temp);
+
+                                    _temp = _mm256_slli_epi32(_seed, seventeen);
+                                    _seed = _mm256_xor_si256(_seed, _temp);
+
+                                    //Narrow Range
+                                    /* SLOW!
+                                    _temp = _mm256_rem_epu32(_seed, _range);
+                                    _res = _mm256_add_epi32(_temp, _arg1);
+                                    */
+                                    _temp = tpa::util::_mm256_narrow_epi32(_seed, range);
+                                    _res = _mm256_add_epi32(_temp, _arg1);
+                                    
+                                    _mm256_store_si256((__m256i*) &arr[i], _res);
+                                }//End for
+                            }//End if
+                            else if (tpa::has_SSE2)
+                            {
+                                constexpr uint32_t thirteen = 13u;
+                                constexpr uint32_t seven = 7u;
+                                constexpr uint32_t seventeen = 17u;
+
+                                const uint32_t range = ((arg2 + 1u) - arg1);
+
+                                const __m128i _one = _mm_set1_epi32(1u);
+                                const __m128i _arg1 = _mm_set1_epi32(static_cast<uint32_t>(arg1));
+                                const __m128i _arg2 = _mm_set1_epi32(static_cast<uint32_t>(arg2));
+                                const __m128i _range = _mm_sub_epi32(_mm_add_epi32(_arg2, _one), _arg1);
+
+                                __m128i _temp = _mm_setzero_si128();
+                                __m128i _res = _mm_setzero_si128();
+
+                                __m128i _seed = _mm_set_epi32(
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()));
+
+                                for (; (i + 4uz) < end; ++i)
+                                {
+                                    //Generate Random Numbers
+                                    _temp = _mm_slli_epi32(_seed, thirteen);
+                                    _seed = _mm_xor_si128(_seed, _temp);
+
+                                    _temp = _mm_srli_epi32(_seed, seven);
+                                    _seed = _mm_xor_si128(_seed, _temp);
+
+                                    _temp = _mm_slli_epi32(_seed, seventeen);
+                                    _seed = _mm_xor_si128(_seed, _temp);
+                                                                        
+                                    _temp = tpa::util::_mm_narrow_epi32(_seed, range);
+                                    _res = _mm_add_epi32(_temp, _arg1);
+
+                                    _mm_store_si128((__m128i*) & arr[i], _res);
+                                }//End for
+                            }//End if
+#endif                            
+                            uint32_t seed = static_cast<uint32_t>(e());
+
+                            for (; i != end; ++i)
+                            {
+                                seed ^= (seed << 13u);
+                                seed ^= (seed >> 7u);
+                                seed ^= (seed << 17u);
+
+                                arr[i] = static_cast<T>(arg1 + (seed % ((arg2 + 1u) - arg1)));
                             }//End for
                         }//End if
                         else if constexpr (INSTR == tpa::gen::UNIFORM)
@@ -2406,6 +3181,206 @@ namespace tpa {
                                 --paramVal;
                             }//End for
                         }//End if
+                        else if constexpr (INSTR == tpa::gen::STD_RAND)
+                        {
+                            std::srand(std::time(NULL));
+
+                            for (; i != end; ++i)
+                            {
+                                arr[i] = static_cast<T>(arg1 + (std::rand() % ((arg2 + 1u) - arg1)));
+                            }//End for
+
+                        }//End if
+                        else if constexpr (INSTR == tpa::gen::SECURE_RAND)
+                        {
+#ifdef _M_AMD64
+                            if (tpa::hasRD_RAND)
+                            {
+                                uint32_t random = 0u;
+                                for (; i != end; ++i)
+                                {
+                                    _rdrand32_step(&random);
+                                    arr[i] = static_cast<T>(arg1 + (random % ((arg2 + 1u) - arg1)));
+                                }
+
+                            }//End if
+                            else
+                            {
+                                std::srand(std::time(NULL));
+
+                                for (; i != end; ++i)
+                                {
+                                    arr[i] = static_cast<T>(arg1 + (std::rand() % ((arg2 + 1u) - arg1)));
+                                }//End for
+                            }//End else
+#else
+#pragma message("non-x86 architecture does not have secure random number generator hardware. Defaults to std::rand()")
+                            std::srand(std::time(NULL));
+
+                            for (; i != end; ++i)
+                            {
+                                arr[i] = static_cast<T>(arg1 + (std::rand() % ((arg2 + 1u) - arg1)));
+                            }//End for
+#endif
+                        }//End if
+                        else if constexpr (INSTR == tpa::gen::XOR_SHIFT)
+                        {
+                            std::srand(std::time(nullptr));
+                            std::mt19937_64 e(std::rand());
+    #ifdef _M_AMD64
+                            if (tpa::hasAVX512)
+                            {
+                                constexpr uint32_t thirteen = 13u;
+                                constexpr uint32_t seven = 7u;
+                                constexpr uint32_t seventeen = 17u;
+
+                                const uint32_t range = ((arg2 + 1u) - arg1);
+
+                                const __m512i _one = _mm512_set1_epi32(1u);
+                                const __m512i _arg1 = _mm512_set1_epi32(static_cast<uint32_t>(arg1));
+                                const __m512i _arg2 = _mm512_set1_epi32(static_cast<uint32_t>(arg2));
+                                const __m512i _range = _mm512_sub_epi32(_mm512_add_epi32(_arg2, _one), _arg1);
+
+                                __m512i _temp = _mm512_setzero_si512();
+                                __m512i _res = _mm512_setzero_si512();
+
+                                __m512i _seed = _mm512_set_epi32(
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()));
+
+                                for (; (i + 16uz) < end; ++i)
+                                {
+                                    //Generate Random Numbers
+                                    _temp = _mm512_slli_epi32(_seed, thirteen);
+                                    _seed = _mm512_xor_si512(_seed, _temp);
+
+                                    _temp = _mm512_srli_epi32(_seed, seven);
+                                    _seed = _mm512_xor_si512(_seed, _temp);
+
+                                    _temp = _mm512_slli_epi32(_seed, seventeen);
+                                    _seed = _mm512_xor_si512(_seed, _temp);
+
+                                    _temp = tpa::util::_mm512_narrow_epi32(_seed, range);
+                                    _res = _mm512_add_epi32(_temp, _arg1);
+
+                                    _mm512_store_epi32(&arr[i], _res);
+                                }//End for
+                            }//End if
+                            else if (tpa::hasAVX2 && tpa::hasFMA)
+                            {
+                                constexpr uint32_t thirteen = 13u;
+                                constexpr uint32_t seven = 7u;
+                                constexpr uint32_t seventeen = 17u;
+
+                                const uint32_t range = ((arg2 + 1u) - arg1);
+
+                                const __m256i _one = _mm256_set1_epi32(1u);
+                                const __m256i _arg1 = _mm256_set1_epi32(static_cast<uint32_t>(arg1));
+                                const __m256i _arg2 = _mm256_set1_epi32(static_cast<uint32_t>(arg2));
+                                const __m256i _range = _mm256_sub_epi32(_mm256_add_epi32(_arg2, _one), _arg1);
+
+                                __m256i _temp = _mm256_setzero_si256();
+                                __m256i _res = _mm256_setzero_si256();
+
+                                __m256i _seed = _mm256_set_epi32(
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()));
+
+                                for (; (i + 8uz) < end; ++i)
+                                {
+                                    //Generate Random Numbers
+                                    _temp = _mm256_slli_epi32(_seed, thirteen);
+                                    _seed = _mm256_xor_si256(_seed, _temp);
+
+                                    _temp = _mm256_srli_epi32(_seed, seven);
+                                    _seed = _mm256_xor_si256(_seed, _temp);
+
+                                    _temp = _mm256_slli_epi32(_seed, seventeen);
+                                    _seed = _mm256_xor_si256(_seed, _temp);
+
+                                    //Narrow Range
+                                    /* SLOW!
+                                    _temp = _mm256_rem_epu32(_seed, _range);
+                                    _res = _mm256_add_epi32(_temp, _arg1);
+                                    */
+                                    _temp = tpa::util::_mm256_narrow_epi32(_seed, range);
+                                    _res = _mm256_add_epi32(_temp, _arg1);
+
+                                    _mm256_store_si256((__m256i*) & arr[i], _res);
+                                }//End for
+                            }//End if
+                            else if (tpa::has_SSE2)
+                            {
+                                constexpr uint32_t thirteen = 13u;
+                                constexpr uint32_t seven = 7u;
+                                constexpr uint32_t seventeen = 17u;
+
+                                const uint32_t range = ((arg2 + 1u) - arg1);
+
+                                const __m128i _one = _mm_set1_epi32(1u);
+                                const __m128i _arg1 = _mm_set1_epi32(static_cast<uint32_t>(arg1));
+                                const __m128i _arg2 = _mm_set1_epi32(static_cast<uint32_t>(arg2));
+                                const __m128i _range = _mm_sub_epi32(_mm_add_epi32(_arg2, _one), _arg1);
+
+                                __m128i _temp = _mm_setzero_si128();
+                                __m128i _res = _mm_setzero_si128();
+
+                                __m128i _seed = _mm_set_epi32(
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()));
+
+                                for (; (i + 4uz) < end; ++i)
+                                {
+                                    //Generate Random Numbers
+                                    _temp = _mm_slli_epi32(_seed, thirteen);
+                                    _seed = _mm_xor_si128(_seed, _temp);
+
+                                    _temp = _mm_srli_epi32(_seed, seven);
+                                    _seed = _mm_xor_si128(_seed, _temp);
+
+                                    _temp = _mm_slli_epi32(_seed, seventeen);
+                                    _seed = _mm_xor_si128(_seed, _temp);
+
+                                    _temp = tpa::util::_mm_narrow_epi32(_seed, range);
+                                    _res = _mm_add_epi32(_temp, _arg1);
+
+                                    _mm_store_si128((__m128i*) & arr[i], _res);
+                                }//End for
+                            }//End if
+    #endif                            
+                            uint32_t seed = static_cast<uint32_t>(e());
+
+                            for (; i != end; ++i)
+                            {
+                                seed ^= (seed << 13u);
+                                seed ^= (seed >> 7u);
+                                seed ^= (seed << 17u);
+
+                                arr[i] = static_cast<T>(arg1 + (seed % ((arg2 + 1u) - arg1)));
+                            }//End for
+                        }//End if
                         else if constexpr (INSTR == tpa::gen::UNIFORM)
                         {
                             //Generate Random Numbers with a UNIFORM_INT_DISTRIBTUION
@@ -2795,6 +3770,195 @@ namespace tpa {
 
                                 arr[i] = paramVal;
                                 --paramVal;
+                            }//End for
+                        }//End if
+                        else if constexpr (INSTR == tpa::gen::STD_RAND)
+                        {
+                            std::srand(std::time(NULL));
+                            std::mt19937_64 gen(std::rand());
+
+                            for (; i != end; ++i)
+                            {
+                                arr[i] = static_cast<T>(arg1 + (gen() % ((arg2 + 1u) - arg1)));
+                            }//End for
+
+                        }//End if
+                        else if constexpr (INSTR == tpa::gen::SECURE_RAND)
+                        {
+#ifdef _M_AMD64
+                        if (tpa::hasRD_RAND)
+                        {
+                            uint64_t random = 0ull;
+                            for (; i != end; ++i)
+                            {
+                                _rdrand64_step(&random);
+                                arr[i] = static_cast<T>(arg1 + (random % ((arg2 + 1ull) - arg1)));
+                            }
+
+                        }//End if
+                        else
+                        {
+                            std::srand(std::time(NULL));
+                            std::mt19937_64 gen(std::rand());
+
+                            for (; i != end; ++i)
+                            {
+                                arr[i] = static_cast<T>(arg1 + (gen() % ((arg2 + 1ull) - arg1)));
+                            }//End for
+                        }//End else
+#else
+#pragma message("non-x86 architecture does not have secure random number generator hardware. Defaults to std::rand()")
+                            std::srand(std::time(NULL));
+                            std::mt19937_64 gen(std::rand());
+
+                            for (; i != end; ++i)
+                            {
+                                arr[i] = static_cast<T>(arg1 + (gen() % ((arg2 + 1ull) - arg1)));
+                            }//End for
+#endif
+                        }//End if
+                        else if constexpr (INSTR == tpa::gen::XOR_SHIFT)
+                        {
+                            std::srand(std::time(nullptr));
+                            std::mt19937_64 e(std::rand());
+    #ifdef _M_AMD64
+                            if (tpa::hasAVX512_DWQW)
+                            {
+                                constexpr uint64_t thirteen = 13ull;
+                                constexpr uint64_t seven = 7ull;
+                                constexpr uint64_t seventeen = 17ull;
+
+                                const uint64_t range = ((arg2 + 1ull) - arg1);
+
+                                const __m512i _one = _mm512_set1_epi64(1ull);
+                                const __m512i _arg1 = _mm512_set1_epi64(static_cast<uint64_t>(arg1));
+                                const __m512i _arg2 = _mm512_set1_epi64(static_cast<uint64_t>(arg2));
+                                const __m512i _range = _mm512_sub_epi64(_mm512_add_epi64(_arg2, _one), _arg1);
+
+                                __m512i _temp = _mm512_setzero_si512();
+                                __m512i _res = _mm512_setzero_si512();
+
+                                __m512i _seed = _mm512_set_epi64(
+                                    static_cast<uint64_t>(e()),
+                                    static_cast<uint64_t>(e()),
+                                    static_cast<uint64_t>(e()),
+                                    static_cast<uint64_t>(e()),
+                                    static_cast<uint64_t>(e()),
+                                    static_cast<uint64_t>(e()),
+                                    static_cast<uint64_t>(e()),
+                                    static_cast<uint64_t>(e()));
+
+                                for (; (i + 8uz) < end; ++i)
+                                {
+                                    //Generate Random Numbers
+                                    _temp = _mm512_slli_epi64(_seed, thirteen);
+                                    _seed = _mm512_xor_si512(_seed, _temp);
+
+                                    _temp = _mm512_srli_epi64(_seed, seven);
+                                    _seed = _mm512_xor_si512(_seed, _temp);
+
+                                    _temp = _mm512_slli_epi64(_seed, seventeen);
+                                    _seed = _mm512_xor_si512(_seed, _temp);
+
+                                    _temp = tpa::util::_mm512_narrow_epi64(_seed, range);
+                                    _res = _mm512_add_epi64(_temp, _arg1);
+
+                                    _mm512_store_epi64(&arr[i], _res);
+                                }//End for
+                            }//End if
+                            else if (tpa::hasAVX2 && tpa::hasFMA)
+                            {
+                                constexpr uint64_t thirteen = 13ull;
+                                constexpr uint64_t seven = 7ull;
+                                constexpr uint64_t seventeen = 17ull;
+
+                                const uint64_t range = ((arg2 + 1ull) - arg1);
+
+                                const __m256i _one = _mm256_set1_epi64x(1ull);
+                                const __m256i _arg1 = _mm256_set1_epi64x(static_cast<uint64_t>(arg1));
+                                const __m256i _arg2 = _mm256_set1_epi64x(static_cast<uint64_t>(arg2));
+                                const __m256i _range = _mm256_sub_epi64(_mm256_add_epi64(_arg2, _one), _arg1);
+
+                                __m256i _temp = _mm256_setzero_si256();
+                                __m256i _res = _mm256_setzero_si256();
+
+                                __m256i _seed = _mm256_set_epi64x(
+                                    static_cast<uint64_t>(e()),
+                                    static_cast<uint64_t>(e()),
+                                    static_cast<uint64_t>(e()),
+                                    static_cast<uint64_t>(e()));
+
+                                for (; (i + 4uz) < end; ++i)
+                                {
+                                    //Generate Random Numbers
+                                    _temp = _mm256_slli_epi64(_seed, thirteen);
+                                    _seed = _mm256_xor_si256(_seed, _temp);
+
+                                    _temp = _mm256_srli_epi64(_seed, seven);
+                                    _seed = _mm256_xor_si256(_seed, _temp);
+
+                                    _temp = _mm256_slli_epi64(_seed, seventeen);
+                                    _seed = _mm256_xor_si256(_seed, _temp);
+
+                                    //Narrow Range
+                                    /* SLOW!
+                                    _temp = _mm256_rem_epu64(_seed, _range);
+                                    _res = _mm256_add_epi64(_temp, _arg1);
+                                    */
+                                    _temp = tpa::util::_mm256_narrow_epi64(_seed, range);
+                                    _res = _mm256_add_epi64(_temp, _arg1);
+
+                                    _mm256_store_si256((__m256i*) & arr[i], _res);
+                                }//End for
+                            }//End if
+                            else if (tpa::has_SSE2)
+                            {
+                                constexpr uint64_t thirteen = 13ull;
+                                constexpr uint64_t seven = 7ull;
+                                constexpr uint64_t seventeen = 17ull;
+
+                                const uint64_t range = ((arg2 + 1ull) - arg1);
+
+                                const __m128i _one = _mm_set1_epi64x(1u);
+                                const __m128i _arg1 = _mm_set1_epi64x(static_cast<uint64_t>(arg1));
+                                const __m128i _arg2 = _mm_set1_epi64x(static_cast<uint64_t>(arg2));
+                                const __m128i _range = _mm_sub_epi64(_mm_add_epi64(_arg2, _one), _arg1);
+
+                                __m128i _temp = _mm_setzero_si128();
+                                __m128i _res = _mm_setzero_si128();
+
+                                __m128i _seed = _mm_set_epi64x(
+                                    static_cast<uint64_t>(e()),
+                                    static_cast<uint64_t>(e()));
+
+                                for (; (i + 2uz) < end; ++i)
+                                {
+                                    //Generate Random Numbers
+                                    _temp = _mm_slli_epi64(_seed, thirteen);
+                                    _seed = _mm_xor_si128(_seed, _temp);
+
+                                    _temp = _mm_srli_epi64(_seed, seven);
+                                    _seed = _mm_xor_si128(_seed, _temp);
+
+                                    _temp = _mm_slli_epi64(_seed, seventeen);
+                                    _seed = _mm_xor_si128(_seed, _temp);
+
+                                    _temp = tpa::util::_mm_narrow_epi64(_seed, range);
+                                    _res = _mm_add_epi64(_temp, _arg1);
+
+                                    _mm_store_si128((__m128i*) & arr[i], _res);
+                                }//End for
+                            }//End if
+    #endif                            
+                            uint32_t seed = static_cast<uint32_t>(e());
+
+                            for (; i != end; ++i)
+                            {
+                                seed ^= (seed << 13u);
+                                seed ^= (seed >> 7u);
+                                seed ^= (seed << 17u);
+
+                                arr[i] = static_cast<T>(arg1 + (seed % ((arg2 + 1u) - arg1)));
                             }//End for
                         }//End if
                         else if constexpr (INSTR == tpa::gen::UNIFORM)
@@ -3189,6 +4353,195 @@ namespace tpa {
                                 --paramVal;
                             }//End for
                         }//End if
+                        else if constexpr (INSTR == tpa::gen::STD_RAND)
+                        {
+                            std::srand(std::time(NULL));
+                            std::mt19937_64 gen(std::rand());
+
+                            for (; i != end; ++i)
+                            {
+                                arr[i] = static_cast<T>(arg1 + (gen() % ((arg2 + 1u) - arg1)));
+                            }//End for
+
+                        }//End if
+                        else if constexpr (INSTR == tpa::gen::SECURE_RAND)
+                        {
+#ifdef _M_AMD64
+                            if (tpa::hasRD_RAND)
+                            {
+                                uint64_t random = 0ull;
+                                for (; i != end; ++i)
+                                {
+                                    _rdrand64_step(&random);
+                                    arr[i] = static_cast<T>(arg1 + (random % ((arg2 + 1ull) - arg1)));
+                                }
+
+                            }//End if
+                            else
+                            {
+                                std::srand(std::time(NULL));
+                                std::mt19937_64 gen(std::rand());
+
+                                for (; i != end; ++i)
+                                {
+                                    arr[i] = static_cast<T>(arg1 + (gen() % ((arg2 + 1ull) - arg1)));
+                                }//End for
+                            }//End else
+#else
+#pragma message("non-x86 architecture does not have secure random number generator hardware. Defaults to std::rand()")
+                            std::srand(std::time(NULL));
+                            std::mt19937_64 gen(std::rand());
+
+                            for (; i != end; ++i)
+                            {
+                                arr[i] = static_cast<T>(arg1 + (gen() % ((arg2 + 1ull) - arg1)));
+                            }//End for
+#endif
+                        }//End if
+                        else if constexpr (INSTR == tpa::gen::XOR_SHIFT)
+                        {
+                            std::srand(std::time(nullptr));
+                            std::mt19937_64 e(std::rand());
+    #ifdef _M_AMD64
+                            if (tpa::hasAVX512_DWQW)
+                            {
+                                constexpr uint64_t thirteen = 13ull;
+                                constexpr uint64_t seven = 7ull;
+                                constexpr uint64_t seventeen = 17ull;
+
+                                const uint64_t range = ((arg2 + 1ull) - arg1);
+
+                                const __m512i _one = _mm512_set1_epi64(1ull);
+                                const __m512i _arg1 = _mm512_set1_epi64(static_cast<uint64_t>(arg1));
+                                const __m512i _arg2 = _mm512_set1_epi64(static_cast<uint64_t>(arg2));
+                                const __m512i _range = _mm512_sub_epi64(_mm512_add_epi64(_arg2, _one), _arg1);
+
+                                __m512i _temp = _mm512_setzero_si512();
+                                __m512i _res = _mm512_setzero_si512();
+
+                                __m512i _seed = _mm512_set_epi64(
+                                    static_cast<uint64_t>(e()),
+                                    static_cast<uint64_t>(e()),
+                                    static_cast<uint64_t>(e()),
+                                    static_cast<uint64_t>(e()),
+                                    static_cast<uint64_t>(e()),
+                                    static_cast<uint64_t>(e()),
+                                    static_cast<uint64_t>(e()),
+                                    static_cast<uint64_t>(e()));
+
+                                for (; (i + 8uz) < end; ++i)
+                                {
+                                    //Generate Random Numbers
+                                    _temp = _mm512_slli_epi64(_seed, thirteen);
+                                    _seed = _mm512_xor_si512(_seed, _temp);
+
+                                    _temp = _mm512_srli_epi64(_seed, seven);
+                                    _seed = _mm512_xor_si512(_seed, _temp);
+
+                                    _temp = _mm512_slli_epi64(_seed, seventeen);
+                                    _seed = _mm512_xor_si512(_seed, _temp);
+
+                                    _temp = tpa::util::_mm512_narrow_epi64(_seed, range);
+                                    _res = _mm512_add_epi64(_temp, _arg1);
+
+                                    _mm512_store_epi64(&arr[i], _res);
+                                }//End for
+                            }//End if
+                            else if (tpa::hasAVX2 && tpa::hasFMA)
+                            {
+                                constexpr uint64_t thirteen = 13ull;
+                                constexpr uint64_t seven = 7ull;
+                                constexpr uint64_t seventeen = 17ull;
+
+                                const uint64_t range = ((arg2 + 1ull) - arg1);
+
+                                const __m256i _one = _mm256_set1_epi64x(1ull);
+                                const __m256i _arg1 = _mm256_set1_epi64x(static_cast<uint64_t>(arg1));
+                                const __m256i _arg2 = _mm256_set1_epi64x(static_cast<uint64_t>(arg2));
+                                const __m256i _range = _mm256_sub_epi64(_mm256_add_epi64(_arg2, _one), _arg1);
+
+                                __m256i _temp = _mm256_setzero_si256();
+                                __m256i _res = _mm256_setzero_si256();
+
+                                __m256i _seed = _mm256_set_epi64x(
+                                    static_cast<uint64_t>(e()),
+                                    static_cast<uint64_t>(e()),
+                                    static_cast<uint64_t>(e()),
+                                    static_cast<uint64_t>(e()));
+
+                                for (; (i + 4uz) < end; ++i)
+                                {
+                                    //Generate Random Numbers
+                                    _temp = _mm256_slli_epi64(_seed, thirteen);
+                                    _seed = _mm256_xor_si256(_seed, _temp);
+
+                                    _temp = _mm256_srli_epi64(_seed, seven);
+                                    _seed = _mm256_xor_si256(_seed, _temp);
+
+                                    _temp = _mm256_slli_epi64(_seed, seventeen);
+                                    _seed = _mm256_xor_si256(_seed, _temp);
+
+                                    //Narrow Range
+                                    /* SLOW!
+                                    _temp = _mm256_rem_epu64(_seed, _range);
+                                    _res = _mm256_add_epi64(_temp, _arg1);
+                                    */
+                                    _temp = tpa::util::_mm256_narrow_epi64(_seed, range);
+                                    _res = _mm256_add_epi64(_temp, _arg1);
+
+                                    _mm256_store_si256((__m256i*) & arr[i], _res);
+                                }//End for
+                            }//End if
+                            else if (tpa::has_SSE2)
+                            {
+                                constexpr uint64_t thirteen = 13ull;
+                                constexpr uint64_t seven = 7ull;
+                                constexpr uint64_t seventeen = 17ull;
+
+                                const uint64_t range = ((arg2 + 1ull) - arg1);
+
+                                const __m128i _one = _mm_set1_epi64x(1u);
+                                const __m128i _arg1 = _mm_set1_epi64x(static_cast<uint64_t>(arg1));
+                                const __m128i _arg2 = _mm_set1_epi64x(static_cast<uint64_t>(arg2));
+                                const __m128i _range = _mm_sub_epi64(_mm_add_epi64(_arg2, _one), _arg1);
+
+                                __m128i _temp = _mm_setzero_si128();
+                                __m128i _res = _mm_setzero_si128();
+
+                                __m128i _seed = _mm_set_epi64x(
+                                    static_cast<uint64_t>(e()),
+                                    static_cast<uint64_t>(e()));
+
+                                for (; (i + 2uz) < end; ++i)
+                                {
+                                    //Generate Random Numbers
+                                    _temp = _mm_slli_epi64(_seed, thirteen);
+                                    _seed = _mm_xor_si128(_seed, _temp);
+
+                                    _temp = _mm_srli_epi64(_seed, seven);
+                                    _seed = _mm_xor_si128(_seed, _temp);
+
+                                    _temp = _mm_slli_epi64(_seed, seventeen);
+                                    _seed = _mm_xor_si128(_seed, _temp);
+
+                                    _temp = tpa::util::_mm_narrow_epi64(_seed, range);
+                                    _res = _mm_add_epi64(_temp, _arg1);
+
+                                    _mm_store_si128((__m128i*) & arr[i], _res);
+                                }//End for
+                            }//End if
+    #endif                            
+                            uint32_t seed = static_cast<uint32_t>(e());
+
+                            for (; i != end; ++i)
+                            {
+                                seed ^= (seed << 13u);
+                                seed ^= (seed >> 7u);
+                                seed ^= (seed << 17u);
+
+                                arr[i] = static_cast<T>(arg1 + (seed % ((arg2 + 1u) - arg1)));
+                            }//End for
+                        }//End if
                         else if constexpr (INSTR == tpa::gen::UNIFORM)
                         {
                             //Generate Random Numbers with a UNIFORM_INT_DISTRIBTUION
@@ -3576,6 +4929,220 @@ namespace tpa {
 
                                 arr[i] = paramVal;
                                 --paramVal;
+                            }//End for
+                        }//End if
+                        else if constexpr (INSTR == tpa::gen::STD_RAND)
+                        {
+                            std::srand(std::time(NULL));
+                            uint32_t random = 0u;
+                            
+                            for (; i != end; ++i)
+                            {
+                                random = std::rand();                                
+                                arr[i] = static_cast<T>(arg1 + (random % (arg2 + 1u) - arg1));
+                            }//End for
+
+                        }//End if
+                        else if constexpr (INSTR == tpa::gen::SECURE_RAND)
+                        {
+#ifdef _M_AMD64
+                            if (tpa::hasRD_RAND)
+                            {
+                                uint32_t random = 0u;
+                                
+                                for (; i != end; ++i)
+                                {
+                                    _rdrand32_step(&random);                                    
+                                    arr[i] = static_cast<T>(arg1 + (random % (arg2 + 1u) - arg1));
+                                }//End for
+
+                            }//End if
+                            else
+                            {
+                                std::srand(std::time(NULL));
+                                uint32_t random = 0u;
+                                
+                                for (; i != end; ++i)
+                                {
+                                    random = std::rand();
+                                    arr[i] = static_cast<T>(arg1 + (random % (arg2 + 1u) - arg1));
+                                }//End for
+                            }//End else
+    #else
+#pragma message("non-x86 architecture does not have secure random number generator hardware. Defaults to std::rand()")
+                            std::srand(std::time(NULL));
+                            uint32_t random = 0u;
+                            
+                            for (; i != end; ++i)
+                            {
+                                random = std::rand();
+                                arr[i] = static_cast<T>(arg1 + (random % (arg2 + 1u) - arg1));
+                            }//End for
+#endif
+                        }//End if
+                        else if constexpr (INSTR == tpa::gen::XOR_SHIFT)
+                        {
+                            std::srand(std::time(nullptr));
+                            std::mt19937_64 e(std::rand());
+    #ifdef _M_AMD64
+                            if (tpa::hasAVX512)
+                            {
+                                constexpr uint32_t thirteen = 13u;
+                                constexpr uint32_t seven = 7u;
+                                constexpr uint32_t seventeen = 17u;
+
+                                const uint32_t range = ((arg2 + 1u) - arg1);
+
+                                const __m512i _one = _mm512_set1_epi32(1u);
+                                const __m512i _arg1 = _mm512_set1_epi32(static_cast<uint32_t>(arg1));
+                                const __m512i _arg2 = _mm512_set1_epi32(static_cast<uint32_t>(arg2));
+                                const __m512i _range = _mm512_sub_epi32(_mm512_add_epi32(_arg2, _one), _arg1);
+
+                                __m512i _temp = _mm512_setzero_si512();
+                                __m512i _res = _mm512_setzero_si512();
+                                __m512 _fres = _mm512_setzero_ps();
+
+                                __m512i _seed = _mm512_set_epi32(
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()));
+
+                                for (; (i + 16uz) < end; ++i)
+                                {
+                                    //Generate Random Numbers
+                                    _temp = _mm512_slli_epi32(_seed, thirteen);
+                                    _seed = _mm512_xor_si512(_seed, _temp);
+
+                                    _temp = _mm512_srli_epi32(_seed, seven);
+                                    _seed = _mm512_xor_si512(_seed, _temp);
+
+                                    _temp = _mm512_slli_epi32(_seed, seventeen);
+                                    _seed = _mm512_xor_si512(_seed, _temp);
+
+                                    _temp = tpa::util::_mm512_narrow_epi32(_seed, range);
+                                    _res = _mm512_add_epi32(_temp, _arg1);
+
+                                    _fres = _mm512_cvtepi32_ps(_res);
+
+                                    _mm512_store_ps(&arr[i], _fres);
+                                }//End for
+                            }//End if
+                            else if (tpa::hasAVX2 && tpa::hasFMA)
+                            {
+                                constexpr uint32_t thirteen = 13u;
+                                constexpr uint32_t seven = 7u;
+                                constexpr uint32_t seventeen = 17u;
+
+                                const uint32_t range = ((arg2 + 1u) - arg1);
+
+                                const __m256i _one = _mm256_set1_epi32(1u);
+                                const __m256i _arg1 = _mm256_set1_epi32(static_cast<uint32_t>(arg1));
+                                const __m256i _arg2 = _mm256_set1_epi32(static_cast<uint32_t>(arg2));
+                                const __m256i _range = _mm256_sub_epi32(_mm256_add_epi32(_arg2, _one), _arg1);
+
+                                __m256i _temp = _mm256_setzero_si256();
+                                __m256i _res = _mm256_setzero_si256();
+                                __m256 _fres = _mm256_setzero_ps();
+
+                                __m256i _seed = _mm256_set_epi32(
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()));
+
+                                for (; (i + 8uz) < end; ++i)
+                                {
+                                    //Generate Random Numbers
+                                    _temp = _mm256_slli_epi32(_seed, thirteen);
+                                    _seed = _mm256_xor_si256(_seed, _temp);
+
+                                    _temp = _mm256_srli_epi32(_seed, seven);
+                                    _seed = _mm256_xor_si256(_seed, _temp);
+
+                                    _temp = _mm256_slli_epi32(_seed, seventeen);
+                                    _seed = _mm256_xor_si256(_seed, _temp);
+
+                                    //Narrow Range
+                                    /* SLOW!
+                                    _temp = _mm256_rem_epu32(_seed, _range);
+                                    _res = _mm256_add_epi32(_temp, _arg1);
+                                    */
+                                    _temp = tpa::util::_mm256_narrow_epi32(_seed, range);
+                                    _res = _mm256_add_epi32(_temp, _arg1);
+                                    _fres = _mm256_cvtepi32_ps(_res);
+
+                                    _mm256_store_ps(&arr[i], _fres);
+                                }//End for
+                            }//End if
+                            else if (tpa::has_SSE2)
+                            {
+                                constexpr uint32_t thirteen = 13u;
+                                constexpr uint32_t seven = 7u;
+                                constexpr uint32_t seventeen = 17u;
+
+                                const uint32_t range = ((arg2 + 1u) - arg1);
+
+                                const __m128i _one = _mm_set1_epi32(1u);
+                                const __m128i _arg1 = _mm_set1_epi32(static_cast<uint32_t>(arg1));
+                                const __m128i _arg2 = _mm_set1_epi32(static_cast<uint32_t>(arg2));
+                                const __m128i _range = _mm_sub_epi32(_mm_add_epi32(_arg2, _one), _arg1);
+
+                                __m128i _temp = _mm_setzero_si128();
+                                __m128i _res = _mm_setzero_si128();
+                                __m128 _fres = _mm_setzero_ps();
+
+                                __m128i _seed = _mm_set_epi32(
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()));
+
+                                for (; (i + 4uz) < end; ++i)
+                                {
+                                    //Generate Random Numbers
+                                    _temp = _mm_slli_epi32(_seed, thirteen);
+                                    _seed = _mm_xor_si128(_seed, _temp);
+
+                                    _temp = _mm_srli_epi32(_seed, seven);
+                                    _seed = _mm_xor_si128(_seed, _temp);
+
+                                    _temp = _mm_slli_epi32(_seed, seventeen);
+                                    _seed = _mm_xor_si128(_seed, _temp);
+
+                                    _temp = tpa::util::_mm_narrow_epi32(_seed, range);
+                                    _res = _mm_add_epi32(_temp, _arg1);
+                                    _fres = _mm_cvtepi32_ps(_res);
+
+                                    _mm_store_ps(&arr[i], _fres);
+                                }//End for
+                            }//End if
+    #endif                            
+                            uint32_t seed = static_cast<uint32_t>(e());
+
+                            for (; i != end; ++i)
+                            {
+                                seed ^= (seed << 13u);
+                                seed ^= (seed >> 7u);
+                                seed ^= (seed << 17u);
+
+                                arr[i] = static_cast<T>(arg1 + (seed % (arg2 + 1u) - arg1));
                             }//End for
                         }//End if
                         else if constexpr (INSTR == tpa::gen::UNIFORM)
@@ -3969,6 +5536,209 @@ namespace tpa {
                                 --paramVal;
                             }//End for
                         }//End if
+                        else if constexpr (INSTR == tpa::gen::STD_RAND)
+                        {
+                            std::srand(std::time(NULL));
+                            std::mt19937_64 gen(std::rand());
+                            uint64_t random = 0ull;
+
+                            for (; i != end; ++i)
+                            {
+                                random = gen();
+                                arr[i] = static_cast<T>(arg1 + (random % (arg2 + 1ull) - arg1));
+                            }//End for
+
+                        }//End if
+                        else if constexpr (INSTR == tpa::gen::SECURE_RAND)
+                        {
+#ifdef _M_AMD64
+                        if (tpa::hasRD_RAND)
+                        {
+                            uint64_t random = 0ull;
+
+                            for (; i != end; ++i)
+                            {
+                                _rdrand64_step(&random);
+                                arr[i] = static_cast<T>(arg1 + (random % (arg2 + 1ull) - arg1));
+                            }//End for
+
+                        }//End if
+                        else
+                        {
+                            std::srand(std::time(NULL));
+                            std::mt19937_64 gen(std::rand());
+                            uint32_t random = 0u;
+
+                            for (; i != end; ++i)
+                            {
+                                random = gen();
+                                arr[i] = static_cast<T>(arg1 + (random % (arg2 + 1ull) - arg1));
+                            }//End for
+                        }//End else
+#else
+#pragma message("non-x86 architecture does not have secure random number generator hardware. Defaults to std::rand()")
+                        std::srand(std::time(NULL));
+                        std::mt19937_64 gen(std::rand());
+                        uint32_t random = 0u;
+
+                        for (; i != end; ++i)
+                        {
+                            random = gen();
+                            arr[i] = static_cast<T>(arg1 + (random % (arg2 + 1ull) - arg1));
+                        }//End for
+#endif
+                        }//End if
+                        else if constexpr (INSTR == tpa::gen::XOR_SHIFT)
+                        {
+                            std::srand(std::time(nullptr));
+                            std::mt19937_64 e(std::rand());
+    #ifdef _M_AMD64
+                            if (tpa::hasAVX512_DWQW)
+                            {
+                                constexpr uint64_t thirteen = 13ull;
+                                constexpr uint64_t seven = 7ull;
+                                constexpr uint64_t seventeen = 17ull;
+
+                                const uint64_t range = ((arg2 + 1ull) - arg1);
+
+                                const __m512i _one = _mm512_set1_epi64(1ull);
+                                const __m512i _arg1 = _mm512_set1_epi64(static_cast<uint64_t>(arg1));
+                                const __m512i _arg2 = _mm512_set1_epi64(static_cast<uint64_t>(arg2));
+                                const __m512i _range = _mm512_sub_epi64(_mm512_add_epi64(_arg2, _one), _arg1);
+
+                                __m512i _temp = _mm512_setzero_si512();
+                                __m512i _res = _mm512_setzero_si512();
+                                __m512d _fres = _mm512_setzero_pd();
+
+                                __m512i _seed = _mm512_set_epi64(
+                                    static_cast<uint64_t>(e()),
+                                    static_cast<uint64_t>(e()),
+                                    static_cast<uint64_t>(e()),
+                                    static_cast<uint64_t>(e()),
+                                    static_cast<uint64_t>(e()),
+                                    static_cast<uint64_t>(e()),
+                                    static_cast<uint64_t>(e()),
+                                    static_cast<uint64_t>(e()));
+
+                                for (; (i + 8uz) < end; ++i)
+                                {
+                                    //Generate Random Numbers
+                                    _temp = _mm512_slli_epi64(_seed, thirteen);
+                                    _seed = _mm512_xor_si512(_seed, _temp);
+
+                                    _temp = _mm512_srli_epi64(_seed, seven);
+                                    _seed = _mm512_xor_si512(_seed, _temp);
+
+                                    _temp = _mm512_slli_epi64(_seed, seventeen);
+                                    _seed = _mm512_xor_si512(_seed, _temp);
+
+                                    _temp = tpa::util::_mm512_narrow_epi64(_seed, range);
+                                    _res = _mm512_add_epi64(_temp, _arg1);
+
+                                    _fres = _mm512_cvtepi64_pd(_res);
+
+                                    _mm512_store_pd(&arr[i], _fres);
+                                }//End for
+                                }//End if
+                            else if (tpa::hasAVX2 && tpa::hasFMA)
+                            {
+                                constexpr uint64_t thirteen = 13ull;
+                                constexpr uint64_t seven = 7ull;
+                                constexpr uint64_t seventeen = 17ull;
+
+                                const uint64_t range = ((arg2 + 1ull) - arg1);
+
+                                const __m256i _one = _mm256_set1_epi64x(1ull );
+                                const __m256i _arg1 = _mm256_set1_epi64x(static_cast<uint64_t>(arg1));
+                                const __m256i _arg2 = _mm256_set1_epi64x(static_cast<uint64_t>(arg2));
+                                const __m256i _range = _mm256_sub_epi64(_mm256_add_epi64(_arg2, _one), _arg1);
+
+                                __m256i _temp = _mm256_setzero_si256();
+                                __m256i _res = _mm256_setzero_si256();
+                                __m256d _fres = _mm256_setzero_pd();
+
+                                __m256i _seed = _mm256_set_epi64x(
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()));
+
+                                for (; (i + 4uz) < end; ++i)
+                                {
+                                    //Generate Random Numbers
+                                    _temp = _mm256_slli_epi64(_seed, thirteen);
+                                    _seed = _mm256_xor_si256(_seed, _temp);
+
+                                    _temp = _mm256_srli_epi64(_seed, seven);
+                                    _seed = _mm256_xor_si256(_seed, _temp);
+
+                                    _temp = _mm256_slli_epi64(_seed, seventeen);
+                                    _seed = _mm256_xor_si256(_seed, _temp);
+
+                                    //Narrow Range
+                                    /* SLOW!
+                                    _temp = _mm256_rem_epu32(_seed, _range);
+                                    _res = _mm256_add_epi32(_temp, _arg1);
+                                    */
+                                    _temp = tpa::util::_mm256_narrow_epi64(_seed, range);
+                                    _res = _mm256_add_epi64(_temp, _arg1);
+                                    _fres = tpa::util::_mm256_cvtepi64_pd(_res);
+
+                                    _mm256_store_pd(&arr[i], _fres);
+                                }//End for
+                            }//End if
+                            else if (tpa::has_SSE2)
+                            {
+                                constexpr uint64_t thirteen = 13ull;
+                                constexpr uint64_t seven = 7ull;
+                                constexpr uint64_t seventeen = 17ull;
+
+                                const uint64_t range = ((arg2 + 1ull) - arg1);
+
+                                const __m128i _one = _mm_set1_epi64x(1ull);
+                                const __m128i _arg1 = _mm_set1_epi64x(static_cast<uint64_t>(arg1));
+                                const __m128i _arg2 = _mm_set1_epi64x(static_cast<uint64_t>(arg2));
+                                const __m128i _range = _mm_sub_epi64(_mm_add_epi64(_arg2, _one), _arg1);
+
+                                __m128i _temp = _mm_setzero_si128();
+                                __m128i _res = _mm_setzero_si128();
+                                __m128d _fres = _mm_setzero_pd();
+
+                                __m128i _seed = _mm_set_epi64x(
+                                    static_cast<uint32_t>(e()),
+                                    static_cast<uint32_t>(e()));
+
+                                for (; (i + 2uz) < end; ++i)
+                                {
+                                    //Generate Random Numbers
+                                    _temp = _mm_slli_epi64(_seed, thirteen);
+                                    _seed = _mm_xor_si128(_seed, _temp);
+
+                                    _temp = _mm_srli_epi64(_seed, seven);
+                                    _seed = _mm_xor_si128(_seed, _temp);
+
+                                    _temp = _mm_slli_epi64(_seed, seventeen);
+                                    _seed = _mm_xor_si128(_seed, _temp);
+
+                                    _temp = tpa::util::_mm_narrow_epi64(_seed, range);
+                                    _res = _mm_add_epi64(_temp, _arg1);
+                                    _fres = tpa::util::_mm_cvtepi64_pd(_res);
+
+                                    _mm_store_pd(&arr[i], _fres);
+                                }//End for
+                            }//End if
+    #endif                            
+                            uint64_t seed = static_cast<uint64_t>(e());
+
+                            for (; i != end; ++i)
+                            {
+                                seed ^= (seed << 13ull);
+                                seed ^= (seed >> 7ull);
+                                seed ^= (seed << 17ull);
+
+                                arr[i] = static_cast<T>(arg1 + (seed % (arg2 + 1ull) - arg1));
+                            }//End for
+                        }//End if
                         else if constexpr (INSTR == tpa::gen::UNIFORM)
                         {
                             //Generate Random Numbers with a UNIFORM_REAL_DISTRIBTUION
@@ -4260,6 +6030,64 @@ namespace tpa {
                                 arr[i] = paramVal;
                                 --paramVal;
                             }//End for
+                        }//End if
+                        else if constexpr (INSTR == tpa::gen::STD_RAND)
+                        {
+                            std::srand(std::time(NULL));
+                            std::mt19937_64 e(std::rand());
+
+                            for (; i != end; ++i)
+                            {
+                                arr[i] = static_cast<T>(arg1 + (e() % ((arg2 + 1u) - arg1)));
+                            }//End for
+                        }//End if
+                        else if constexpr (INSTR == tpa::gen::SECURE_RAND)
+                        {
+#ifdef _M_AMD64
+                            if (tpa::hasRD_RAND)
+                            {
+                                uint64_t random = 0u;
+                                for (; i != end; ++i)
+                                {
+                                    _rdrand64_step(&random);
+                                    arr[i] = static_cast<T>(arg1 + (random % ((arg2 + 1u) - arg1)));
+                                }
+
+                            }//End if
+                            else
+                            {
+                                std::srand(std::time(NULL));
+                                std::mt19937_64 e(std::rand());
+
+                                for (; i != end; ++i)
+                                {
+                                    arr[i] = static_cast<T>(arg1 + (e() % ((arg2 + 1u) - arg1)));
+                                }//End for
+                            }//End else
+#else
+#pragma message("non-x86 architecture does not have secure random number generator hardware. Defaults to std::rand()")
+                            std::srand(std::time(NULL));
+
+                            for (; i != end; ++i)
+                            {
+                                arr[i] = static_cast<T>(arg1 + (std::rand() % ((arg2 + 1u) - arg1)));
+                            }//End for
+#endif
+                        }//End if
+                        else if constexpr (INSTR == tpa::gen::XOR_SHIFT)
+                        {
+                            std::srand(std::time(nullptr));
+                            std::mt19937_64 e(std::rand());
+                            int64_t seed = static_cast<int64_t>(e());
+
+                            for (; i != end; ++i)
+                            {
+                                seed ^= (seed << 13ll);
+                                seed ^= (seed >> 7ll);
+                                seed ^= (seed << 17ll);
+                                                                
+                                arr[i] = static_cast<T>(arg1 + seed % ((arg2 + 1ll) - arg1));                                
+                            }//End for                           
                         }//End if
                         else if constexpr (INSTR == tpa::gen::UNIFORM)
                         {
