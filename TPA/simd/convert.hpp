@@ -116,7 +116,7 @@ namespace tpa::simd {
 							__m256i _from;
 							__m512i _to;
 
-							for (; (i + 32) < end; i += 32)
+							for (; (i + 32uz) < end; i += 32uz)
 							{
 								_from = _mm256_load_si256((__m256i*) & source[i]);
 								_to = _mm512_cvtepi8_epi16(_from);
@@ -129,7 +129,7 @@ namespace tpa::simd {
 							__m128i _from;
 							__m256i _to;
 
-							for (; (i + 16) < end; i += 16)
+							for (; (i + 16uz) < end; i += 16uz)
 							{
 								_from = _mm_load_si128((__m128i*) &source[i]);
 								_to = _mm256_cvtepi8_epi16(_from);
@@ -141,7 +141,7 @@ namespace tpa::simd {
 						{
 							__m128i _from, _to;
 
-							for (; (i + 8) < end; i += 8)
+							for (; (i + 8uz) < end; i += 8uz)
 							{
 								_from = _mm_load_si128((__m128i*) & source[i]);
 								_to = _mm_cvtepi8_epi16(_from);
@@ -161,7 +161,7 @@ namespace tpa::simd {
 							__m128i _from;
 							__m512i _to;
 
-							for (; (i + 16) < end; i += 16)
+							for (; (i + 16uz) < end; i += 16uz)
 							{
 								_from = _mm_load_si128((__m128i*) & source[i]);
 								_to = _mm512_cvtepi8_epi32(_from);
@@ -174,7 +174,7 @@ namespace tpa::simd {
 							__m128i _from;
 							__m256i _to;
 
-							for (; (i + 8) < end; i += 8)
+							for (; (i + 8uz) < end; i += 8uz)
 							{
 								_from = _mm_load_si128((__m128i*) & source[i]);
 								_to = _mm256_cvtepi8_epi32(_from);
@@ -186,7 +186,7 @@ namespace tpa::simd {
 						{
 							__m128i _from, _to;
 
-							for (; (i + 4) < end; i += 4)
+							for (; (i + 4uz) < end; i += 4uz)
 							{
 								_from = _mm_load_si128((__m128i*) & source[i]);
 								_to = _mm_cvtepi8_epi32(_from);
@@ -206,7 +206,7 @@ namespace tpa::simd {
 							__m128i _from;
 							__m512i _to;
 
-							for (; (i + 8) < end; i += 8)
+							for (; (i + 8uz) < end; i += 8uz)
 							{
 								_from = _mm_load_si128((__m128i*) & source[i]);
 								_to = _mm512_cvtepi8_epi64(_from);
@@ -219,7 +219,7 @@ namespace tpa::simd {
 							__m128i _from;
 							__m256i _to;
 
-							for (; (i + 4) < end; i += 4)
+							for (; (i + 4uz) < end; i += 4uz)
 							{
 								_from = _mm_load_si128((__m128i*) & source[i]);
 								_to = _mm256_cvtepi8_epi64(_from);
@@ -231,12 +231,133 @@ namespace tpa::simd {
 						{
 							__m128i _from, _to;
 
-							for (; (i + 2) < end; i += 2)
+							for (; (i + 2uz) < end; i += 2uz)
 							{
 								_from = _mm_load_si128((__m128i*) & source[i]);
 								_to = _mm_cvtepi8_epi64(_from);
 
 								_mm_store_si128((__m128i*) & dest[i], _to);
+							}//End for
+						}//End if
+#endif
+					}//End if
+#pragma endregion
+#pragma region int8-to-float32
+					if constexpr (std::is_same<FROM_T, int8_t>() && std::is_same<TO_T, float>())
+					{
+#ifdef _M_AMD64
+						if (tpa::hasAVX512)
+						{
+							__m128i _from;
+							__m512i _to;
+							__m512 _tof;
+
+							for (; (i + 16uz) < end; i += 16uz)
+							{
+								_from = _mm_load_si128((__m128i*) & source[i]);
+								_to = _mm512_cvtepi8_epi32(_from);
+								_tof = _mm512_cvtepi32_ps(_to);
+
+								_mm512_store_ps(&dest[i], _tof);
+							}//End for
+						}//End if
+						else if (tpa::hasAVX2)
+						{
+							__m128i _from;
+							__m256i _to;
+							__m256 _tof;
+
+							for (; (i + 8uz) < end; i += 8uz)
+							{
+								_from = _mm_load_si128((__m128i*) & source[i]);
+								_to = _mm256_cvtepi8_epi32(_from);
+								_tof = _mm256_cvtepi32_ps(_to);
+
+								_mm256_store_ps(&dest[i], _tof);
+							}//End for
+						}//End if
+						else if (tpa::has_SSE41)
+						{
+							__m128i _from, _to;
+							__m128 _tof;
+
+							for (; (i + 4uz) < end; i += 4uz)
+							{
+								_from = _mm_load_si128((__m128i*) & source[i]);
+								_to = _mm_cvtepi8_epi32(_from);
+								_tof = _mm_cvtepi32_ps(_to);
+
+								_mm_store_ps(&dest[i], _tof);
+							}//End for
+						}//End if
+#endif
+					}//End if
+#pragma endregion
+#pragma region int8-to-float64
+					if constexpr (std::is_same<FROM_T, int8_t>() && std::is_same<TO_T, double>())
+					{
+#ifdef _M_AMD64
+						if (tpa::hasAVX512)
+						{
+							__m128i _from;
+							__m512i _to;
+							__m256i _first, _second;
+							__m512d _tof;
+
+							for (; (i + 8uz) < end; i += 8uz)
+							{
+								_from = _mm_load_si128((__m128i*) & source[i]);
+								_to = _mm512_cvtepi8_epi32(_from);
+
+								_first = _mm256_load_si256((__m256i*) &_to);
+								_second = _mm256_load_si256((__m256i*) &_to + 32);
+
+								_tof = _mm512_cvtepi32_pd(_first);
+								_mm512_store_pd(&dest[i], _tof);
+
+								_tof = _mm512_cvtepi32_pd(_second);
+								_mm512_store_pd(&dest[i+8], _tof);
+							}//End for
+						}//End if
+						else if (tpa::hasAVX2)
+						{
+							__m128i _from, _first, _second;
+							__m256i _to;
+							__m256d _tof;
+
+							for (; (i + 4uz) < end; i += 4uz)
+							{
+								_from = _mm_load_si128((__m128i*) &source[i]);
+								_to = _mm256_cvtepi8_epi32(_from);
+
+								_first = _mm_load_si128((__m128i*) &_to);
+								_second = _mm_load_si128((__m128i*) &_to + 16);
+
+								_tof = _mm256_cvtepi32_pd(_first);
+								_mm256_store_pd(&dest[i], _tof);
+
+								_tof = _mm256_cvtepi32_pd(_second);
+								_mm256_store_pd(&dest[i+4], _tof);
+							}//End for
+						}//End if
+						else if (tpa::has_SSE41)
+						{
+							__m128i _from, _to, _low, _high;
+							__m128d _tof;
+
+							for (; (i + 2uz) < end; i += 2uz)
+							{
+								_from = _mm_load_si128((__m128i*) & source[i]);
+								_to = _mm_cvtepi8_epi32(_from);
+
+								_low = _mm_load_si128((__m128i*) & _to);
+								_high = _mm_load_si128((__m128i*) & _to + 8);
+
+								_tof = _mm_cvtepi32_pd(_low);
+								_mm_store_pd(&dest[i], _tof);
+
+								_tof = _mm_cvtepi32_pd(_high);
+								_mm_store_pd(&dest[i+2], _tof);
 							}//End for
 						}//End if
 #endif
@@ -251,7 +372,7 @@ namespace tpa::simd {
 							__m256i _from;
 							__m512i _to;
 
-							for (; (i + 32) < end; i += 32)
+							for (; (i + 32uz) < end; i += 32uz)
 							{
 								_from = _mm256_load_si256((__m256i*) & source[i]);
 								_to = _mm512_cvtepu8_epi16(_from);
@@ -264,7 +385,7 @@ namespace tpa::simd {
 							__m128i _from;
 							__m256i _to;
 
-							for (; (i + 16) < end; i += 16)
+							for (; (i + 16uz) < end; i += 16uz)
 							{
 								_from = _mm_load_si128((__m128i*) & source[i]);
 								_to = _mm256_cvtepu8_epi16(_from);
@@ -276,7 +397,7 @@ namespace tpa::simd {
 						{
 							__m128i _from, _to;
 
-							for (; (i + 8) < end; i += 8)
+							for (; (i + 8uz) < end; i += 8uz)
 							{
 								_from = _mm_load_si128((__m128i*) & source[i]);
 								_to = _mm_cvtepu8_epi16(_from);
@@ -296,7 +417,7 @@ namespace tpa::simd {
 							__m128i _from;
 							__m512i _to;
 
-							for (; (i + 16) < end; i += 16)
+							for (; (i + 16uz) < end; i += 16uz)
 							{
 								_from = _mm_load_si128((__m128i*) & source[i]);
 								_to = _mm512_cvtepu8_epi32(_from);
@@ -309,7 +430,7 @@ namespace tpa::simd {
 							__m128i _from;
 							__m256i _to;
 
-							for (; (i + 8) < end; i += 8)
+							for (; (i + 8uz) < end; i += 8uz)
 							{
 								_from = _mm_load_si128((__m128i*) & source[i]);
 								_to = _mm256_cvtepu8_epi32(_from);
@@ -321,7 +442,7 @@ namespace tpa::simd {
 						{
 							__m128i _from, _to;
 
-							for (; (i + 4) < end; i += 4)
+							for (; (i + 4uz) < end; i += 4uz)
 							{
 								_from = _mm_load_si128((__m128i*) & source[i]);
 								_to = _mm_cvtepu8_epi32(_from);
@@ -341,7 +462,7 @@ namespace tpa::simd {
 							__m128i _from;
 							__m512i _to;
 
-							for (; (i + 8) < end; i += 8)
+							for (; (i + 8uz) < end; i += 8uz)
 							{
 								_from = _mm_load_si128((__m128i*) & source[i]);
 								_to = _mm512_cvtepu8_epi64(_from);
@@ -354,7 +475,7 @@ namespace tpa::simd {
 							__m128i _from;
 							__m256i _to;
 
-							for (; (i + 4) < end; i += 4)
+							for (; (i + 4uz) < end; i += 4uz)
 							{
 								_from = _mm_load_si128((__m128i*) & source[i]);
 								_to = _mm256_cvtepu8_epi64(_from);
@@ -366,12 +487,153 @@ namespace tpa::simd {
 						{
 							__m128i _from, _to;
 
-							for (; (i + 2) < end; i += 2)
+							for (; (i + 2uz) < end; i += 2uz)
 							{
 								_from = _mm_load_si128((__m128i*) & source[i]);
 								_to = _mm_cvtepu8_epi64(_from);
 
 								_mm_store_si128((__m128i*) & dest[i], _to);
+							}//End for
+						}//End if
+#endif
+					}//End if
+#pragma endregion
+#pragma region uint8-to-float32
+					if constexpr (std::is_same<FROM_T, uint8_t>() && std::is_same<TO_T, float>())
+					{
+#ifdef _M_AMD64
+						if (tpa::hasAVX512)
+						{
+							__m128i _from;
+							__m512i _to;
+							__m512 _tof;
+
+							for (; (i + 16uz) < end; i += 16uz)
+							{
+								_from = _mm_load_si128((__m128i*) & source[i]);
+								_to = _mm512_cvtepu8_epi32(_from);
+								_tof = _mm512_cvtepi32_ps(_to);
+
+								_mm512_store_ps(&dest[i], _tof);
+							}//End for
+						}//End if
+						else if (tpa::hasAVX2)
+						{
+							__m128i _from;
+							__m256i _to;
+							__m256 _tof;
+
+							for (; (i + 8uz) < end; i += 8uz)
+							{
+								_from = _mm_load_si128((__m128i*) & source[i]);
+								_to = _mm256_cvtepu8_epi32(_from);
+								_tof = _mm256_cvtepi32_ps(_to);
+
+								_mm256_store_ps(&dest[i], _tof);
+							}//End for
+						}//End if
+						else if (tpa::has_SSE41)
+						{
+							__m128i _from, _to;
+							__m128 _tof;
+
+							for (; (i + 4uz) < end; i += 4uz)
+							{
+								_from = _mm_load_si128((__m128i*) & source[i]);
+								_to = _mm_cvtepu8_epi32(_from);
+								_tof = _mm_cvtepi32_ps(_to);
+
+								_mm_store_ps(&dest[i], _tof);
+							}//End for
+						}//End if
+#endif
+					}//End if
+#pragma endregion
+#pragma region uint8-to-float64
+					if constexpr (std::is_same<FROM_T, uint8_t>() && std::is_same<TO_T, double>())
+					{
+#ifdef _M_AMD64
+						if (tpa::hasAVX512)
+						{
+							__m128i _from;
+							__m512i _to;
+							__m256i _first, _second;
+							__m512d _tof;
+
+							for (; (i + 8uz) < end; i += 8uz)
+							{
+								_from = _mm_load_si128((__m128i*) & source[i]);
+								_to = _mm512_cvtepu8_epi32(_from);
+
+								_first = _mm256_load_si256((__m256i*) & _to);
+								_second = _mm256_load_si256((__m256i*) & _to + 32);
+
+								_tof = _mm512_cvtepi32_pd(_first);
+								_mm512_store_pd(&dest[i], _tof);
+
+								_tof = _mm512_cvtepi32_pd(_second);
+								_mm512_store_pd(&dest[i + 8], _tof);
+							}//End for
+						}//End if
+						else if (tpa::hasAVX2)
+						{
+							__m128i _from, _first, _second;
+							__m256i _to;
+							__m256d _tof;
+
+							for (; (i + 4uz) < end; i += 4uz)
+							{
+								_from = _mm_load_si128((__m128i*) & source[i]);
+								_to = _mm256_cvtepu8_epi32(_from);
+
+								_first = _mm_load_si128((__m128i*) & _to);
+								_second = _mm_load_si128((__m128i*) & _to + 16);
+
+								_tof = _mm256_cvtepi32_pd(_first);
+								_mm256_store_pd(&dest[i], _tof);
+
+								_tof = _mm256_cvtepi32_pd(_second);
+								_mm256_store_pd(&dest[i + 4], _tof);
+							}//End for
+						}//End if
+						else if (tpa::has_SSE41)
+						{
+							__m128i _from, _to, _low, _high;
+							__m128d _tof;
+
+							for (; (i + 2uz) < end; i += 2uz)
+							{
+								_from = _mm_load_si128((__m128i*) & source[i]);
+								_to = _mm_cvtepu8_epi32(_from);
+
+								_low = _mm_load_si128((__m128i*) & _to);
+								_high = _mm_load_si128((__m128i*) & _to + 8);
+
+								_tof = _mm_cvtepi32_pd(_low);
+								_mm_store_pd(&dest[i], _tof);
+
+								_tof = _mm_cvtepi32_pd(_high);
+								_mm_store_pd(&dest[i + 2], _tof);
+							}//End for
+						}//End if
+#endif
+					}//End if
+#pragma endregion
+#pragma region int16-to-int8
+					if constexpr (std::is_same<FROM_T, int16_t>() && std::is_same<TO_T, int8_t>())
+					{
+#ifdef _M_AMD64
+						if (tpa::hasAVX512_ByteWord)
+						{
+							__m256i _to;
+							__m512i _from;
+
+							for (; (i + 16uz) < end; i += 16uz)
+							{
+								_from = _mm512_loadu_epi16(&source[i]);
+								_to = _mm512_cvtepi16_epi8(_from);
+
+								_mm256_store_si256((__m256*) & dest[i], _to);
 							}//End for
 						}//End if
 #endif
@@ -386,7 +648,7 @@ namespace tpa::simd {
 							__m256i _from;
 							__m512i _to;
 
-							for (; (i + 16) < end; i += 16)
+							for (; (i + 16uz) < end; i += 16uz)
 							{
 								_from = _mm256_load_si256((__m256i*) & source[i]);
 								_to = _mm512_cvtepi16_epi32(_from);
@@ -399,7 +661,7 @@ namespace tpa::simd {
 							__m128i _from;
 							__m256i _to;
 
-							for (; (i + 8) < end; i += 8)
+							for (; (i + 8uz) < end; i += 8uz)
 							{
 								_from = _mm_load_si128((__m128i*) & source[i]);
 								_to = _mm256_cvtepi16_epi32(_from);
@@ -411,7 +673,7 @@ namespace tpa::simd {
 						{
 							__m128i _from, _to;
 
-							for (; (i + 4) < end; i += 4)
+							for (; (i + 4uz) < end; i += 4uz)
 							{
 								_from = _mm_load_si128((__m128i*) & source[i]);
 								_to = _mm_cvtepi16_epi32(_from);
@@ -431,7 +693,7 @@ namespace tpa::simd {
 							__m128i _from;
 							__m512i _to;
 
-							for (; (i + 8) < end; i += 8)
+							for (; (i + 8uz) < end; i += 8uz)
 							{
 								_from = _mm_load_si128((__m128i*) & source[i]);
 								_to = _mm512_cvtepi16_epi64(_from);
@@ -444,7 +706,7 @@ namespace tpa::simd {
 							__m128i _from;
 							__m256i _to;
 
-							for (; (i + 4) < end; i += 4)
+							for (; (i + 4uz) < end; i += 4uz)
 							{
 								_from = _mm_load_si128((__m128i*) & source[i]);
 								_to = _mm256_cvtepi16_epi64(_from);
@@ -456,12 +718,124 @@ namespace tpa::simd {
 						{
 							__m128i _from, _to;
 
-							for (; (i + 2) < end; i += 2)
+							for (; (i + 2uz) < end; i += 2uz)
 							{
 								_from = _mm_load_si128((__m128i*) & source[i]);
 								_to = _mm_cvtepi16_epi64(_from);
 
 								_mm_store_si128((__m128i*) & dest[i], _to);
+							}//End for
+						}//End if
+#endif
+					}//End if
+#pragma endregion
+#pragma region int16-to-float32
+					if constexpr (std::is_same<FROM_T, int16_t>() && std::is_same<TO_T, float>())
+					{
+#ifdef _M_AMD64
+						if (tpa::hasAVX512)
+						{
+							__m256i _from;
+							__m512i _to;
+							__m512 _tof;
+
+							for (; (i + 16uz) < end; i += 16uz)
+							{
+								_from = _mm256_load_si256((__m256i*) & source[i]);
+								_to = _mm512_cvtepi16_epi32(_from);
+								_tof = _mm512_cvtepi32_ps(_to);
+
+								_mm512_store_ps(&dest[i], _tof);
+							}//End for
+						}//End if
+						else if (tpa::hasAVX2)
+						{
+							__m128i _from;
+							__m256i _to;
+							__m256 _tof;
+
+							for (; (i + 8uz) < end; i += 8uz)
+							{
+								_from = _mm_load_si128((__m128i*) & source[i]);
+								_to = _mm256_cvtepi16_epi32(_from);
+								_tof = _mm256_cvtepi32_ps(_to);
+
+								_mm256_store_ps(&dest[i], _tof);
+							}//End for
+						}//End if
+						else if (tpa::has_SSE41)
+						{
+							__m128i _from, _to;
+							__m128 _tof;
+
+							for (; (i + 4uz) < end; i += 4uz)
+							{
+								_from = _mm_load_si128((__m128i*) & source[i]);
+								_to = _mm_cvtepi16_epi32(_from);
+								_tof = _mm_cvtepi32_ps(_to);
+
+								_mm_store_ps(&dest[i], _tof);
+							}//End for
+						}//End if
+#endif
+					}//End if
+#pragma endregion
+#pragma region int16-to-float64
+					if constexpr (std::is_same<FROM_T, int16_t>() && std::is_same<TO_T, double>())
+					{
+#ifdef _M_AMD64
+						if (tpa::hasAVX512)
+						{
+							__m256i _from, _first, _second;
+							__m512i _to;
+							__m512d _tof;
+
+							for (; (i + 8uz) < end; i += 8uz)
+							{
+								_from = _mm256_load_si256((__m256i*) & source[i]);
+								_to = _mm512_cvtepi16_epi32(_from);
+
+								_first = _mm256_load_si256((__m256i*) &_to);
+								_tof = _mm512_cvtepi32_pd(_first);
+								_mm512_store_pd(&dest[i], _tof);
+
+								_second = _mm256_load_si256((__m256i*) &_to + 32);
+								_tof = _mm512_cvtepi32_pd(_first);
+								_mm512_store_pd(&dest[i+8], _tof);
+							}//End for
+						}//End if
+						else if (tpa::hasAVX2)
+						{
+							__m128i _from, _first, _second;
+							__m256i _to;
+							__m256d _tof;
+
+							for (; (i + 4uz) < end; i += 4uz)
+							{
+								_from = _mm_load_si128((__m128i*) & source[i]);
+								_to = _mm256_cvtepi16_epi32(_from);
+
+								_first = _mm_load_si128((__m128i*) &_to);
+								_tof = _mm256_cvtepi32_pd(_first);
+								_mm256_store_pd(&dest[i], _tof);
+
+								_second = _mm_load_si128((__m128i*) &_to + 16);
+								_tof = _mm256_cvtepi32_pd(_first);
+								_mm256_store_pd(&dest[i+4], _tof);
+							}//End for
+						}//End if
+						else if (tpa::has_SSE41)
+						{
+							__m128i _from, _to;
+							__m128d _tof;
+
+							for (; (i + 2uz) < end; i += 2uz)
+							{
+								_from = _mm_load_si128((__m128i*) & source[i]);
+								_to = _mm_cvtepi16_epi32(_from);
+								_tof = _mm_cvtepi32_pd(_to);
+
+								_mm_store_pd(&dest[i], _tof);
 							}//End for
 						}//End if
 #endif
@@ -476,7 +850,7 @@ namespace tpa::simd {
 							__m256i _from;
 							__m512i _to;
 
-							for (; (i + 16) < end; i += 16)
+							for (; (i + 16uz) < end; i += 16uz)
 							{
 								_from = _mm256_load_si256((__m256i*) & source[i]);
 								_to = _mm512_cvtepu16_epi32(_from);
@@ -489,7 +863,7 @@ namespace tpa::simd {
 							__m128i _from;
 							__m256i _to;
 
-							for (; (i + 8) < end; i += 8)
+							for (; (i + 8uz) < end; i += 8uz)
 							{
 								_from = _mm_load_si128((__m128i*) & source[i]);
 								_to = _mm256_cvtepu16_epi32(_from);
@@ -501,7 +875,7 @@ namespace tpa::simd {
 						{
 							__m128i _from, _to;
 
-							for (; (i + 4) < end; i += 4)
+							for (; (i + 4uz) < end; i += 4uz)
 							{
 								_from = _mm_load_si128((__m128i*) & source[i]);
 								_to = _mm_cvtepu16_epi32(_from);
@@ -521,7 +895,7 @@ namespace tpa::simd {
 							__m128i _from;
 							__m512i _to;
 
-							for (; (i + 8) < end; i += 8)
+							for (; (i + 8uz) < end; i += 8uz)
 							{
 								_from = _mm_load_si128((__m128i*) & source[i]);
 								_to = _mm512_cvtepu16_epi64(_from);
@@ -534,7 +908,7 @@ namespace tpa::simd {
 							__m128i _from;
 							__m256i _to;
 
-							for (; (i + 4) < end; i += 4)
+							for (; (i + 4uz) < end; i += 4uz)
 							{
 								_from = _mm_load_si128((__m128i*) & source[i]);
 								_to = _mm256_cvtepu16_epi64(_from);
@@ -546,12 +920,164 @@ namespace tpa::simd {
 						{
 							__m128i _from, _to;
 
-							for (; (i + 2) < end; i += 2)
+							for (; (i + 2uz) < end; i += 2uz)
 							{
 								_from = _mm_load_si128((__m128i*) & source[i]);
 								_to = _mm_cvtepu8_epi64(_from);
 
 								_mm_store_si128((__m128i*) & dest[i], _to);
+							}//End for
+						}//End if
+#endif
+					}//End if
+#pragma endregion
+#pragma region uint16-to-float32
+					if constexpr (std::is_same<FROM_T, uint16_t>() && std::is_same<TO_T, float>())
+					{
+#ifdef _M_AMD64
+						if (tpa::hasAVX512)
+						{
+							__m256i _from;
+							__m512i _to;
+							__m512 _tof;
+
+							for (; (i + 16uz) < end; i += 16uz)
+							{
+								_from = _mm256_load_si256((__m256i*) & source[i]);
+								_to = _mm512_cvtepu16_epi32(_from);
+								_tof = _mm512_cvtepi32_ps(_to);
+
+								_mm512_store_ps(&dest[i], _tof);
+							}//End for
+						}//End if
+						else if (tpa::hasAVX2)
+						{
+							__m128i _from;
+							__m256i _to;
+							__m256 _tof;
+
+							for (; (i + 8uz) < end; i += 8uz)
+							{
+								_from = _mm_load_si128((__m128i*) & source[i]);
+								_to = _mm256_cvtepu16_epi32(_from);
+								_tof = _mm256_cvtepi32_ps(_to);
+
+								_mm256_store_ps(&dest[i], _tof);
+							}//End for
+						}//End if
+						else if (tpa::has_SSE41)
+						{
+							__m128i _from, _to;
+							__m128 _tof;
+
+							for (; (i + 4uz) < end; i += 4uz)
+							{
+								_from = _mm_load_si128((__m128i*) & source[i]);
+								_to = _mm_cvtepu16_epi32(_from);
+								_tof = _mm_cvtepi32_ps(_to);
+
+								_mm_store_ps(&dest[i], _tof);
+							}//End for
+						}//End if
+#endif
+					}//End if
+#pragma endregion
+#pragma region uint16-to-float64
+					if constexpr (std::is_same<FROM_T, uint16_t>() && std::is_same<TO_T, double>())
+					{
+#ifdef _M_AMD64
+						if (tpa::hasAVX512)
+						{
+							__m256i _from, _first, _second;
+							__m512i _to;
+							__m512d _tof;
+
+							for (; (i + 8uz) < end; i += 8uz)
+							{
+								_from = _mm256_load_si256((__m256i*) & source[i]);
+								_to = _mm512_cvtepu16_epi32(_from);
+
+								_first = _mm256_load_si256((__m256i*) & _to);
+								_tof = _mm512_cvtepi32_pd(_first);
+								_mm512_store_pd(&dest[i], _tof);
+
+								_second = _mm256_load_si256((__m256i*) & _to + 32);
+								_tof = _mm512_cvtepi32_pd(_first);
+								_mm512_store_pd(&dest[i + 8], _tof);
+							}//End for
+						}//End if
+						else if (tpa::hasAVX2)
+						{
+							__m128i _from, _first, _second;
+							__m256i _to;
+							__m256d _tof;
+
+							for (; (i + 4uz) < end; i += 4uz)
+							{
+								_from = _mm_load_si128((__m128i*) & source[i]);
+								_to = _mm256_cvtepu16_epi32(_from);
+
+								_first = _mm_load_si128((__m128i*) & _to);
+								_tof = _mm256_cvtepi32_pd(_first);
+								_mm256_store_pd(&dest[i], _tof);
+
+								_second = _mm_load_si128((__m128i*) & _to + 16);
+								_tof = _mm256_cvtepi32_pd(_first);
+								_mm256_store_pd(&dest[i + 4], _tof);
+							}//End for
+						}//End if
+						else if (tpa::has_SSE41)
+						{
+							__m128i _from, _to;
+							__m128d _tof;
+
+							for (; (i + 2uz) < end; i += 2uz)
+							{
+								_from = _mm_load_si128((__m128i*) & source[i]);
+								_to = _mm_cvtepu16_epi32(_from);
+								_tof = _mm_cvtepi32_pd(_to);
+
+								_mm_store_pd(&dest[i], _tof);
+							}//End for
+						}//End if
+#endif
+					}//End if
+#pragma endregion
+#pragma region int32-to-int8
+					if constexpr (std::is_same<FROM_T, int32_t>() && std::is_same<TO_T, int8_t>())
+					{
+#ifdef _M_AMD64
+						if (tpa::hasAVX512)
+						{
+							__m128i _to;
+							__m512i _from;
+
+							for (; (i + 4uz) < end; i += 4uz)
+							{
+								_from = _mm512_load_epi32(&source[i]);
+								_to = _mm512_cvtepi32_epi8(_from);
+
+								_mm_store_si128((__m128*) &dest[i], _to);
+							}//End for
+						}//End if
+#endif
+					}//End if
+#pragma endregion
+#pragma region int32-to-int16
+					if constexpr (std::is_same<FROM_T, int32_t>() && std::is_same<TO_T, int16_t>())
+					{
+#ifdef _M_AMD64
+						if (tpa::hasAVX512)
+						{
+							__m256i _to;
+							__m512i _from;
+
+							for (; (i + 8uz) < end; i += 8uz)
+							{
+								_from = _mm512_load_epi32(&source[i]);
+								_to = _mm512_cvtepi32_epi16(_from);
+
+								_mm256_store_si256((__m256*) &dest[i], _to);
 							}//End for
 						}//End if
 #endif
@@ -566,7 +1092,7 @@ namespace tpa::simd {
 							__m256i _from;
 							__m512i _to;
 
-							for (; (i + 8) < end; i += 8)
+							for (; (i + 8uz) < end; i += 8uz)
 							{
 								_from = _mm256_load_si256((__m256i*) & source[i]);
 								_to = _mm512_cvtepi32_epi64(_from);
@@ -579,7 +1105,7 @@ namespace tpa::simd {
 							__m128i _from;
 							__m256i _to;
 
-							for (; (i + 4) < end; i += 4)
+							for (; (i + 4uz) < end; i += 4uz)
 							{
 								_from = _mm_load_si128((__m128i*) & source[i]);
 								_to = _mm256_cvtepi32_epi64(_from);
@@ -591,7 +1117,7 @@ namespace tpa::simd {
 						{
 							__m128i _from, _to;
 
-							for (; (i + 2) < end; i += 2)
+							for (; (i + 2uz) < end; i += 2uz)
 							{
 								_from = _mm_load_si128((__m128i*) & source[i]);
 								_to = _mm_cvtepi32_epi64(_from);
@@ -611,7 +1137,7 @@ namespace tpa::simd {
 							__m512i _from;
 							__m512 _to;
 
-							for (; (i + 16) < end; i += 16)
+							for (; (i + 16uz) < end; i += 16uz)
 							{
 								_from = _mm512_load_epi32(&source[i]);
 								_to = _mm512_cvtepi32_ps(_from);
@@ -624,7 +1150,7 @@ namespace tpa::simd {
 							__m256i _from;
 							__m256 _to;
 
-							for (; (i + 8) < end; i += 8)
+							for (; (i + 8uz) < end; i += 8uz)
 							{
 								_from = _mm256_load_si256((__m256i*) & source[i]);
 								_to = _mm256_cvtepi32_ps(_from);
@@ -637,7 +1163,7 @@ namespace tpa::simd {
 							__m128i _from;
 							__m128 _to;
 
-							for (; (i + 4) < end; i += 4)
+							for (; (i + 4uz) < end; i += 4uz)
 							{
 								_from = _mm_load_si128((__m128i*) & source[i]);
 								_to = _mm_cvtepi32_ps(_from);
@@ -657,7 +1183,7 @@ namespace tpa::simd {
 							__m256i _from;
 							__m512d _to;
 
-							for (; (i + 8) < end; i += 8)
+							for (; (i + 8uz) < end; i += 8uz)
 							{
 								_from = _mm256_load_si256((__m256i*) & source[i]);
 								_to = _mm512_cvtepi32_pd(_from);
@@ -670,7 +1196,7 @@ namespace tpa::simd {
 							__m128i _from;
 							__m256d _to;
 
-							for (; (i + 4) < end; i += 4)
+							for (; (i + 4uz) < end; i += 4uz)
 							{
 								_from = _mm_load_si128((__m128i*) & source[i]);
 								_to = _mm256_cvtepi32_pd(_from);
@@ -683,12 +1209,505 @@ namespace tpa::simd {
 							__m128i _from;
 							__m128d _to;
 
-							for (; (i + 2) < end; i += 2)
+							for (; (i + 2uz) < end; i += 2uz)
 							{
 								_from = _mm_load_si128((__m128i*) & source[i]);
 								_to = _mm_cvtepi32_pd(_from);
 
 								_mm_store_pd(&dest[i], _to);
+							}//End for
+						}//End if
+#endif
+					}//End if
+#pragma endregion
+#pragma region uint32-to-int64
+					if constexpr (std::is_same<FROM_T, uint32_t>() && std::is_same<TO_T, int64_t>())
+					{
+#ifdef _M_AMD64
+						if (tpa::hasAVX512)
+						{
+							__m256i _from;
+							__m512i _to;
+
+							for (; (i + 8uz) < end; i += 8uz)
+							{
+								_from = _mm256_load_si256((__m256i*) & source[i]);
+								_to = _mm512_cvtepu32_epi64(_from);
+
+								_mm512_store_epi64(&dest[i], _to);
+							}//End for
+						}//End if
+						else if (tpa::hasAVX2)
+						{
+							__m128i _from;
+							__m256i _to;
+
+							for (; (i + 4uz) < end; i += 4uz)
+							{
+								_from = _mm_load_si128((__m128i*) & source[i]);
+								_to = _mm256_cvtepu32_epi64(_from);
+
+								_mm256_store_si256((__m256i*) & dest[i], _to);
+							}//End for
+						}//End if
+						else if (tpa::has_SSE41)
+						{
+							__m128i _from, _to;
+
+							for (; (i + 2uz) < end; i += 2uz)
+							{
+								_from = _mm_load_si128((__m128i*) & source[i]);
+								_to = _mm_cvtepu32_epi64(_from);
+
+								_mm_store_si128((__m128i*) & dest[i], _to);
+							}//End for
+						}//End if
+#endif
+					}//End if
+#pragma endregion
+#pragma region uint32-to-float32
+					if constexpr (std::is_same<FROM_T, uint32_t>() && std::is_same<TO_T, float>())
+					{
+#ifdef _M_AMD64
+						if (tpa::hasAVX512)
+						{
+							__m512i _from;
+							__m512 _to;
+
+							for (; (i + 16uz) < end; i += 16uz)
+							{
+								_from = _mm512_load_epi32(&source[i]);
+								_to = _mm512_cvtepu32_ps(_from);
+
+								_mm512_store_ps(&dest[i], _to);
+							}//End for
+						}//End if
+						else if (tpa::hasAVX2)
+						{
+							__m256i _from;
+							__m256 _to;
+
+							for (; (i + 8uz) < end; i += 8uz)
+							{
+								_from = _mm256_load_si256((__m256i*) & source[i]);
+								_to = _mm256_cvtepi32_ps(_from);
+
+								_mm256_store_ps(&dest[i], _to);
+							}//End for
+						}//End if
+						else if (tpa::has_SSE2)
+						{
+							__m128i _from;
+							__m128 _to;
+
+							for (; (i + 4uz) < end; i += 4uz)
+							{
+								_from = _mm_load_si128((__m128i*) & source[i]);
+								_to = _mm_cvtepi32_ps(_from);
+
+								_mm_store_ps(&dest[i], _to);
+							}//End for
+						}//End if
+#endif
+					}//End if
+#pragma endregion
+#pragma region uint32-to-float64
+					if constexpr (std::is_same<FROM_T, uint32_t>() && std::is_same<TO_T, double>())
+					{
+#ifdef _M_AMD64
+						if (tpa::hasAVX512)
+						{
+							__m256i _from;
+							__m512d _to;
+
+							for (; (i + 8uz) < end; i += 8uz)
+							{
+								_from = _mm256_load_si256((__m256i*) & source[i]);
+								_to = _mm512_cvtepu32_pd(_from);
+
+								_mm512_store_pd(&dest[i], _to);
+							}//End for
+						}//End if
+						else if (tpa::hasAVX2)
+						{
+							__m128i _from;
+							__m256d _to;
+
+							for (; (i + 4uz) < end; i += 4uz)
+							{
+								_from = _mm_load_si128((__m128i*) & source[i]);
+								_to = _mm256_cvtepi32_pd(_from);
+
+								_mm256_store_pd(&dest[i], _to);
+							}//End for
+						}//End if
+						else if (tpa::has_SSE2)
+						{
+							__m128i _from;
+							__m128d _to;
+
+							for (; (i + 2uz) < end; i += 2uz)
+							{
+								_from = _mm_load_si128((__m128i*) & source[i]);
+								_to = _mm_cvtepi32_pd(_from);
+
+								_mm_store_pd(&dest[i], _to);
+							}//End for
+						}//End if
+#endif
+					}//End if
+#pragma endregion
+#pragma region int64-to-int8
+					if constexpr (std::is_same<FROM_T, int64_t>() && std::is_same<TO_T, int8_t>())
+					{
+#ifdef _M_AMD64
+						if (tpa::hasAVX512)
+						{
+							__m128i _to;
+							__m512i _from;
+
+							for (; (i + 2uz) < end; i += 2uz)
+							{
+								_from = _mm512_load_epi64(&source[i]);
+								_to = _mm512_cvtepi64_epi8(_from);
+
+								_mm_store_si128((__m128*) & dest[i], _to);
+							}//End for
+						}//End if
+#endif
+					}//End if
+#pragma endregion
+#pragma region int64-to-int16
+					if constexpr (std::is_same<FROM_T, int64_t>() && std::is_same<TO_T, int16_t>())
+					{
+#ifdef _M_AMD64
+						if (tpa::hasAVX512)
+						{
+							__m128i _to;
+							__m512i _from;
+
+							for (; (i + 4uz) < end; i += 4uz)
+							{
+								_from = _mm512_load_epi32(&source[i]);
+								_to = _mm512_cvtepi64_epi16(_from);
+
+								_mm_store_si128((__m128*) &dest[i], _to);
+							}//End for
+						}//End if
+#endif
+					}//End if
+#pragma endregion
+#pragma region int64-to-int32
+					if constexpr (std::is_same<FROM_T, int64_t>() && std::is_same<TO_T, int32_t>())
+					{
+#ifdef _M_AMD64
+						if (tpa::hasAVX512)
+						{
+							__m256i _to;
+							__m512i _from;
+
+							for (; (i + 8uz) < end; i += 8uz)
+							{
+								_from = _mm512_load_epi64(&source[i]);
+								_to = _mm512_cvtepi64_epi32(_from);
+
+								_mm512_store_epi32(&dest[i], _to);
+							}//End for
+						}//End if						
+#endif
+					}//End if
+#pragma endregion
+#pragma region int64-to-float32
+					if constexpr (std::is_same<FROM_T, int64_t>() && std::is_same<TO_T, float>())
+					{
+#ifdef _M_AMD64
+						if (tpa::hasAVX512_DWQW)
+						{
+							__m512i _from;
+							__m256 _to;
+
+							for (; (i + 8uz) < end; i += 8uz)
+							{
+								_from = _mm512_load_epi64(&source[i]);
+								_to = _mm512_cvtepi64_ps(_from);
+
+								_mm512_store_ps(&dest[i], _to);
+							}//End for
+						}//End if						
+#endif
+					}//End if
+#pragma endregion
+#pragma region int64-to-float64
+					if constexpr (std::is_same<FROM_T, int64_t>() && std::is_same<TO_T, double>())
+					{
+#ifdef _M_AMD64
+						if (tpa::hasAVX512_DWQW)
+						{
+							__m512i _from;
+							__m512d _to;
+
+							for (; (i + 8uz) < end; i += 8uz)
+							{
+								_from = _mm512_load_epi64(&source[i]);
+								_to = _mm512_cvtepi64_pd(_from);
+
+								_mm512_store_pd(&dest[i], _to);
+							}//End for
+						}//End if
+						else if (tpa::hasAVX2)
+						{
+							__m256i _from;
+							__m256d _to;
+
+							for (; (i + 4uz) < end; i += 4uz)
+							{
+								_from = _mm256_load_si256((__m256i*) & source[i]);
+								_to = tpa::util::_mm256_cvtepi64_pd(_from);
+
+								_mm256_store_pd(&dest[i], _to);
+							}//End for
+						}//End if
+						else if (tpa::has_SSE2)
+						{
+							__m128i _from;
+							__m128d _to;
+
+							for (; (i + 2uz) < end; i += 2uz)
+							{
+								_from = _mm_load_si128((__m128i*) & source[i]);
+								_to = tpa::util::_mm_cvtepi64_pd(_from);
+
+								_mm_store_pd(&dest[i], _to);
+							}//End for
+						}//End if
+#endif
+					}//End if
+#pragma endregion
+#pragma region uint64-to-float64
+					if constexpr (std::is_same<FROM_T, uint64_t>() && std::is_same<TO_T, double>())
+					{
+#ifdef _M_AMD64
+						if (tpa::hasAVX512_DWQW)
+						{
+							__m512i _from;
+							__m512d _to;
+
+							for (; (i + 8uz) < end; i += 8uz)
+							{
+								_from = _mm512_load_epi64(&source[i]);
+								_to = _mm512_cvtepu64_pd(_from);
+
+								_mm512_store_pd(&dest[i], _to);
+							}//End for
+						}//End if
+						else if (tpa::hasAVX2)
+						{
+							__m256i _from;
+							__m256d _to;
+
+							for (; (i + 4uz) < end; i += 4uz)
+							{
+								_from = _mm256_load_si256((__m256i*) & source[i]);
+								_to = tpa::util::_mm256_cvtepu64_pd(_from);
+
+								_mm256_store_pd(&dest[i], _to);
+							}//End for
+						}//End if
+						else if (tpa::has_SSE2)
+						{
+							__m128i _from;
+							__m128d _to;
+
+							for (; (i + 2uz) < end; i += 2uz)
+							{
+								_from = _mm_load_si128((__m128i*) & source[i]);
+								_to = tpa::util::_mm_cvtepu64_pd(_from);
+
+								_mm_store_pd(&dest[i], _to);
+							}//End for
+						}//End if
+#endif
+					}//End if
+#pragma endregion
+#pragma region float32-to-int32
+					if constexpr (std::is_same<FROM_T, float>() && std::is_same<TO_T, int32_t>())
+					{
+#ifdef _M_AMD64
+						if (tpa::hasAVX512)
+						{
+							__m512i _to;
+							__m512 _from;
+
+							for (; (i + 16uz) < end; i += 16uz)
+							{
+								_from = _mm512_load_ps(&source[i]);
+								_to = _mm512_cvtps_epi32(_from);
+
+								_mm512_store_epi32(&dest[i], _to);
+							}//End for
+						}//End if
+						else if (tpa::hasAVX)
+						{
+							__m256i _to;
+							__m256 _from;
+
+							for (; (i + 8uz) < end; i += 8uz)
+							{
+								_from = _mm256_load_ps(&source[i]);
+								_to = _mm256_cvtps_epi32(_from);
+
+								_mm256_store_si256((__m256i*)& dest[i], _to);
+							}//End for
+						}//End if
+						else if (tpa::has_SSE2)
+						{
+							__m128 _from;
+							__m128i _to;
+
+							for (; (i + 4uz) < end; i += 4uz)
+							{
+								_from = _mm_load_ps(&source[i]);
+								_to = _mm_cvtps_epi32(_from);
+
+								_mm_store_si128((__m128i*) &dest[i], _to);
+							}//End for
+						}//End if
+#endif
+					}//End if
+#pragma endregion
+#pragma region float32-to-uint32
+					if constexpr (std::is_same<FROM_T, float>() && std::is_same<TO_T, int64_t>())
+					{
+#ifdef _M_AMD64
+						if (tpa::hasAVX512)
+						{
+							__m512i _to;
+							__m512 _from;
+
+							for (; (i + 16uz) < end; i += 16uz)
+							{
+								_from = _mm512_load_ps(&source[i]);
+								_to = _mm512_cvtps_epu32(_from);
+
+								_mm512_store_epi32(&dest[i], _to);
+							}//End for
+						}//End if
+						else if (tpa::hasAVX)
+						{
+							__m256i _to;
+							__m256 _from;
+
+							for (; (i + 8uz) < end; i += 8uz)
+							{
+								_from = _mm256_load_ps(&source[i]);
+								_to = _mm256_cvtps_epi32(_from);
+
+								_mm256_store_si256((__m256i*) & dest[i], _to);
+							}//End for
+						}//End if
+						else if (tpa::has_SSE2)
+						{
+							__m128i _from;
+							__m128d _to;
+
+							for (; (i + 4uz) < end; i += 4uz)
+							{
+								_from = _mm_load_ps(&source[i]);
+								_to = _mm_cvtps_epi32(_from);
+
+								_mm_store_si128((__m128*) & dest[i], _to);
+							}//End for
+						}//End if
+#endif
+					}//End if
+#pragma endregion
+#pragma region float64-to-int64
+					if constexpr (std::is_same<FROM_T, double>() && std::is_same<TO_T, int64_t>())
+					{
+#ifdef _M_AMD64
+						if (tpa::hasAVX512_DWQW)
+						{
+							__m512i _to;
+							__m512d _from;
+
+							for (; (i + 8uz) < end; i += 8uz)
+							{
+								_from = _mm512_load_pd(&source[i]);
+								_to = _mm512_cvtpd_epi64(_from);
+
+								_mm512_store_epi64(&dest[i], _to);
+							}//End for
+						}//End if
+						else if (tpa::hasAVX2)
+						{
+							__m256i _to;
+							__m256d _from;
+
+							for (; (i + 4uz) < end; i += 4uz)
+							{
+								_from = _mm256_load_pd(& source[i]);
+								_to = tpa::util::_mm256_cvtpd_epi64(_from);
+
+								_mm256_store_si256((__m256i*)& dest[i], _to);
+							}//End for
+						}//End if
+						else if (tpa::has_SSE2)
+						{
+							__m128i _to;
+							__m128d _from;
+
+							for (; (i + 2uz) < end; i += 2uz)
+							{
+								_from = _mm_load_pd(&source[i]);
+								_to = tpa::util::_mm_cvtpd_epi64(_from);
+
+								_mm_store_si128((__m128i*)& dest[i], _to);
+							}//End for
+						}//End if
+#endif
+					}//End if
+#pragma endregion
+#pragma region float64-to-uint64
+					if constexpr (std::is_same<FROM_T, double>() && std::is_same<TO_T, uint64_t>())
+					{
+#ifdef _M_AMD64
+						if (tpa::hasAVX512_DWQW)
+						{
+							__m512i _to;
+							__m512d _from;
+
+							for (; (i + 8uz) < end; i += 8uz)
+							{
+								_from = _mm512_load_pd(&source[i]);
+								_to = _mm512_cvtpd_epu64(_from);
+
+								_mm512_store_epi64(&dest[i], _to);
+							}//End for
+						}//End if
+						else if (tpa::hasAVX2)
+						{
+							__m256i _to;
+							__m256d _from;
+
+							for (; (i + 4uz) < end; i += 4uz)
+							{
+								_from = _mm256_load_pd(&source[i]);
+								_to = tpa::util::_mm256_cvtpd_epu64(_from);
+
+								_mm256_store_si256((__m256i*) &dest[i], _to);
+							}//End for
+						}//End if
+						else if (tpa::has_SSE2)
+						{
+							__m128i _to;
+							__m128d _from;
+
+							for (; (i + 2uz) < end; i += 2uz)
+							{
+								_from = _mm_load_pd(&source[i]);
+								_to = tpa::util::_mm_cvtpd_epu64(_from);
+
+								_mm_store_si128((__m128i*) &dest[i], _to);
 							}//End for
 						}//End if
 #endif
