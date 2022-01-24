@@ -21,6 +21,8 @@ Pre-Alpha Release.
 |Paralellized & vectorized bitwise operations                                                |complete, subject to change                    |
 |Bit Twiddling                                                                               |complete                                       |
 |Paralellized & vectorized advanced bit manipulation                                         |incomplete, subject to change                  |
+|Paralellized & vectorized statistical functions                                             |incomplete, subject to change                  |
+|Paralellized & vectorized finance functions                                                 |not yet implemented                            |  
 
 Requires C++20 or newer.
 
