@@ -48,3 +48,4 @@
 #include "simd/exponent.hpp"		//exp, exp2, exp10, expm1
 #include "simd/logarithm.hpp"		//log, log2, log10, loglp, logb
 #include "simd/convert.hpp"			//static_cast
+#include "simd/stat.hpp"			//Statistical Functions (mean, median, mode... etc.)

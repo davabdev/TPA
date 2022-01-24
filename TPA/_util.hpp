@@ -68,6 +68,40 @@ namespace tpa::util
 		std::contiguous_iterator<ITER>;
 	};	
 
+	template<typename T>
+	/// <summary>
+	/// <para>Concept calculatable requires: </para>
+	/// <para>operator overload  for = </para>
+	/// <para>operator overloads for ==  and != </para>
+	/// <para>operator overloads for +, -, *, and / </para>
+	/// <para>operator overloads for (POST) ++, -- </para>
+	/// <para>operator overloads for (PRE) ++, -- //</para>
+	/// <para>operator overloads for +=, -=, *=, and /= </para>
+	/// </summary>
+	concept calculatable = requires(T t)
+	{
+		t == t;
+		t != t;
+
+		t = t;
+
+		t + t;
+		t - t;
+		t * t;
+		t / t;
+
+		++t;
+		t++;
+		
+		--t;
+		t--;
+		
+		t += t;
+		t -= t;
+		t *= t;
+		t /= t;		
+	};
+
 	/// <summary>
 	/// <para>Converts any variable or object to a bitset</para>
 	/// <para>Padding bits may be included depending on your compiler.</para>
