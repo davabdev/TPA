@@ -1754,6 +1754,7 @@ namespace tpa::util {
 	/// <para>Narrow numbers in 'bits' to a certain range.</para>
 	/// <para>Much faster replacement for _mm_rem_epi32 / _mm_rem_epu32 for random number range generation</para>
 	/// <para>Requires SSE2 instruction set at runtime.</para>
+	/// <para>Note: This is a function which is part of TPA and is not an instruction or intrinsic.</para>
 	///</summary>
 	/// <param name="bits"></param>
 	/// <param name="range"></param>
@@ -1776,6 +1777,7 @@ namespace tpa::util {
 	/// <para>Narrow numbers in 'bits' to a certain range.</para>
 	/// <para>Much faster replacement for _mm_rem_epi64 / _mm_rem_epu64 for random number range generation</para>
 	/// <para>Requires SSE2 instruction set at runtime.</para>
+	/// <para>Note: This is a function which is part of TPA and is not an instruction or intrinsic.</para>
 	///</summary>
 	/// <param name="bits"></param>
 	/// <param name="range"></param>
@@ -1798,6 +1800,7 @@ namespace tpa::util {
 	/// <para>Narrow numbers in 'bits' to a certain range.</para>
 	/// <para>Much faster replacement for _mm256_rem_epi32 / _mm256_rem_epu32 for random number range generation</para>
 	/// <para>Requires AVX2 and FMA instruction sets at runtime.</para>
+	/// <para>Note: This is a function which is part of TPA and is not an instruction or intrinsic.</para>
 	///</summary>
 	/// <param name="bits"></param>
 	/// <param name="range"></param>
@@ -1819,6 +1822,7 @@ namespace tpa::util {
 	/// <para>Narrow numbers in 'bits' to a certain range.</para>
 	/// <para>Much faster replacement for _mm256_rem_epi64 / _mm256_rem_epu64 for random number range generation</para>
 	/// <para>Requires AVX2 and FMA instruction sets at runtime.</para>
+	/// <para>Note: This is a function which is part of TPA and is not an instruction or intrinsic.</para>
 	///</summary>
 	/// <param name="bits"></param>
 	/// <param name="range"></param>
@@ -1840,6 +1844,7 @@ namespace tpa::util {
 	/// <para>Narrow numbers in 'bits' to a certain range.</para>
 	/// <para>Much faster replacement for _mm512_rem_epi32 / _mm512_rem_epu32 for random number range generation</para>
 	/// <para>Requires AVX-512 (foundation) instruction set at runtime.</para>
+	/// <para>Note: This is a function which is part of TPA and is not an instruction or intrinsic.</para>
 	///</summary>
 	/// <param name="bits"></param>
 	/// <param name="range"></param>
@@ -1861,6 +1866,7 @@ namespace tpa::util {
 	/// <para>Narrow numbers in 'bits' to a certain range.</para>
 	/// <para>Much faster replacement for _mm512_rem_epi64 / _mm512_rem_epu64 for random number range generation</para>
 	/// <para>Requires AVX-512 (foundation) and AVX-512 (Double Word Quad Word) instruction set at runtime.</para>
+	/// <para>Note: This is a function which is part of TPA and is not an instruction or intrinsic.</para>
 	///</summary>
 	/// <param name="bits"></param>
 	/// <param name="range"></param>
@@ -1877,6 +1883,273 @@ namespace tpa::util {
 
 		return _mm512_cvttpd_epi64(val);
 	}//End of _mm512_narrow_epi64
+
+	/// <summary>
+	/// <para>Sums the values stored in an __m128i vector of int32_t</para>
+	/// <para>Requires SSE2 at runtime</para>
+	/// <para>Note: This is a function which is part of TPA and is not an instruction or intrinsic.</para>
+	/// </summary>
+	/// <param name="x"></param>
+	/// <returns></returns>
+	inline uint32_t _mm_sum_epi32(__m128i& x)
+	{
+		__m128i hi64 = _mm_unpackhi_epi64(x, x);           
+		__m128i sum64 = _mm_add_epi32(hi64, x);
+		__m128i hi32 = _mm_shuffle_epi32(sum64, _MM_SHUFFLE(2, 3, 0, 1));
+		__m128i sum32 = _mm_add_epi32(sum64, hi32);
+		return _mm_cvtsi128_si32(sum32);
+	}//End of _mm_sum_epi32
+	
+	/// <summary>
+	/// <para>Sums the values stored in an __m256i vector of int32_t</para>
+	/// <para>Requires AVX2 at runtime</para>
+	/// <para>Note: This is a function which is part of TPA and is not an instruction or intrinsic.</para>
+	/// </summary>
+	/// <param name="v"></param>
+	/// <returns></returns>
+	inline uint32_t _mm256_sum_epi32(__m256i& v)
+	{
+		__m128i sum128 = _mm_add_epi32(
+			_mm256_castsi256_si128(v),
+			_mm256_extracti128_si256(v, 1));
+		return _mm_sum_epi32(sum128);
+	}//End of _mm256_sum_epi32
+
+	/// <summary>
+	/// <para>Sums the values stored in an __m512i vector of int32_t</para>
+	/// <para>Requires AVX512 at runtime </para>
+	/// <para>AVX512's _mm512_reduce_add_epi32 may be faster in some cases.</para>
+	/// <para>Note: This is a function which is part of TPA and is not an instruction or intrinsic.</para>
+	/// </summary>
+	/// <param name="v"></param>
+	/// <returns></returns>
+	inline uint32_t _mm512_sum_epi32(__m512i& v)
+	{
+		__m256i sum256 = _mm256_add_epi32(
+			_mm512_castsi512_si256(v),
+			_mm512_extracti64x4_epi64(v, 1));
+		return _mm256_sum_epi32(sum256);
+	}//End of _mm512_sum_epi32
+
+	/// <summary>
+	/// <para>Sums the values stored in an __m128i vector of int64_t</para>
+	/// <para>Requires SSE2 at runtime</para>
+	/// <para>Note: This is a function which is part of TPA and is not an instruction or intrinsic.</para>
+	/// </summary>
+	/// <param name="x"></param>
+	/// <returns></returns>
+	inline uint64_t _mm_sum_epi64(__m128i& x)
+	{
+		__m128i hi64 = _mm_unpackhi_epi64(x, x);
+		__m128i sum64 = _mm_add_epi64(hi64, x);
+		return _mm_cvtsi128_si64(sum64);
+	}//End of _mm_sum_epi64
+
+	/// <summary>
+	/// <para>Sums the values stored in an __m256i vector of int64_t</para>
+	/// <para>Requires AVX2 at runtime</para>
+	/// <para>Note: This is a function which is part of TPA and is not an instruction or intrinsic.</para>
+	/// </summary>
+	/// <param name="v"></param>
+	/// <returns></returns>
+	inline uint64_t _mm256_sum_epi64(__m256i& v)
+	{
+		__m128i sum128 = _mm_add_epi64(
+			_mm256_castsi256_si128(v),
+			_mm256_extracti128_si256(v, 1));
+		return _mm_sum_epi64(sum128);
+	}//End of _mm256_sum_epi64
+
+	/// <summary>
+	/// <para>Sums the values stored in an __m512i vector of int64_t</para>
+	/// <para>Requires AVX512 at runtime </para>
+	/// <para>AVX512's _mm512_reduce_add_epi64 may be faster in some cases.</para>
+	/// <para>Note: This is a function which is part of TPA and is not an instruction or intrinsic.</para>
+	/// </summary>
+	/// <param name="v"></param>
+	/// <returns></returns>
+	inline uint64_t _mm512_sum_epi64(__m512i& v)
+	{
+		__m256i sum256 = _mm256_add_epi64(
+			_mm512_castsi512_si256(v),
+			_mm512_extracti64x4_epi64(v, 1));
+		return _mm256_sum_epi64(sum256);
+	}//End of _mm512_sum_epi64
+
+	/// <summary>
+	/// <para>Sums the values stored in an __m128 vector of floats</para>
+	/// <para>Requires SSE1 at runtime</para>
+	/// <para>Note: This is a function which is part of TPA and is not an instruction or intrinsic.</para>
+	/// </summary>
+	/// <param name="x"></param>
+	/// <returns></returns>
+	inline float _mm_sum_ps(__m128& x)
+	{
+		__m128 shuff = _mm_shuffle_ps(x, x, _MM_SHUFFLE(2, 3, 0, 1));
+		__m128 sums = _mm_add_ps(x, shuff);
+		shuff = _mm_movehl_ps(shuff, sums);
+		sums = _mm_add_ss(sums, shuff);
+		return _mm_cvtss_f32(sums);
+	}//End of _mm_sum_ps
+
+	/// <summary>
+	/// <para>Sums the values stored in an __m256 vector of float</para>
+	/// <para>Requires AVX at runtime</para>
+	/// <para>Note: This is a function which is part of TPA and is not an instruction or intrinsic.</para>
+	/// </summary>
+	/// <param name="v"></param>
+	/// <returns></returns>
+	inline float _mm256_sum_ps(__m256& x)
+	{
+		__m128 vlow = _mm256_castps256_ps128(x);
+		__m128 vhigh = _mm256_extractf128_ps(x, 1);
+		__m128 v128 = _mm_add_ps(vlow, vhigh);
+		return _mm_sum_ps(v128);
+	}//End of _mm256_sum_ps
+
+	/// <summary>
+	/// <para>Sums the values stored in an __m512 vector of floats</para>
+	/// <para>Requires AVX512 Foundation at runtime </para>
+	/// <para>AVX512's _mm512_reduce_add_ps may be faster in some cases.</para>
+	/// <para>Note: This is a function which is part of TPA and is not an instruction or intrinsic.</para>
+	/// </summary>
+	/// <param name="v"></param>
+	/// <returns></returns>
+	inline float _mm512_sum_ps(__m512& x)
+	{
+		__m256 vlow = _mm512_castps512_ps256(x);
+		__m256 vhigh = _mm512_extractf32x8_ps(x, 1);
+		__m256 v256 = _mm256_add_ps(vlow, vhigh);
+		return _mm256_sum_ps(v256);
+	}//End of _mm512_sum_ps
+
+	/// <summary>
+	/// <para>Sums the values stored in an __m128d vector of doubles</para>
+	/// <para>Requires SSE2 at runtime</para>
+	/// <para>Note: This is a function which is part of TPA and is not an instruction or intrinsic.</para>
+	/// </summary>
+	/// <param name="x"></param>
+	/// <returns></returns>
+	inline double _mm_sum_pd(__m128d& x)
+	{
+		__m128 undef = _mm_undefined_ps();                       
+		__m128 shuftmp = _mm_movehl_ps(undef, _mm_castpd_ps(x));
+		__m128d shuf = _mm_castps_pd(shuftmp);
+		return  _mm_cvtsd_f64(_mm_add_sd(x, shuf));
+	}//End of _mm_sum_pd
+
+	/// <summary>
+	/// <para>Sums the values stored in an __m256d vector of doubles</para>
+	/// <para>Requires AVX at runtime</para>
+	/// <para>Note: This is a function which is part of TPA and is not an instruction or intrinsic.</para>
+	/// </summary>
+	/// <param name="v"></param>
+	/// <returns></returns>
+	inline double _mm256_sum_pd(__m256d& x)
+	{
+		__m128d vlow = _mm256_castpd256_pd128(x);
+		__m128d vhigh = _mm256_extractf128_pd(x, 1);
+		__m128d v128 = _mm_add_pd(vlow, vhigh);
+		return _mm_sum_pd(v128);
+	}//End of _mm256_sum_pd
+
+	/// <summary>
+	/// <para>Sums the values stored in an __m512d vector of doubles</para>
+	/// <para>Requires AVX512 Foundation at runtime </para>
+	/// <para>AVX512's _mm512_reduce_add_pd may be faster in some cases.</para>
+	/// <para>Note: This is a function which is part of TPA and is not an instruction or intrinsic.</para>
+	/// </summary>
+	/// <param name="v"></param>
+	/// <returns></returns>
+	inline double _mm512_sum_pd(__m512d& x)
+	{
+		__m256d vlow = _mm512_castpd512_pd256(x);
+		__m256d vhigh = _mm512_extractf64x4_pd(x, 1);
+		__m256d v256 = _mm256_add_pd(vlow, vhigh);
+		return _mm256_sum_pd(v256);
+	}//End of _mm512_sum_pd
+
+	/// <summary>
+	/// <para>Sums the values stored in an __m128i vector of int8_t</para>
+	/// <para>Requires SSE2 at runtime</para>
+	/// <para>Note: This is a function which is part of TPA and is not an instruction or intrinsic.</para>
+	/// </summary>
+	/// <param name="x"></param>
+	/// <returns></returns>
+	inline uint32_t _mm_sum_epi8(__m128i& x)
+	{
+		__m128i v = _mm_sad_epu8(x, _mm_setzero_si128());
+		return _mm_cvtsi128_si32(v) + _mm_extract_epi16(v, 4);
+	}//End of _mm_sum_epi8
+
+	/// <summary>
+	/// <para>Sums the values stored in an __m256i vector of int8_t</para>
+	/// <para>Requires AVX2 at runtime</para>
+	/// <para>Note: This is a function which is part of TPA and is not an instruction or intrinsic.</para>
+	/// </summary>
+	/// <param name="v"></param>
+	/// <returns></returns>
+	inline uint32_t _mm256_sum_epi8(__m256i& x)
+	{
+		__m128i sum128 = _mm_add_epi32(
+			_mm256_castsi256_si128(x),
+			_mm256_extracti128_si256(x, 1));
+		return _mm_sum_epi8(sum128);
+	}//End of _mm256_sum_epi8
+
+	/// <summary>
+	/// <para>Sums the values stored in an __m512i vector of int8_t</para>
+	/// <para>Requires AVX512 Byte and Word at runtime </para>
+	/// <para>Note: This is a function which is part of TPA and is not an instruction or intrinsic.</para>
+	/// </summary>
+	/// <param name="v"></param>
+	/// <returns></returns>
+	inline uint32_t _mm512_sum_epi8(__m512i& v)
+	{
+		__m256i sum256 = _mm256_add_epi32(
+			_mm512_castsi512_si256(v),
+			_mm512_extracti64x4_epi64(v, 1));
+		return _mm256_sum_epi8(sum256);
+	}//End of _mm512_sum_epi8
+
+	/// <summary>
+	/// <para>Sums the values stored in an __m128i vector of int16_t</para>
+	/// <para>Requires SSE2 at runtime</para>
+	/// <para>Note: This is a function which is part of TPA and is not an instruction or intrinsic.</para>
+	/// </summary>
+	/// <param name="x"></param>
+	/// <returns></returns>
+	inline uint32_t _mm_sum_epi16(__m128i& x)
+	{
+		__m128i _temp = _mm_madd_epi16(x, _mm_set1_epi16(1));
+		return tpa::util::_mm_sum_epi32(_temp);
+	}//End of _mm_sum_epi16
+
+	/// <summary>
+	/// <para>Sums the values stored in an __m256i vector of int16_t</para>
+	/// <para>Requires AVX2 at runtime</para>
+	/// <para>Note: This is a function which is part of TPA and is not an instruction or intrinsic.</para>
+	/// </summary>
+	/// <param name="v"></param>
+	/// <returns></returns>
+	inline uint32_t _mm256_sum_epi16(__m256i& x)
+	{
+		__m256i _temp = _mm256_madd_epi16(x, _mm256_set1_epi16(1));
+		return tpa::util::_mm256_sum_epi32(_temp);
+	}//End of _mm256_sum_epi16
+
+	/// <summary>
+	/// <para>Sums the values stored in an __m512i vector of int16_t</para>
+	/// <para>Requires AVX512 Byte & Word at runtime </para>
+	/// <para>Note: This is a function which is part of TPA and is not an instruction or intrinsic.</para>
+	/// </summary>
+	/// <param name="v"></param>
+	/// <returns></returns>
+	inline uint32_t _mm512_sum_epi16(__m512i& x)
+	{
+		__m512i _temp = _mm512_madd_epi16(x, _mm512_set1_epi16(1));
+		return tpa::util::_mm512_sum_epi32(_temp);
+	}//End of _mm512_sum_epi16
 #endif
 #pragma endregion
 }//End of namespace
