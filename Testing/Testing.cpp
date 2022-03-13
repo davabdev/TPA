@@ -28,96 +28,19 @@
 
 #include <fenv.h>
 
-
 //#include <boost/multiprecision/cpp_int.hpp>
 //#include <boost/container/static_vector.hpp>
+//#include <boost/multiprecision/cpp_bin_float.hpp>
 
 #include "../TPA/tpa_main.hpp"
 
-using numtype = int32_t;//boost::multiprecision::uint128_t;
-using returnType = float;//boost::multiprecision::uint128_t; 
+using numtype = int32_t;//boost::multiprecision::cpp_bin_float_oct;
+using returnType = uint64_t;//boost::multiprecision::cpp_bin_float_oct; 
 
 std::vector<numtype> vec;
-std::vector<returnType> vec2;
+std::vector<numtype> vec2;
 std::vector<returnType> vec3;
 //std::vector<numtype> vec4;
-
-
-#pragma region single-threaded-tests
-
-template<typename T>
-inline bool mimx(T min, T max)
-{
-	if (min < max)
-	{
-		return true;
-	}//End if
-	else
-	{
-		return false;
-	}//End else
-}
-
-uint64_t addTwo(const uint64_t& lhs, const uint64_t& rhs)
-{
-	uint64_t ans = lhs + rhs;
-	std::cout << ans << "\n";
-	return ans;
-}//End of addTwo
-
-template <typename T>
-inline constexpr T fill_less_than()
-{
-	static T countDown = 50'000;
-
-	return countDown -= 1;
-}//End of fill_less_than
-
-template <typename T>
-inline constexpr T gen_odd()
-{
-	static T odds = 0;
-	return ((odds +=2) -1);
-}//End of gen_odd
-
-template <typename T>
-inline T gen_even()
-{
-	static T counter = 0;
-	return (counter += 2);
-}//End of gen_even
-
-template<typename T>
-inline constexpr T fast_random()
-{
-	return static_cast<T>(std::rand());
-}//End of fast_random
-
-std::random_device rd;
-std::mt19937 gen(rd());
-std::mt19937_64 gen_64(rd());
-
-std::uniform_int_distribution<uint64_t> distrib(1, 6);
-std::uniform_real_distribution<float> f_distrib(1.0f, 6.0f);
-std::uniform_real_distribution<double> d_distrib(1.0, 6.0);
-template<typename T>
-inline constexpr T true_random()
-{
-	if constexpr (std::is_same<float,T>())
-	{
-		return f_distrib(gen);
-	}//End if
-	else if constexpr (std::is_same<double, T>())
-	{
-		return d_distrib(gen_64);
-	}//End if
-	else
-	{
-		return distrib(gen);
-	}
-}//End of true_random
-
-#pragma endregion
 
 int main()
 {
@@ -136,9 +59,9 @@ int main()
 		std::cout << std::setprecision(std::numeric_limits<double>::digits10 + 7);
 		std::ios::sync_with_stdio(false);
 
-		vec.resize(1'000'000'133);
-	    vec2.resize(1'000'000'133);
-	    //vec3.resize(500'000'133);
+		vec.resize(1'000'000'000);
+	    //vec2.resize(500'000'133);
+	    vec3.resize(1'000'000'000);
 
 		tpa::runtime_instruction_set.output_CPU_info();	
 
@@ -156,68 +79,12 @@ int main()
 			std::generate(std::execution::par_unseq, vec.begin(), vec.end(), true_random<numtype>);
 		}		
 		*/
+
 		std::cout << "TPA Generate Multi-Threaded SIMD: ";
 		{
 			tpa::util::Timer t;
-			tpa::generate<tpa::gen::UNIFORM>(vec, 1.0f, 6.0f);
-			//tpa::generate<tpa::gen::UNIFORM>(vec2, 1, 500);
-		}
-		
-		std::cout << "STD sine Single Threaded: ";
-		{			
-			tpa::util::Timer t;
-			for (size_t i = 0; i < vec.size(); ++i)
-			{
-				vec2[i] = std::sin(vec[i]);
-			}
-		}	
-
-		std::cout << "vec1 \t+\t vec2 \t=\t vec3\n";
-		for (size_t i = 0; i != vec.size(); ++i)
-		{
-			if (i > 101)
-			{
-				break;
-			}
-
-			std::cout << std::left <<
-				std::setw(5) << i <<
-				std::setw(35) << static_cast<double>(vec[i]) <<
-				std::setw(35) << static_cast<double>(vec2[i]) <<
-				/*std::setw(35) << static_cast<double>(vec3[i]) <<*/ "\n";
-		}//End for
-
-		//std::fill(vec3.begin(), vec3.end(), (numtype)0);
-
-		std::cout << "STD sine transform: ";
-		{
-			tpa::util::Timer t;
-			std::transform(std::execution::par_unseq, vec.cbegin(), vec.cend(), vec2.begin(), [](numtype a) -> returnType { 
-				return static_cast<returnType>(std::sin(a));
-			});
-		}
-		
-		std::cout << "vec1 \t+\t vec2 \t=\t vec3\n";
-		for (size_t i = 0; i != vec.size(); ++i)
-		{
-			if (i > 101)
-			{
-				break;
-			}
-
-			std::cout << std::left << 
-			std::setw(5) << i <<
-			std::setw(35) << static_cast<double>(vec[i]) <<
-			std::setw(35) << static_cast<double>(vec2[i]) <<
-			/*std::setw(35) << static_cast<double>(vec3[i]) <<*/ "\n";
-		}//End for
-
-		std::fill(vec3.begin(), vec3.end(), (numtype)0);
-
-		std::cout << "TPA sine Multi-Threaded SIMD: ";
-		{
-			tpa::util::Timer t;
-			tpa::simd::trigonometry<tpa::trig::SINE, tpa::angle::RADIANS>(vec, vec2);
+			tpa::generate<tpa::gen::UNIFORM>(vec, 0, 1'000);
+			//tpa::generate<tpa::gen::UNIFORM>(vec2, 1, 6);
 		}
 
 		std::cout << "vec1 \t+\t vec2 \t=\t vec3\n";
@@ -231,9 +98,40 @@ int main()
 			std::cout << std::left <<
 				std::setw(5) << i <<
 				std::setw(35) << static_cast<double>(vec[i]) <<
-				std::setw(35) << static_cast<double>(vec2[i]) <<
-				/*std::setw(35) << static_cast<double>(vec3[i]) <<*/ "\n";
+				//std::setw(35) << static_cast<double>(2) <<
+				std::setw(35) << static_cast<double>(vec3[i]) << "\n";
 		}//End for
+
+		returnType counted = 0;	
+		std::cout << "STD For Loop count: ";
+		{
+			tpa::util::Timer t;
+
+			for (size_t i = 0uz; i < vec.size(); ++i)
+			{				
+				if (tpa::util::isFibonacci(vec[i]))
+				{
+					++counted;
+				}//End if
+			}//End for
+		}
+		std::cout << "Counted: " << counted << " fibs.\n";
+		
+		counted = 0;
+		std::cout << "STD count multi-threaded: ";
+		{
+			tpa::util::Timer t;
+			counted = std::count_if(std::execution::par_unseq, vec.cbegin(), vec.cend(), [](numtype i) { return tpa::util::isFibonacci(i); });
+		}
+		std::cout << "Counted: " << counted << " fibs.\n";
+		
+		counted = 0;
+		std::cout << "TPA count Multi-Threaded SIMD: ";
+		{
+			tpa::util::Timer t;			
+			counted = tpa::count_if<tpa::cond::FIBONACCI, returnType>(vec);
+		}
+		std::cout << "Counted: " << counted << " fibs.\n";
 		
 		std::cout << "End of Benchmark.\n";
 
