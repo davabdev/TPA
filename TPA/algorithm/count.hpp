@@ -2,7 +2,7 @@
 /*
 * Truly Parallel Algorithms Library - Algorithm - count function
 * By: David Aaron Braun
-* 2021-05-16
+* 2022-02-10
 * Parallel implementation of count
 */
 
@@ -21,7 +21,7 @@
 #ifdef _M_AMD64
 #include <immintrin.h>
 #elif defined (_M_ARM64)
-#ifdef _WIN32
+#ifdef _MSC_VER 
 #include "arm64_neon.h"
 #else
 #include "arm_neon.h"
