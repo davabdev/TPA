@@ -39,6 +39,7 @@
 #include "algorithm/max_element.hpp"//max_element
 #include "algorithm/minmax_element.hpp"//minmax_element
 #include "algorithm/count.hpp"		//count
+#include "algorithm/count_if.hpp"	//count_if
 
 #include "simd/simd.hpp"			//SIMD
 #include "simd/fma.hpp"				//FMA

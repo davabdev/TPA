@@ -33,7 +33,7 @@
 #ifdef _M_AMD64
 	#include <immintrin.h>
 #elif defined (_M_ARM64)
-#ifdef _WIN32
+#ifdef _MSC_VER 
 #include "arm64_neon.h"
 #else
 #include "arm_neon.h"
@@ -276,14 +276,14 @@ namespace tpa::util
 	}//End of size()
 
 	/// <summary>
-	/// Checks is a number is a prime number
+	/// <para>Returns true if 'n' is a Prime Number</para>
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
 	/// <param name="n"></param>
 	/// <returns></returns>
 	template <typename T>
 	inline constexpr bool isPrime(const T n) noexcept
-	{
+	{		
 		if (n < 2) 
 		{
 			return false;
@@ -301,6 +301,33 @@ namespace tpa::util
 
 		return true;
 	}//End of isPrime()
+
+	/// <summary>
+	/// <para>Returns true if 'x' is a Perfect Square</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <returns></returns>
+	template<typename T>
+	inline constexpr bool isPerfectSquare(const T x) noexcept
+	{
+		T s = static_cast<T>(std::sqrt(x));
+		return (s * s == x);
+	}//End of isPerfectSquare
+
+	/// <summary>
+	/// <para>Returns true if 'x' is a Fibonacci Number</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <returns></returns>
+	template<typename T>
+	inline constexpr bool isFibonacci(const T x) noexcept
+	{
+		T mult = ((5 * x) * x);
+		return tpa::util::isPerfectSquare(mult + 4) ||
+			tpa::util::isPerfectSquare(mult - 4);
+	}//End of isFibonacci 
 
 	/// <summary>
 	/// <para>Returns true if the value is an even number.</para>
@@ -353,6 +380,37 @@ namespace tpa::util
 	{
 		return num * ((num > 0) - (num < 0));
 	}//End of abs
+
+	/// <summary>
+	/// <para>Returns true if 'p' is a power of 'n'</para>
+	/// </summary>
+	/// <typeparam name="N"></typeparam>
+	/// <typeparam name="POW"></typeparam>
+	/// <param name="n"></param>
+	/// <param name="p"></param>
+	/// <returns></returns>
+	template<typename N, typename POW>
+	inline constexpr bool isPower(const N n, const POW p) noexcept
+	{
+#ifdef TPA_IS_POWER_SLOW
+		if (n == 1)
+		{
+			return (p == 1);
+		}//End if
+
+		POW pow = 1;
+		while (pow < p)
+		{
+			pow *= n;
+		}//End while
+
+		return pow == p;
+#else
+		double x = std::log(static_cast<double>(n)) / std::log(static_cast<double>(p));
+
+		return (x - std::trunc(x)) < 0.000001;
+#endif
+	}//End of isPower
 
 	/// <summary>
 	/// <para>Rounds an integer number to the nearest multiple specified in 'mult'</para>
@@ -1038,7 +1096,7 @@ namespace tpa
 	};//End of comp
 
 	/// <summary>
-	/// Provides a list of valid SIMD copy-if predicates.
+	/// Provides a list of valid SIMD conditional predicates.
 	/// </summary>
 	const enum class cond {
 		EVEN,
@@ -1050,9 +1108,14 @@ namespace tpa
 		LESS_THAN_OR_EQUAL_TO,
 		GREATER_THAN,
 		GREATER_THAN_OR_EQUAL_TO,
-		FACTOR_OF,
 		POWER_OF,
-		DIVISIBLE_BY
+		DIVISIBLE_BY,
+		FACTOR = DIVISIBLE_BY,
+		MULTIPLE = DIVISIBLE_BY,
+		PERFECT_SQUARE,
+		FIBONACCI,
+		PERFECT,
+		IMPERFECT
 	};//End of cond
 
 	/// <summary>
