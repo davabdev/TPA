@@ -109,29 +109,29 @@ int main()
 
 			for (size_t i = 0uz; i < vec.size(); ++i)
 			{				
-				if (tpa::util::isFibonacci(vec[i]))
+				if (tpa::util::isSylvester(vec[i]))
 				{
 					++counted;
 				}//End if
 			}//End for
 		}
-		std::cout << "Counted: " << counted << " fibs.\n";
+		std::cout << "Counted: " << counted << " Sylvesters.\n";
 		
 		counted = 0;
 		std::cout << "STD count multi-threaded: ";
 		{
 			tpa::util::Timer t;
-			counted = std::count_if(std::execution::par_unseq, vec.cbegin(), vec.cend(), [](numtype i) { return tpa::util::isFibonacci(i); });
+			counted = std::count_if(std::execution::par_unseq, vec.cbegin(), vec.cend(), [](numtype i) { return tpa::util::isSylvester(i); });
 		}
-		std::cout << "Counted: " << counted << " fibs.\n";
+		std::cout << "Counted: " << counted << " Sylvesters.\n";
 		
 		counted = 0;
 		std::cout << "TPA count Multi-Threaded SIMD: ";
 		{
 			tpa::util::Timer t;			
-			counted = tpa::count_if<tpa::cond::FIBONACCI, returnType>(vec);
+			counted = tpa::count_if<tpa::cond::SYLVESTER, returnType>(vec);
 		}
-		std::cout << "Counted: " << counted << " fibs.\n";
+		std::cout << "Counted: " << counted << " Sylvesters.\n";
 		
 		std::cout << "End of Benchmark.\n";
 
