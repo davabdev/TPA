@@ -688,11 +688,7 @@ namespace tpa {
                     }//End if
                     else if constexpr (COND == tpa::cond::PERFECT)
                     {
-
-                    }//End if
-                    else if constexpr (COND == tpa::cond::IMPERFECT)
-                    {
-
+                        
                     }//End if
                     else if constexpr (COND == tpa::cond::PERFECT_SQUARE)
                     {
@@ -822,9 +818,68 @@ namespace tpa {
                         }//End if
 #endif
                     }//End if
+                    else if constexpr (COND == tpa::cond::TRIBONOCCI)
+                    {
+                        
+                    }//End if
                     else if constexpr (COND == tpa::cond::PRIME)
                     {
                                   
+                    }//End if
+                    else if constexpr (COND == tpa::cond::SYLVESTER)
+                    {
+#ifdef _M_AMD64
+                        if (tpa::hasAVX2)
+                        {
+                            const __m256i _syl0 = _mm256_set1_epi64x(2ull);
+                            const __m256i _syl1 = _mm256_set1_epi64x(3ull);
+                            const __m256i _syl2 = _mm256_set1_epi64x(7ull);
+                            const __m256i _syl3 = _mm256_set1_epi64x(43ull);
+                            const __m256i _syl4 = _mm256_set1_epi64x(1807ull);
+                            const __m256i _syl5 = _mm256_set1_epi64x(3263443ull);
+                            const __m256i _syl6 = _mm256_set1_epi64x(10650056950807ull);
+
+                            __m256i _ARR = _mm256_setzero_si256();                          
+                            __m256i _mask0 = _mm256_setzero_si256();
+                            __m256i _mask1 = _mm256_setzero_si256();
+                            __m256i _mask2 = _mm256_setzero_si256();
+                            __m256i _mask3 = _mm256_setzero_si256();
+                            __m256i _mask4 = _mm256_setzero_si256();
+                            __m256i _mask5 = _mm256_setzero_si256();
+                            __m256i _mask6 = _mm256_setzero_si256();
+                            __m256i _mask_comb = _mm256_setzero_si256();
+                            __m256i _count = _mm256_setzero_si256();
+                           
+                            for (; (i + 4uz) < end; i += 4uz)
+                            {
+                                _ARR = _mm256_cvtepi32_epi64(_mm_load_si128((__m128i*) &arr[i]));
+                                
+                                _mask0 = _mm256_cmpeq_epi64(_ARR, _syl0);
+                                _mask1 = _mm256_cmpeq_epi64(_ARR, _syl1);
+                                _mask2 = _mm256_cmpeq_epi64(_ARR, _syl2);
+                                _mask3 = _mm256_cmpeq_epi64(_ARR, _syl3);
+                                _mask4 = _mm256_cmpeq_epi64(_ARR, _syl4);
+                                _mask5 = _mm256_cmpeq_epi64(_ARR, _syl5);
+                                _mask6 = _mm256_cmpeq_epi64(_ARR, _syl6);
+                               
+                                _mask_comb = _mm256_or_si256(_mask0, _mask1);
+                                _mask_comb = _mm256_or_si256(_mask_comb, _mask2);
+                                _mask_comb = _mm256_or_si256(_mask_comb, _mask3);
+                                _mask_comb = _mm256_or_si256(_mask_comb, _mask4);
+                                _mask_comb = _mm256_or_si256(_mask_comb, _mask5);
+                                _mask_comb = _mm256_or_si256(_mask_comb, _mask6);
+                                
+                                _count = _mm256_sub_epi64(_count, _mask_comb);                                
+                            }//End for
+
+                            cnt = static_cast<RETURN_T>(tpa::util::_mm256_sum_epi64(_count));
+                            
+                        }//End if
+                        else if (tpa::has_SSE41)
+                        {
+                            //Not Implemented.
+                        }//End if
+#endif
                     }//End if
                     else
                     {
@@ -930,11 +985,7 @@ namespace tpa {
                             else if constexpr (COND == tpa::cond::PERFECT)
                             {
                                 
-                            }//End if
-                            else if constexpr (COND == tpa::cond::IMPERFECT)
-                            {
-       
-                            }//End if
+                            }//End if                            
                             else if constexpr (COND == tpa::cond::PERFECT_SQUARE)
                             {
                                 if (tpa::util::isPerfectSquare(arr[i]))
@@ -948,6 +999,20 @@ namespace tpa {
                                 {
                                     ++cnt;
                                 }//End if
+                            }//End if
+                            else if constexpr (COND == tpa::cond::SYLVESTER)
+                            {
+                                if (tpa::util::isSylvester(arr[i]))
+                                {
+                                    ++cnt;
+                                }//End if
+                            }//End if
+                            else if constexpr (COND == tpa::cond::TRIBONOCCI)
+                            {
+                                [] <bool flag = false>()
+                                {
+                                    static_assert(flag, "tpa::find_if<TRIBONOCCI>() Is not yet implemented.");
+                                }();
                             }//End if
                             else
                             {
