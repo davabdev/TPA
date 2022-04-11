@@ -25,6 +25,7 @@
 #include <numbers>
 #include <bitset>
 #include <bit>
+#include <array>
 
 #include "ThreadPool.hpp"
 #include "excepts.hpp"
@@ -328,6 +329,41 @@ namespace tpa::util
 		return tpa::util::isPerfectSquare(mult + 4) ||
 			tpa::util::isPerfectSquare(mult - 4);
 	}//End of isFibonacci 
+
+	/// <summary>
+	/// <para>An std::array<uint64_t> containing the first 7 numbers of the sylvester sequence.</para>
+	/// </summary>
+	static constexpr std::array<std::uint64_t, 7uz> sylvester_seq = {2ull,3ull,7ull,43ull,1807ull,3263443ull,10650056950807ull};
+
+	/// <summary>
+	/// <para>Returns true if 'x' is a member of the sylvester sequence</para>
+	/// <para>Only works on the first 7 numbers  of the sequence otherwise a type larger than uint64_t would be needed to represent them.</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <returns></returns>
+	template<typename T>
+	inline constexpr bool isSylvester(const T x) noexcept
+	{
+		const uint64_t xx = static_cast<uint64_t>(x);
+
+		if (xx < 2ull)
+		{
+			return false;
+		}//End if
+		else
+		{
+			for (size_t i = 0uz; i < sylvester_seq.size(); ++i)
+			{
+				if (xx == sylvester_seq[i])
+				{
+					return true;
+				}//End if
+			}//End for
+
+			return false;
+		}//End else
+	}//End of isSylvester
 
 	/// <summary>
 	/// <para>Returns true if the value is an even number.</para>
@@ -1114,8 +1150,9 @@ namespace tpa
 		MULTIPLE = DIVISIBLE_BY,
 		PERFECT_SQUARE,
 		FIBONACCI,
+		TRIBONOCCI,
 		PERFECT,
-		IMPERFECT
+		SYLVESTER
 	};//End of cond
 
 	/// <summary>
