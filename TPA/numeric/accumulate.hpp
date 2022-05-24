@@ -2,7 +2,7 @@
 /*
 * Truly Parallel Algorithms Library - Numeric - accumulate function
 * By: David Aaron Braun
-* 2021-04-08
+* 2022-05-24
 * Parallel implementation of accumulate
 */
 
@@ -22,18 +22,9 @@
 #include <array>
 #include <vector>
 
-#ifdef _M_AMD64
-#include <immintrin.h>
-#elif defined (_M_ARM64)
-#ifdef _WIN32
-#include "arm64_neon.h"
-#else
-#include "arm_neon.h"
-#endif
-#endif
-
 #include "../tpa.hpp"
 #include "../excepts.hpp"
+#include "../size_t_lit.hpp"
 
 /// <summary>
 /// <para>Truly Parallel Algorithms</para>
@@ -44,7 +35,7 @@ namespace tpa
 {
 #pragma region generic
     /// <summary>
-    /// <para>Computes the sum of the given value 'val' and the elements in the container.</para>
+    /// <para>Computes the sum of the elements in the container.</para>
     /// <para>This implementation is Multi-Threaded Only. No SIMD.</para>
     /// <para>Explicitly requires that you specify a predicate such as std::plus&lt;T&gt;()</para>
     /// <para>This implementation is about as fast as std::reduce, but more reliable.</para>
@@ -53,29 +44,27 @@ namespace tpa
     /// <typeparam name="T"></typeparam>
     /// <typeparam name="P"></typeparam>
     /// <param name="arr"> - The container you're summing</param>
-    /// <param name="val"> - The initial value</param>
     /// <param name="pred"> - The predicate </param>
     /// <returns></returns>
-    template<typename CONTAINER_T, typename T, class P>
-    [[nodiscard]] inline constexpr T accumulate(
+    template<typename RETURN_TYPE, typename CONTAINER_T, class P>
+    [[nodiscard]] inline constexpr RETURN_TYPE accumulate(
         const CONTAINER_T& arr, 
-        const T val, 
         const P pred)
         requires tpa::util::contiguous_seqeunce<CONTAINER_T>
 	{
         try
         {
-            uint32_t complete = 0;
+            uint32_t complete = 0u;
 
-            T sum = val;
+            RETURN_TYPE sum = 0;
 
             std::vector<std::pair<size_t, size_t>> sections;
             tpa::util::prepareThreading(sections, arr.size());
 
-            std::vector<std::shared_future<T>> results;
+            std::vector<std::shared_future<RETURN_TYPE>> results;
             results.reserve(tpa::nThreads);
 
-            std::shared_future<T> temp;
+            std::shared_future<RETURN_TYPE> temp;
 
             for (const auto& sec : sections)
             {
@@ -85,7 +74,7 @@ namespace tpa
                     const size_t end = sec.second;
                     size_t i = beg;
 
-                    T temp_val = 0;
+                    RETURN_TYPE temp_val = 0;
 
 #pragma region generic      
                     for (; i != end; ++i)
@@ -120,788 +109,529 @@ namespace tpa
             std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
             std::cerr << "Exception thrown in tpa::accumulate(): " << ex.code()
                 << " " << ex.what() << "\n";
-            return static_cast<T>(0);
+            return static_cast<RETURN_TYPE>(0);
         }//End catch
         catch (const std::bad_alloc& ex)
         {
             std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
             std::cerr << "Exception thrown in tpa::accumulate(): " << ex.what() << "\n";
-            return static_cast<T>(0);
+            return static_cast<RETURN_TYPE>(0);
         }//End catch
         catch (const std::exception& ex)
         {
             std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
             std::cerr << "Exception thrown in tpa::accumulate(): " << ex.what() << "\n";
-            return static_cast<T>(0);
+            return static_cast<RETURN_TYPE>(0);
         }//End catch
         catch (...)
         {
             std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
             std::cerr << "Exception thrown in tpa::accumulate(): unknown!\n";
-            return static_cast<T>(0);
+            return static_cast<RETURN_TYPE>(0);
         }//End catch
 	}//End of accumulate
 
 
     /// <summary>
-    /// <para>Computes the sum of the given value 'val' and the elements in the container.</para>
+    /// <para>Computes the sum of the elements in the container.</para>
     /// <para>This implementation uses SIMD and Multi-Threading.</para>
-    /// <para>Valid Templated Predicates:</para>
-    /// <para>tpa::eqt::SUM</para>
-    /// <para>tpa::eqt::DIFFERENCE_</para>
-    /// <para>tpa::eqt::PRODUCT</para>
-    /// <para>tpa::eqt::QUOTIENT</para>
-    /// <para>tpa::eqt::REMAINDER</para>
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="RETURN_TYPE"></typeparam>
     /// <typeparam name="CONTAINER_T"></typeparam>
     /// <param name="arr"></param>
-    /// <param name="val"></param>
     /// <returns></returns>
-    template<tpa::eqt INSTR, typename CONTAINER_T, typename T = CONTAINER_T::value_type>
-    [[nodiscard]] inline constexpr T accumulate(const CONTAINER_T& arr, const T val = 0)
+    template<typename RETURN_TYPE, typename CONTAINER_T>
+    [[nodiscard]] inline constexpr RETURN_TYPE accumulate(const CONTAINER_T& arr)
     requires tpa::util::contiguous_seqeunce<CONTAINER_T>
     {
         try
         {
-            uint32_t complete = 0;
+            using T = CONTAINER_T::value_type; 
+            uint32_t complete = 0u;
 
-            T sum = val;
+            RETURN_TYPE sum = 0;
 
             std::vector<std::pair<size_t, size_t>> sections;
             tpa::util::prepareThreading(sections, arr.size());
 
-            std::vector<std::shared_future<T>> results;
+            std::vector<std::shared_future<RETURN_TYPE>> results;
             results.reserve(tpa::nThreads);
 
-            std::shared_future<T> temp;
+            std::shared_future<RETURN_TYPE> temp;
 
             for (const auto& sec : sections)
             {
                 temp = tpa::tp->addTask([&arr, &sec]()
-                    {
+                {
                         const size_t beg = sec.first;
                         const size_t end = sec.second;
                         size_t i = beg;
 
-                        T temp_val = 1;
+                        RETURN_TYPE temp_val = 0;
 #pragma region byte
-                        if constexpr (std::is_same<CONTAINER_T::value_type, int8_t>() == true)
+                        if constexpr (std::is_same<T, int8_t>())
                         {
-#ifdef _M_AMD64
-                            if (tpa::hasAVX2)
+#ifdef TPA_X86_64
+                            if (tpa::hasAVX512_ByteWord)
                             {
-                                __m256i _first, _second;
+                                __m512i _sum;
+
+                                for (; (i + 64uz) < end; i += 64uz)
+                                {
+                                    //Load Values
+                                    _sum = _mm512_loadu_epi8(&arr[i]);
+                                    
+                                    //Store Result      
+                                    temp_val += static_cast<RETURN_TYPE>(tpa::util::_mm512_sum_epi8(_sum));
+                                }//End for
+                            }//End if
+                            else if (tpa::hasAVX2)
+                            {
                                 __m256i _sum;
 
-                                for (; i != end; i += 64)
-                                {
-
-                                    if ((i + 64) > end) [[unlikely]]
-                                    {
-                                        break;
-                                    }//End if
-
+                                for (; (i + 32uz) < end; i += 32uz)
+                                {         
                                     //Load Values
-                                    _first = _mm256_load_si256((__m256i*) & arr[i]);
-                                    _second = _mm256_load_si256((__m256i*) & arr[i+32]);
+                                    _sum = _mm256_load_si256((__m256i*) &arr[i]);                                    
 
-                                    //Calc
-                                    if constexpr (INSTR == tpa::eqt::SUM)
-                                    {
-                                        _sum = _mm256_add_epi8(_first, _second);
-                                    }//End if
-                                    else if constexpr (INSTR == tpa::eqt::DIFFERENCE_)
-                                    {
-                                        _sum = _mm256_sub_epi8(_first, _second);
-                                    }//End if
-                                    else if constexpr (INSTR == tpa::eqt::PRODUCT)
-                                    {
-                                        int8_t d[32] = {};
-                                        for (size_t x = 0; x != 32; ++x)
-                                        {
-#ifdef _WIN32
-                                            d[x] = static_cast<int8_t>(_first.m256i_i8[x] * _second.m256i_i8[x]);
-#else
-                                            d[x] = static_cast<int8_t>(_first[x] * _second[x]);
-#endif
-                                        }//End for
-                                        _sum = _mm256_load_si256((__m256i*) & d);
-                                    }//End if
-                                    else if constexpr (INSTR == tpa::eqt::QUOTIENT)
-                                    {
-                                        _sum = _mm256_div_epi8(_first, _second);
-                                    }//End if
-                                    else if constexpr (INSTR == tpa::eqt::REMAINDER)
-                                    {
-                                        _sum = _mm256_rem_epi8(_first, _second);
-                                    }//End if
-                                    else
-                                    {
-                                        [] <bool flag = false>()
-                                        {
-                                            static_assert(flag, " You have specifed an invalid equation in tpa::accumulate<__UNDEFINED_PREDICATE__>(CONTAINER<float>).");
-                                        }();
-                                    }//End else
-
-                                    //Store Result                                    
-                                    for (size_t x = 0; x != 32; ++x)
-                                    {
-#ifdef _WIN32
-                                        temp_val += _sum.m256i_i8[x];
-#else
-                                        temp_val += _sum[x];
-#endif
-                                    }//End for
+                                    //Store Result      
+                                    temp_val += static_cast<RETURN_TYPE>(tpa::util::_mm256_sum_epi8(_sum));
                                 }//End for
                             }//End if hasAVX2
+                            else if (tpa::has_SSE2)
+                            {
+                                __m128i _sum;
+
+                                for (; (i + 16uz) < end; i += 16uz)
+                                {
+                                    //Load Values
+                                    _sum = _mm_load_si128((__m128i*) &arr[i]);
+
+                                    //Store Result      
+                                    temp_val += static_cast<RETURN_TYPE>(tpa::util::_mm_sum_epi8(_sum));
+                                }//End for
+                            }//End if
 #endif
                         }//End if
 #pragma endregion
 #pragma region unsigned byte
-                        else if constexpr (std::is_same<CONTAINER_T::value_type, uint8_t>() == true)
+                        else if constexpr (std::is_same<T, uint8_t>())
                         {
-#ifdef _M_AMD64
-                            if (tpa::hasAVX2)
+#ifdef TPA_X86_64
+                            if (tpa::hasAVX512_ByteWord)
                             {
-                                __m256i _first, _second;
+                                __m512i _sum;
+
+                                for (; (i + 64uz) < end; i += 64uz)
+                                {
+                                    //Load Values
+                                    _sum = _mm512_loadu_epi8(&arr[i]);
+
+                                    //Store Result      
+                                    temp_val += static_cast<RETURN_TYPE>(tpa::util::_mm512_sum_epi8(_sum));
+                                }//End for
+                            }//End if
+                            else if (tpa::hasAVX2)
+                            {
                                 __m256i _sum;
 
-                                for (; i != end; i += 64)
+                                for (; (i + 32uz) < end; i += 32uz)
                                 {
-
-                                    if ((i + 64) > end) [[unlikely]]
-                                    {
-                                        break;
-                                    }//End if
-
                                     //Load Values
-                                    _first = _mm256_load_si256((__m256i*) &arr[i]);
-                                    _second = _mm256_load_si256((__m256i*) &arr[i+32]);
+                                    _sum = _mm256_load_si256((__m256i*) & arr[i]);
 
-                                    //Calc
-                                    if constexpr (INSTR == tpa::eqt::SUM)
-                                    {
-                                        _sum = _mm256_add_epi8(_first, _second);
-                                    }//End if
-                                    else if constexpr (INSTR == tpa::eqt::DIFFERENCE_)
-                                    {
-                                        _sum = _mm256_sub_epi8(_first, _second);
-                                    }//End if
-                                    else if constexpr (INSTR == tpa::eqt::PRODUCT)
-                                    {
-                                        uint8_t d[32] = {};
-                                        for (size_t x = 0; x != 32; ++x)
-                                        {
-#ifdef _WIN32
-                                            d[x] = static_cast<uint8_t>(_first.m256i_u8[x] * _second.m256i_u8[x]);
-#else
-                                            d[x] = static_cast<uint8_t>(_first[x] * _second[x]);
-#endif
-                                        }//End for
-                                        _sum = _mm256_load_si256((__m256i*) & d);
-
-                                    }//End if
-                                    else if constexpr (INSTR == tpa::eqt::QUOTIENT)
-                                    {
-                                        _sum = _mm256_div_epu8(_first, _second);
-                                    }//End if
-                                    else if constexpr (INSTR == tpa::eqt::REMAINDER)
-                                    {
-                                        _sum = _mm256_rem_epu8(_first, _second);
-                                    }//End if
-                                    else
-                                    {
-                                        [] <bool flag = false>()
-                                        {
-                                            static_assert(flag, " You have specifed an invalid equation in tpa::accumulate<__UNDEFINED_PREDICATE__>(CONTAINER<float>).");
-                                        }();
-                                    }//End else
-
-                                    //Store Result                                    
-                                    for (size_t x = 0; x != 32; ++x)
-                                    {
-#ifdef _WIN32
-                                        temp_val += _sum.m256i_u8[x];
-#else
-                                        temp_val += _sum[x];
-#endif
-                                    }//End for
+                                    //Store Result      
+                                    temp_val += static_cast<RETURN_TYPE>(tpa::util::_mm256_sum_epi8(_sum));
                                 }//End for
                             }//End if hasAVX2
+                            else if (tpa::has_SSE2)
+                            {
+                                __m128i _sum;
+
+                                for (; (i + 16uz) < end; i += 16uz)
+                                {
+                                    //Load Values
+                                    _sum = _mm_load_si128((__m128i*) & arr[i]);
+
+                                    //Store Result      
+                                    temp_val += static_cast<RETURN_TYPE>(tpa::util::_mm_sum_epi8(_sum));
+                                }//End for
+                            }//End if
 #endif
                         }//End if
 #pragma endregion
 #pragma region short
-                        else if constexpr (std::is_same<CONTAINER_T::value_type, int16_t>() == true)
+                        else if constexpr (std::is_same<T, int16_t>())
                         {
-#ifdef _M_AMD64
-                            if (tpa::hasAVX2)
+#ifdef TPA_X86_64
+                            if (tpa::hasAVX512_ByteWord)
                             {
-                                __m256i _first, _second;
+                                __m512i _sum;
+
+                                for (; (i + 32uz) < end; i += 32uz)
+                                {
+                                    //Load Values
+                                    _sum = _mm512_loadu_epi16(&arr[i]);
+
+                                    //Store Result      
+                                    temp_val += static_cast<RETURN_TYPE>(tpa::util::_mm512_sum_epi16(_sum));
+                                }//End for
+                            }//End if
+                            else if (tpa::hasAVX2)
+                            {
                                 __m256i _sum;
 
-                                for (; i != end; i += 32)
+                                for (; (i + 16uz) < end; i += 16uz)
                                 {
-
-                                    if ((i + 32) > end) [[unlikely]]
-                                    {
-                                        break;
-                                    }//End if
-
                                     //Load Values
-                                    _first = _mm256_load_si256((__m256i*) & arr[i]);
-                                    _second = _mm256_load_si256((__m256i*) & arr[i + 16]);
+                                    _sum = _mm256_load_si256((__m256i*) &arr[i]);
 
-                                    //Calc
-                                    if constexpr (INSTR == tpa::eqt::SUM)
-                                    {
-                                        _sum = _mm256_add_epi16(_first, _second);
-                                    }//End if
-                                    else if constexpr (INSTR == tpa::eqt::DIFFERENCE_)
-                                    {
-                                        _sum = _mm256_sub_epi16(_first, _second);
-                                    }//End if
-                                    else if constexpr (INSTR == tpa::eqt::PRODUCT)
-                                    {
-                                        _sum = _mm256_mullo_epi16(_first, _second);
-                                    }//End if
-                                    else if constexpr (INSTR == tpa::eqt::QUOTIENT)
-                                    {
-                                        _sum = _mm256_div_epi16(_first, _second);
-                                    }//End if
-                                    else if constexpr (INSTR == tpa::eqt::REMAINDER)
-                                    {
-                                        _sum = _mm256_rem_epi16(_first, _second);
-                                    }//End if
-                                    else
-                                    {
-                                        [] <bool flag = false>()
-                                        {
-                                            static_assert(flag, " You have specifed an invalid equation in tpa::accumulate<__UNDEFINED_PREDICATE__>(CONTAINER<float>).");
-                                        }();
-                                    }//End else
-
-                                    //Store Result                                    
-                                    for (size_t x = 0; x != 16; ++x)
-                                    {
-#ifdef _WIN32
-                                        temp_val += _sum.m256i_i16[x];
-#else
-                                        temp_val += _sum[x];
-#endif
-                                    }//End for
+                                    //Store Result      
+                                    temp_val += static_cast<RETURN_TYPE>(tpa::util::_mm256_sum_epi16(_sum));
                                 }//End for
                             }//End if hasAVX2
+                            else if (tpa::has_SSE2)
+                            {
+                                __m128i _sum;
+
+                                for (; (i + 8uz) < end; i += 8uz)
+                                {
+                                    //Load Values
+                                    _sum = _mm_load_si128((__m128i*) & arr[i]);
+
+                                    //Store Result      
+                                    temp_val += static_cast<RETURN_TYPE>(tpa::util::_mm_sum_epi16(_sum));
+                                }//End for
+                            }//End if
 #endif
                         }//End if
 #pragma endregion
 #pragma region unsigned short
-                        else if constexpr (std::is_same<CONTAINER_T::value_type, uint16_t>() == true)
+                        else if constexpr (std::is_same<T, uint16_t>())
                         {
-#ifdef _M_AMD64
-                            if (tpa::hasAVX2)
+#ifdef TPA_X86_64
+                        if (tpa::hasAVX512_ByteWord)
+                        {
+                            __m512i _sum;
+
+                            for (; (i + 32uz) < end; i += 32uz)
                             {
-                                __m256i _first, _second;
-                                __m256i _sum;
+                                //Load Values
+                                _sum = _mm512_loadu_epi16(&arr[i]);
 
-                                for (; i != end; i += 32)
-                                {
+                                //Store Result      
+                                temp_val += static_cast<RETURN_TYPE>(tpa::util::_mm512_sum_epi16(_sum));
+                            }//End for
+                        }//End if
+                        else if (tpa::hasAVX2)
+                        {
+                            __m256i _sum;
 
-                                    if ((i + 32) > end) [[unlikely]]
-                                    {
-                                        break;
-                                    }//End if
+                            for (; (i + 16uz) < end; i += 16uz)
+                            {
+                                //Load Values
+                                _sum = _mm256_load_si256((__m256i*) & arr[i]);
 
-                                    //Load Values
-                                    _first = _mm256_load_si256((__m256i*) &arr[i]);
-                                    _second = _mm256_load_si256((__m256i*) &arr[i+16]);
+                                //Store Result      
+                                temp_val += static_cast<RETURN_TYPE>(tpa::util::_mm256_sum_epi16(_sum));
+                            }//End for
+                        }//End if hasAVX2
+                        else if (tpa::has_SSE2)
+                        {
+                            __m128i _sum;
 
-                                    //Calc
-                                    if constexpr (INSTR == tpa::eqt::SUM)
-                                    {
-                                        _sum = _mm256_add_epi16(_first, _second);
-                                    }//End if
-                                    else if constexpr (INSTR == tpa::eqt::DIFFERENCE_)
-                                    {
-                                        _sum = _mm256_sub_epi16(_first, _second);
-                                    }//End if
-                                    else if constexpr (INSTR == tpa::eqt::PRODUCT)
-                                    {
-                                        _sum = _mm256_mullo_epi16(_first, _second);
-                                    }//End if
-                                    else if constexpr (INSTR == tpa::eqt::QUOTIENT)
-                                    {
-                                        _sum = _mm256_div_epu16(_first, _second);
-                                    }//End if
-                                    else if constexpr (INSTR == tpa::eqt::REMAINDER)
-                                    {
-                                        _sum = _mm256_rem_epu16(_first, _second);
-                                    }//End if
-                                    else
-                                    {
-                                        [] <bool flag = false>()
-                                        {
-                                            static_assert(flag, " You have specifed an invalid equation in tpa::accumulate<__UNDEFINED_PREDICATE__>(CONTAINER<float>).");
-                                        }();
-                                    }//End else
+                            for (; (i + 8uz) < end; i += 8uz)
+                            {
+                                //Load Values
+                                _sum = _mm_load_si128((__m128i*) & arr[i]);
 
-                                    //Store Result                                    
-                                    for (size_t x = 0; x != 16; ++x)
-                                    {
-#ifdef _WIN32
-                                        temp_val += _sum.m256i_u16[x];
-#else
-                                        temp_val += _sum[x];
-#endif
-                                    }//End for
-                                }//End for
-                            }//End if hasAVX2
+                                //Store Result      
+                                temp_val += static_cast<RETURN_TYPE>(tpa::util::_mm_sum_epi16(_sum));
+                            }//End for
+                        }//End if
 #endif
                         }//End if
 #pragma endregion
 #pragma region int
-                        else if constexpr (std::is_same<CONTAINER_T::value_type, int32_t>() == true)
+                        else if constexpr (std::is_same<T, int32_t>())
                         {
-#ifdef _M_AMD64
-                            if (tpa::hasAVX2)
+#ifdef TPA_X86_64
+                        if (tpa::hasAVX512)
+                        {
+                            __m512i _sum;
+
+                            for (; (i + 16uz) < end; i += 16uz)
                             {
-                                __m256i _first, _second;
-                                __m256i _sum;
+                                //Load Values
+                                _sum = _mm512_load_epi32(&arr[i]);
 
-                                for (; i != end; i += 16)
-                                {
+                                //Store Result      
+                                temp_val += static_cast<RETURN_TYPE>(tpa::util::_mm512_sum_epi32(_sum));
+                            }//End for
+                        }//End if
+                        else if (tpa::hasAVX2)
+                        {
+                            __m256i _sum;
 
-                                    if ((i + 16) > end) [[unlikely]]
-                                    {
-                                        break;
-                                    }//End if
+                            for (; (i + 8uz) < end; i += 8uz)
+                            {
+                                //Load Values
+                                _sum = _mm256_load_si256((__m256i*) & arr[i]);
 
-                                    //Load Values
-                                    _first = _mm256_load_si256((__m256i*) &arr[i]);
-                                    _second = _mm256_load_si256((__m256i*) &arr[i+8]);
+                                //Store Result      
+                                temp_val += static_cast<RETURN_TYPE>(tpa::util::_mm256_sum_epi32(_sum));
+                            }//End for
+                        }//End if hasAVX2
+                        else if (tpa::has_SSE2)
+                        {
+                            __m128i _sum;
 
-                                    //Calc
-                                    if constexpr (INSTR == tpa::eqt::SUM)
-                                    {
-                                        _sum = _mm256_add_epi32(_first, _second);
-                                    }//End if
-                                    else if constexpr (INSTR == tpa::eqt::DIFFERENCE_)
-                                    {
-                                        _sum = _mm256_sub_epi32(_first, _second);
-                                    }//End if
-                                    else if constexpr (INSTR == tpa::eqt::PRODUCT)
-                                    {
-                                        _sum = _mm256_mullo_epi32(_first, _second);
-                                    }//End if
-                                    else if constexpr (INSTR == tpa::eqt::QUOTIENT)
-                                    {
-                                        _sum = _mm256_div_epi32(_first, _second);
-                                    }//End if
-                                    else if constexpr (INSTR == tpa::eqt::REMAINDER)
-                                    {
-                                        _sum = _mm256_rem_epi32(_first, _second);
-                                    }//End if
-                                    else
-                                    {
-                                        [] <bool flag = false>()
-                                        {
-                                            static_assert(flag, " You have specifed an invalid equation in tpa::accumulate<__UNDEFINED_PREDICATE__>(CONTAINER<float>).");
-                                        }();
-                                    }//End else
+                            for (; (i + 4uz) < end; i += 4uz)
+                            {
+                                //Load Values
+                                _sum = _mm_load_si128((__m128i*) & arr[i]);
 
-                                    //Store Result                                    
-                                    for (size_t x = 0; x != 8; ++x)
-                                    {
-#ifdef _WIN32
-                                        temp_val += _sum.m256i_i32[x];
-#else
-                                        temp_val += _sum[x];
-#endif
-                                    }//End for
-                                }//End for
-                            }//End if hasAVX2
+                                //Store Result      
+                                temp_val += static_cast<RETURN_TYPE>(tpa::util::_mm_sum_epi32(_sum));
+                            }//End for
+                        }//End if
 #endif
                         }//End if
 #pragma endregion
 #pragma region unsigned int
-                        else if constexpr (std::is_same<CONTAINER_T::value_type, uint32_t>() == true)
+                        else if constexpr (std::is_same<T, uint32_t>() == true)
                         {
-#ifdef _M_AMD64
-                            if (tpa::hasAVX2)
+#ifdef TPA_X86_64
+                        if (tpa::hasAVX512)
+                        {
+                            __m512i _sum;
+
+                            for (; (i + 16uz) < end; i += 16uz)
                             {
-                                __m256i _first, _second;
-                                __m256i _sum;
+                                //Load Values
+                                _sum = _mm512_load_epi32(&arr[i]);
 
-                                for (; i != end; i += 16)
-                                {
+                                //Store Result      
+                                temp_val += static_cast<RETURN_TYPE>(tpa::util::_mm512_sum_epi32(_sum));
+                            }//End for
+                        }//End if
+                        else if (tpa::hasAVX2)
+                        {
+                            __m256i _sum;
 
-                                    if ((i + 16) > end) [[unlikely]]
-                                    {
-                                        break;
-                                    }//End if
+                            for (; (i + 8uz) < end; i += 8uz)
+                            {
+                                //Load Values
+                                _sum = _mm256_load_si256((__m256i*) & arr[i]);
 
-                                    //Load Values
-                                    _first = _mm256_load_si256((__m256i*) & arr[i]);
-                                    _second = _mm256_load_si256((__m256i*) & arr[i + 8]);
+                                //Store Result      
+                                temp_val += static_cast<RETURN_TYPE>(tpa::util::_mm256_sum_epi32(_sum));
+                            }//End for
+                        }//End if hasAVX2
+                        else if (tpa::has_SSE2)
+                        {
+                            __m128i _sum;
 
-                                    //Calc
-                                    if constexpr (INSTR == tpa::eqt::SUM)
-                                    {
-                                        _sum = _mm256_add_epi32(_first, _second);
-                                    }//End if
-                                    else if constexpr (INSTR == tpa::eqt::DIFFERENCE_)
-                                    {
-                                        _sum = _mm256_sub_epi32(_first, _second);
-                                    }//End if
-                                    else if constexpr (INSTR == tpa::eqt::PRODUCT)
-                                    {
-                                        _sum = _mm256_mullo_epi32(_first, _second);
-                                    }//End if
-                                    else if constexpr (INSTR == tpa::eqt::QUOTIENT)
-                                    {
-                                        _sum = _mm256_div_epu32(_first, _second);
-                                    }//End if
-                                    else if constexpr (INSTR == tpa::eqt::REMAINDER)
-                                    {
-                                        _sum = _mm256_rem_epu32(_first, _second);
-                                    }//End if
-                                    else
-                                    {
-                                        [] <bool flag = false>()
-                                        {
-                                            static_assert(flag, " You have specifed an invalid equation in tpa::accumulate<__UNDEFINED_PREDICATE__>(CONTAINER<float>).");
-                                        }();
-                                    }//End else
+                            for (; (i + 4uz) < end; i += 4uz)
+                            {
+                                //Load Values
+                                _sum = _mm_load_si128((__m128i*) & arr[i]);
 
-                                    //Store Result                                    
-                                    for (size_t x = 0; x != 8; ++x)
-                                    {
-#ifdef _WIN32
-                                        temp_val += _sum.m256i_u32[x];
-#else
-                                        temp_val += _sum[x];
-#endif
-                                    }//End for
-                                }//End for
-                            }//End if hasAVX2
+                                //Store Result      
+                                temp_val += static_cast<RETURN_TYPE>(tpa::util::_mm_sum_epi32(_sum));
+                            }//End for
+                        }//End if
 #endif
                         }//End if
 #pragma endregion
 #pragma region long
-                        else if constexpr (std::is_same<CONTAINER_T::value_type, int64_t>() == true)
+                        else if constexpr (std::is_same<T, int64_t>())
                         {
-#ifdef _M_AMD64
-                            if (tpa::hasAVX2)
+#ifdef TPA_X86_64
+                        if (tpa::hasAVX512)
+                        {
+                            __m512i _sum;
+
+                            for (; (i + 8uz) < end; i += 8uz)
                             {
-                                __m256i _first, _second;
-                                __m256i _sum;
+                                //Load Values
+                                _sum = _mm512_load_epi64(&arr[i]);
 
-                                for (; i != end; i += 8)
-                                {
+                                //Store Result      
+                                temp_val += static_cast<RETURN_TYPE>(tpa::util::_mm512_sum_epi64(_sum));
+                            }//End for
+                        }//End if
+                        else if (tpa::hasAVX2)
+                        {
+                            __m256i _sum;
 
-                                    if ((i + 8) > end) [[unlikely]]
-                                    {
-                                        break;
-                                    }//End if
+                            for (; (i + 4uz) < end; i += 4uz)
+                            {
+                                //Load Values
+                                _sum = _mm256_load_si256((__m256i*) & arr[i]);
 
-                                    //Load Values
-                                    _first = _mm256_load_si256((__m256i*) & arr[i]);
-                                    _second = _mm256_load_si256((__m256i*) & arr[i + 4]);
+                                //Store Result      
+                                temp_val += static_cast<RETURN_TYPE>(tpa::util::_mm256_sum_epi64(_sum));
+                            }//End for
+                        }//End if hasAVX2
+                        else if (tpa::has_SSE2)
+                        {
+                            __m128i _sum;
 
-                                    //Calc
-                                    if constexpr (INSTR == tpa::eqt::SUM)
-                                    {
-                                        _sum = _mm256_add_epi64(_first, _second);
-                                    }//End if
-                                    else if constexpr (INSTR == tpa::eqt::DIFFERENCE_)
-                                    {
-                                        _sum = _mm256_sub_epi64(_first, _second);
-                                    }//End if
-                                    else if constexpr (INSTR == tpa::eqt::PRODUCT)
-                                    {
-                                        uint64_t d[4] = {};
-                                        for (size_t x = 0; x != 4; ++x)
-                                        {
-#ifdef _WIN32
-                                            d[x] = _first.m256i_i64[x] * _second.m256i_i64[x];
-#else
-                                            d[x] = _first[x] * _second[x];
-#endif
-                                        }//End for
-                                        _sum = _mm256_load_si256((__m256i*) &d);
+                            for (; (i + 2uz) < end; i += 2uz)
+                            {
+                                //Load Values
+                                _sum = _mm_load_si128((__m128i*) & arr[i]);
 
-                                    }//End if
-                                    else if constexpr (INSTR == tpa::eqt::QUOTIENT)
-                                    {
-                                        _sum = _mm256_div_epi64(_first, _second);
-                                    }//End if
-                                    else if constexpr (INSTR == tpa::eqt::REMAINDER)
-                                    {
-                                        _sum = _mm256_rem_epi64(_first, _second);
-                                    }//End if
-                                    else
-                                    {
-                                        [] <bool flag = false>()
-                                        {
-                                            static_assert(flag, " You have specifed an invalid equation in tpa::accumulate<__UNDEFINED_PREDICATE__>(CONTAINER<float>).");
-                                        }();
-                                    }//End else
-
-                                    //Store Result                                    
-                                    for (size_t x = 0; x != 4; ++x)
-                                    {
-#ifdef _WIN32
-                                        temp_val += _sum.m256i_i64[x];
-#else
-                                        temp_val += _sum[x];
-#endif
-                                    }//End for
-                                }//End for
-                            }//End if hasAVX2
+                                //Store Result      
+                                temp_val += static_cast<RETURN_TYPE>(tpa::util::_mm_sum_epi64(_sum));
+                            }//End for
+                        }//End if
 #endif
                         }//End if
 #pragma endregion
 #pragma region unsigned long
-                        else if constexpr (std::is_same<CONTAINER_T::value_type, uint64_t>() == true)
+                        else if constexpr (std::is_same<T, uint64_t>())
                         {
-#ifdef _M_AMD64
-                            if (tpa::hasAVX2)
+#ifdef TPA_X86_64
+                        if (tpa::hasAVX512)
+                        {
+                            __m512i _sum;
+
+                            for (; (i + 8uz) < end; i += 8uz)
                             {
-                                __m256i _first, _second;
-                                __m256i _sum;
+                                //Load Values
+                                _sum = _mm512_load_epi64(&arr[i]);
 
-                                for (; i != end; i += 8)
-                                {
+                                //Store Result      
+                                temp_val += static_cast<RETURN_TYPE>(tpa::util::_mm512_sum_epi64(_sum));
+                            }//End for
+                        }//End if
+                        else if (tpa::hasAVX2)
+                        {
+                            __m256i _sum;
 
-                                    if ((i + 8) > end) [[unlikely]]
-                                    {
-                                        break;
-                                    }//End if
+                            for (; (i + 4uz) < end; i += 4uz)
+                            {
+                                //Load Values
+                                _sum = _mm256_load_si256((__m256i*) & arr[i]);
 
-                                    //Load Values
-                                    _first = _mm256_load_si256((__m256i*) &arr[i]);
-                                    _second = _mm256_load_si256((__m256i*) &arr[i+4]);
+                                //Store Result      
+                                temp_val += static_cast<RETURN_TYPE>(tpa::util::_mm256_sum_epi64(_sum));
+                            }//End for
+                        }//End if hasAVX2
+                        else if (tpa::has_SSE2)
+                        {
+                            __m128i _sum;
 
-                                    //Calc
-                                    if constexpr (INSTR == tpa::eqt::SUM)
-                                    {
-                                        _sum = _mm256_add_epi64(_first, _second);
-                                    }//End if
-                                    else if constexpr (INSTR == tpa::eqt::DIFFERENCE_)
-                                    {
-                                        _sum = _mm256_sub_epi64(_first, _second);
-                                    }//End if
-                                    else if constexpr (INSTR == tpa::eqt::PRODUCT)
-                                    {
-                                        uint64_t d[4] = {};
-                                        for (size_t x = 0; x != 4; ++x)
-                                        {
-#ifdef _WIN32
-                                            d[x] = _first.m256i_u64[x] * _second.m256i_u64[x];
-#else
-                                            d[x] = _first[x] * _second[x];
-#endif
-                                        }//End for
-                                        _sum = _mm256_load_si256((__m256i*)& d);
+                            for (; (i + 2uz) < end; i += 2uz)
+                            {
+                                //Load Values
+                                _sum = _mm_load_si128((__m128i*) & arr[i]);
 
-                                    }//End if
-                                    else if constexpr (INSTR == tpa::eqt::QUOTIENT)
-                                    {
-                                        _sum = _mm256_div_epu64(_first, _second);
-                                    }//End if
-                                    else if constexpr (INSTR == tpa::eqt::REMAINDER)
-                                    {
-                                        _sum = _mm256_rem_epu64(_first, _second);
-                                    }//End if
-                                    else
-                                    {
-                                        [] <bool flag = false>()
-                                        {
-                                            static_assert(flag, " You have specifed an invalid equation in tpa::accumulate<__UNDEFINED_PREDICATE__>(CONTAINER<float>).");
-                                        }();
-                                    }//End else
-
-                                    //Store Result                                    
-                                    for (size_t x = 0; x != 4; ++x)
-                                    {
-#ifdef _WIN32
-                                        temp_val += _sum.m256i_u64[x];
-#else
-                                        temp_val += _sum[x];
-#endif
-                                    }//End for
-                                }//End for
-                            }//End if hasAVX2
+                                //Store Result      
+                                temp_val += static_cast<RETURN_TYPE>(tpa::util::_mm_sum_epi64(_sum));
+                            }//End for
+                        }//End if
 #endif
                         }//End if
 #pragma endregion
 #pragma region float
-                    else if constexpr (std::is_same<CONTAINER_T::value_type, float>() == true)
+                    else if constexpr (std::is_same<T, float>())
                     {
-#ifdef _M_AMD64
-                        if (tpa::hasAVX)
+#ifdef TPA_X86_64
+                    if (tpa::hasAVX512)
+                    {
+                        __m512 _sum;
+
+                        for (; (i + 16uz) < end; i += 16uz)
                         {
-                            __m256 _first, _second;
-                            __m256 _sum;
+                            //Load Values
+                            _sum = _mm512_load_ps(&arr[i]);
 
-                            for (; i != end; i += 16)
-                            {
+                            //Store Result      
+                            temp_val += static_cast<RETURN_TYPE>(tpa::util::_mm512_sum_ps(_sum));
+                        }//End for
+                    }//End if
+                    else if (tpa::hasAVX2)
+                    {
+                        __m256 _sum;
 
-                                if ((i + 16) > end) [[unlikely]]
-                                {
-                                    break;
-                                }//End if
+                        for (; (i + 8uz) < end; i += 8uz)
+                        {
+                            //Load Values
+                            _sum = _mm256_load_ps(&arr[i]);
 
-                                //Load Values
-                                _first = _mm256_load_ps(&arr[i]);
-                                _second = _mm256_load_ps(&arr[i+8]);
+                            //Store Result      
+                            temp_val += static_cast<RETURN_TYPE>(tpa::util::_mm256_sum_ps(_sum));
+                        }//End for
+                    }//End if hasAVX2
+                    else if (tpa::has_SSE)
+                    {
+                        __m128 _sum;
 
-                                //Calc
-                                if constexpr (INSTR == tpa::eqt::SUM)
-                                {
-                                    _sum = _mm256_add_ps(_first, _second);
-                                }//End if
-                                else if constexpr (INSTR == tpa::eqt::DIFFERENCE_)
-                                {
-                                    _sum = _mm256_sub_ps(_first, _second);
-                                }//End if
-                                else if constexpr (INSTR == tpa::eqt::PRODUCT)
-                                {
-                                    _sum = _mm256_mul_ps(_first, _second);
-                                }//End if
-                                else if constexpr (INSTR == tpa::eqt::QUOTIENT)
-                                {
-                                    _sum = _mm256_div_ps(_first, _second);
-                                }//End if
-                                else if constexpr (INSTR == tpa::eqt::REMAINDER)
-                                {
-                                    break;//Use std::fmod
-                                }//End if
-                                else
-                                {
-                                    [] <bool flag = false>()
-                                    {
-                                        static_assert(flag, " You have specifed an invalid equation in tpa::accumulate<__UNDEFINED_PREDICATE__>(CONTAINER<float>).");
-                                    }();
-                                }//End else
-  
-                                //Store Result                                    
-                                for (size_t x = 0; x != 8; ++x)
-                                {
-#ifdef _WIN32
-                                    temp_val += _sum.m256_f32[x];
-#else
-                                    temp_val += _sum[x];
-#endif
-                                }//End for
-                            }//End for
-                        }//End if hasAVX
+                        for (; (i + 4uz) < end; i += 4uz)
+                        {
+                            //Load Values
+                            _sum = _mm_load_ps( &arr[i]);
+
+                            //Store Result      
+                            temp_val += static_cast<RETURN_TYPE>(tpa::util::_mm_sum_ps(_sum));
+                        }//End for
+                    }//End if
 #endif
                     }//End if
 #pragma endregion
 #pragma region double
-                    else if constexpr (std::is_same<CONTAINER_T::value_type, double>() == true)
+                    else if constexpr (std::is_same<T, double>())
                     {
-#ifdef _M_AMD64
-                        if (tpa::hasAVX)
+#ifdef TPA_X86_64
+                    if (tpa::hasAVX512)
+                    {
+                        __m512d _sum;
+
+                        for (; (i + 8uz) < end; i += 8uz)
                         {
-                            __m256d _first, _second;
-                            __m256d _sum;
+                            //Load Values
+                            _sum = _mm512_load_pd(&arr[i]);
 
-                            for (; i != end; i += 8)
-                            {
+                            //Store Result      
+                            temp_val += static_cast<RETURN_TYPE>(tpa::util::_mm512_sum_pd(_sum));
+                        }//End for
+                    }//End if
+                    else if (tpa::hasAVX2)
+                    {
+                        __m256d _sum;
 
-                                if ((i + 8) > end) [[unlikely]]
-                                {
-                                    break;
-                                }//End if
+                        for (; (i + 4uz) < end; i += 4uz)
+                        {
+                            //Load Values
+                            _sum = _mm256_load_pd(&arr[i]);
 
-                                //Load Values
-                                _first = _mm256_load_pd(&arr[i]);
-                                _second = _mm256_load_pd(&arr[i + 4]);
+                            //Store Result      
+                            temp_val += static_cast<RETURN_TYPE>(tpa::util::_mm256_sum_pd(_sum));
+                        }//End for
+                    }//End if hasAVX2
+                    else if (tpa::has_SSE2)
+                    {
+                        __m128d _sum;
 
-                                //Calc
-                                if constexpr (INSTR == tpa::eqt::SUM)
-                                {
-                                    _sum = _mm256_add_pd(_first, _second);
-                                }//End if
-                                else if constexpr (INSTR == tpa::eqt::DIFFERENCE_)
-                                {
-                                    _sum = _mm256_sub_pd(_first, _second);
-                                }//End if
-                                else if constexpr (INSTR == tpa::eqt::PRODUCT)
-                                {
-                                    _sum = _mm256_mul_pd(_first, _second);
-                                }//End if
-                                else if constexpr (INSTR == tpa::eqt::QUOTIENT)
-                                {
-                                    _sum = _mm256_div_pd(_first, _second);
-                                }//End if
-                                else if constexpr (INSTR == tpa::eqt::REMAINDER)
-                                {
-                                    break;//Use std::fmod
-                                }//End if
-                                else
-                                {
-                                    [] <bool flag = false>()
-                                    {
-                                        static_assert(flag, " You have specifed an invalid equation in tpa::accumulate<__UNDEFINED_PREDICATE__>(CONTAINER<float>).");
-                                    }();
-                                }//End else
+                        for (; (i + 2uz) < end; i += 2uz)
+                        {
+                            //Load Values
+                            _sum = _mm_load_pd(&arr[i]);
 
-                                //Store Result                                    
-                                for (size_t x = 0; x != 4; ++x)
-                                {
-#ifdef _WIN32
-                                    temp_val += _sum.m256d_f64[x];
-#else
-                                    temp_val += _sum[x];
-#endif
-                                }//End for
-                            }//End for
-                        }//End if hasAVX
+                            //Store Result      
+                            temp_val += static_cast<RETURN_TYPE>(tpa::util::_mm_sum_pd(_sum));
+                        }//End for
+                    }//End if
 #endif
                     }//End if
 #pragma endregion
 #pragma region generic      
                     for (; i != end; ++i)
-                    {
-                        //Calc
-                        if constexpr (INSTR == tpa::eqt::SUM)
-                        {
-                            temp_val += arr[i];
-                        }//End if
-                        else if constexpr (INSTR == tpa::eqt::DIFFERENCE_)
-                        {
-                            temp_val -= arr[i];
-                        }//End if
-                        else if constexpr (INSTR == tpa::eqt::PRODUCT)
-                        {
-                            temp_val *= arr[i];
-                        }//End if
-                        else if constexpr (INSTR == tpa::eqt::QUOTIENT)
-                        {
-                            temp_val /= arr[i];
-                        }//End if
-                        else if constexpr (INSTR == tpa::eqt::REMAINDER)
-                        {
-                            if constexpr (std::is_floating_point<CONTAINER_T::value_type>())
-                            {
-                                temp_val = std::fmod(temp_val, arr[i]);
-                            }//End if
-                            else
-                            {
-                                temp_val %= arr[i];
-                            }//End else
-                        }//End if
-                        else
-                        {
-                            [] <bool flag = false>()
-                            {
-                                static_assert(flag, " You have specifed an invalid equation in tpa::accumulate<__UNDEFINED_PREDICATE__>(CONTAINER<float>).");
-                            }();
-                        }//End else
+                    {                    
+                        temp_val += static_cast<RETURN_TYPE>(arr[i]);
                     }//End for                   
 #pragma endregion
                         return temp_val;
@@ -912,44 +642,8 @@ namespace tpa
 
             for (const auto& fut : results)
             {
-                if constexpr (INSTR == tpa::eqt::SUM)
-                {
-                    sum += fut.get();
-                    sum -= 1;//Clean up temp_val
-                }//End if
-                else if constexpr (INSTR == tpa::eqt::DIFFERENCE_)
-                {
-                    sum += fut.get();
-                    sum -= 1;//Clean up temp_val
-                }//End if
-                else if constexpr (INSTR == tpa::eqt::PRODUCT)
-                {
-                    sum *= fut.get();
-                }//End if
-                else if constexpr (INSTR == tpa::eqt::QUOTIENT)
-                {
-                    sum /= fut.get();
-                }//End if
-                else if constexpr (INSTR == tpa::eqt::REMAINDER)
-                {
-                    if constexpr (std::is_floating_point<CONTAINER_T::value_type>())
-                    {
-                        sum = std::fmod(sum, fut.get());
-                    }//End if
-                    else
-                    {
-                        sum %= fut.get();
-                    }//End else
-                }//End if
-                else
-                {
-                    [] <bool flag = false>()
-                    {
-                        static_assert(flag, " You have specifed an invalid equation in tpa::accumulate<__UNDEFINED_PREDICATE__>(CONTAINER<float>).");
-                    }();
-                }//End else
-
-                complete += 1;
+                sum += fut.get();
+                complete += 1u;
             }//End for
 
             //Check all threads completed
@@ -966,40 +660,26 @@ namespace tpa
             std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
             std::cerr << "Exception thrown in tpa::accumulate(): " << ex.code()
                 << " " << ex.what() << "\n";
-            return static_cast<T>(0);
+            return static_cast<RETURN_TYPE>(0);
         }//End catch
         catch (const std::bad_alloc& ex)
         {
             std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
             std::cerr << "Exception thrown in tpa::accumulate(): " << ex.what() << "\n";
-            return static_cast<T>(0);
+            return static_cast<RETURN_TYPE>(0);
         }//End catch
         catch (const std::exception& ex)
         {
             std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
             std::cerr << "Exception thrown in tpa::accumulate(): " << ex.what() << "\n";
-            return static_cast<T>(0);
+            return static_cast<RETURN_TYPE>(0);
         }//End catch
         catch (...)
         {
             std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
             std::cerr << "Exception thrown in tpa::accumulate(): unknown!\n";
-            return static_cast<T>(0);
+            return static_cast<RETURN_TYPE>(0);
         }//End catch
-    }//End of accumulate
-
-    /// <summary>
-    /// <para>Default simplified version</para>
-    /// <para>Default predicate tpa::eqt::SUM</para>
-    /// <para>Default value is '0' and the default return type is the value_type of the container</para>
-    /// </summary>
-    /// <typeparam name="CONTAINER_T"></typeparam>
-    /// <typeparam name="T"></typeparam>
-    /// <returns></returns>
-    template<typename CONT_T, typename T = CONT_T::value_type>
-    [[nodiscard]] inline constexpr T accumulate(const CONT_T& arr, const T val = 0)
-    {
-        return tpa::accumulate<tpa::eqt::SUM>(arr, val);
     }//End of accumulate
 #pragma endregion
 }//End of namespace
