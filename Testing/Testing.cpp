@@ -34,7 +34,7 @@
 
 #include "../TPA/tpa_main.hpp"
 
-using numtype = int32_t;//boost::multiprecision::cpp_bin_float_oct;
+using numtype = int8_t;//boost::multiprecision::cpp_bin_float_oct;
 using returnType = uint64_t;//boost::multiprecision::cpp_bin_float_oct; 
 
 std::vector<numtype> vec;
@@ -60,19 +60,19 @@ int main()
 		std::ios::sync_with_stdio(false);
 
 		vec.resize(1'000'000'000);
-	    //vec2.resize(500'000'133);
-	    vec3.resize(1'000'000'000);
+	    //vec2.resize(1'000'000'000);
+	    //vec3.resize(1'000'000'000);
 
 		tpa::runtime_instruction_set.output_CPU_info();	
 
 		//Generate		
-		/*
-		std::cout << "STD Generate Single-Threaded: ";
+		
+		std::cout << "STD iota Single-Threaded: ";
 		{
 			tpa::util::Timer t;
-			std::generate(vec.begin(), vec.end(), true_random<numtype>);
+			std::iota(vec.begin(), vec.end(), numtype(0));
 		}
-		
+		/*
 		std::cout << "STD Generate Multi-Threaded: ";
 		{
 			tpa::util::Timer t;
@@ -80,11 +80,11 @@ int main()
 		}		
 		*/
 
-		std::cout << "TPA Generate Multi-Threaded SIMD: ";
+		std::cout << "TPA iota Multi-Threaded SIMD: ";
 		{
 			tpa::util::Timer t;
-			tpa::generate<tpa::gen::UNIFORM>(vec, 0, 1'000);
-			//tpa::generate<tpa::gen::UNIFORM>(vec2, 1, 6);
+			tpa::iota(vec, numtype(0));
+			//tpa::generate<tpa::gen::UNIFORM>(vec2, 0, 1'000);
 		}
 
 		std::cout << "vec1 \t+\t vec2 \t=\t vec3\n";
@@ -99,42 +99,52 @@ int main()
 				std::setw(5) << i <<
 				std::setw(35) << static_cast<double>(vec[i]) <<
 				//std::setw(35) << static_cast<double>(2) <<
-				std::setw(35) << static_cast<double>(vec3[i]) << "\n";
+				//std::setw(35) << static_cast<double>(vec3[i]) <<
+				"\n";
 		}//End for
 
-		returnType counted = 0;	
-		std::cout << "STD For Loop count: ";
+		/*
+		returnType sum = 0;	
+		std::cout << "STD For Loop sum: ";
 		{
 			tpa::util::Timer t;
-
+			
 			for (size_t i = 0uz; i < vec.size(); ++i)
-			{				
-				if (tpa::util::isSylvester(vec[i]))
-				{
-					++counted;
-				}//End if
+			{
+				sum += static_cast<returnType>(vec[i]);
 			}//End for
 		}
-		std::cout << "Counted: " << counted << " Sylvesters.\n";
-		
-		counted = 0;
-		std::cout << "STD count multi-threaded: ";
+		std::cout << "sum: " << sum << "\n";
+
+		sum = 0;
+		std::cout << "STD accumulate: ";
 		{
 			tpa::util::Timer t;
-			counted = std::count_if(std::execution::par_unseq, vec.cbegin(), vec.cend(), [](numtype i) { return tpa::util::isSylvester(i); });
+
+			sum = static_cast<returnType>(std::accumulate(vec.cbegin(), vec.cend(), returnType(0)));
 		}
-		std::cout << "Counted: " << counted << " Sylvesters.\n";
-		
-		counted = 0;
-		std::cout << "TPA count Multi-Threaded SIMD: ";
+		std::cout << "sum: " << sum << "\n";
+
+		sum = 0;
+		std::cout << "STD reduce: ";
+		{
+			tpa::util::Timer t;
+
+			sum = static_cast<returnType>(std::reduce(std::execution::par_unseq,vec.cbegin(), vec.cend(), returnType(0)));
+		}
+		std::cout << "sum: " << sum << "\n";
+				
+		sum = 0;
+		std::cout << "TPA accumulate: ";
 		{
 			tpa::util::Timer t;			
-			counted = tpa::count_if<tpa::cond::SYLVESTER, returnType>(vec);
+			
+			sum = tpa::accumulate<returnType>(vec);
 		}
-		std::cout << "Counted: " << counted << " Sylvesters.\n";
-		
+		std::cout << "sum: " << sum << "\n";
+		*/
 		std::cout << "End of Benchmark.\n";
-
+		
 		return EXIT_SUCCESS;
 	}//End try
 	catch (const std::bad_alloc& ex)
