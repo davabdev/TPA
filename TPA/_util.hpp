@@ -31,16 +31,6 @@
 #include "excepts.hpp"
 #include "size_t_lit.hpp"
 
-#ifdef _M_AMD64
-	#include <immintrin.h>
-#elif defined (_M_ARM64)
-#ifdef _MSC_VER 
-#include "arm64_neon.h"
-#else
-#include "arm_neon.h"
-#endif
-#endif
-
 #undef max
 #undef min
 #undef abs
@@ -139,7 +129,11 @@ namespace tpa::util
 	template<typename A, typename B>
 	[[nodiscard]] inline constexpr auto min(const A a, const B b) noexcept -> decltype(a+b)
 	{
+#ifdef ARCHITECTURE_PROBABLY_HAS_CMOV
+		return (a < b) ? a : b;
+#else
 		return (a * (a < b) + b * (b <= a));
+#endif
 	}//End of min
 
 	/// <summary>
@@ -154,7 +148,11 @@ namespace tpa::util
 	template<typename A, typename B>
 	[[nodiscard]] inline constexpr auto max(const A a, const B b) noexcept -> decltype(a + b)
 	{
+#ifdef ARCHITECTURE_PROBABLY_HAS_CMOV
+		return (a > b) ? a : b;
+#else
 		return ((a > b) * a + (a <= b) * b);
+#endif
 	}//End of max
 
 	/// <summary>
@@ -331,13 +329,13 @@ namespace tpa::util
 	}//End of isFibonacci 
 
 	/// <summary>
-	/// <para>An std::array<uint64_t> containing the first 7 numbers of the sylvester sequence.</para>
+	/// <para>An std::array<uint64_t> containing the first 7 numbers of the Sylvester Sequence.</para>
 	/// </summary>
 	static constexpr std::array<std::uint64_t, 7uz> sylvester_seq = {2ull,3ull,7ull,43ull,1807ull,3263443ull,10650056950807ull};
 
 	/// <summary>
-	/// <para>Returns true if 'x' is a member of the sylvester sequence</para>
-	/// <para>Only works on the first 7 numbers  of the sequence otherwise a type larger than uint64_t would be needed to represent them.</para>
+	/// <para>Returns true if 'x' is a member of the Sylvester 
+	/// <para>Only works on the first 7 numbers of the sequence as the 8th number and higher in the Sylvester would require a type larger than uint64_t to represtent them..</para>
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
 	/// <param name="x"></param>
@@ -347,22 +345,21 @@ namespace tpa::util
 	{
 		const uint64_t xx = static_cast<uint64_t>(x);
 
-		if (xx < 2ull)
+		if (xx == sylvester_seq[0] ||  
+			xx == sylvester_seq[1] ||
+			xx == sylvester_seq[2] ||
+			xx == sylvester_seq[3] ||
+			xx == sylvester_seq[4] ||
+			xx == sylvester_seq[5] ||
+			xx == sylvester_seq[6] ||
+			xx == sylvester_seq[7])
 		{
-			return false;
+			return true;
 		}//End if
 		else
 		{
-			for (size_t i = 0uz; i < sylvester_seq.size(); ++i)
-			{
-				if (xx == sylvester_seq[i])
-				{
-					return true;
-				}//End if
-			}//End for
-
 			return false;
-		}//End else
+		}//End else		
 	}//End of isSylvester
 
 	/// <summary>
@@ -522,14 +519,14 @@ namespace tpa::util
 	{
 		if constexpr (std::is_same<T, float>())
 		{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 			if (inaccurateOptimization && tpa::has_SSE)
 			{
 				__m128 _num = _mm_set1_ps(num);
 
 				_num = _mm_sqrt_ps(_num);
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 				return static_cast<T>(_num.m128_f32[0]);
 #else	
 				return static_cast<T>(_num[0]);
@@ -539,20 +536,20 @@ namespace tpa::util
 			{
 #endif
 				return static_cast<T>(std::sqrt(num));
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 			}//End if
 #endif
 		}//End if
 		else if constexpr (std::is_same<T, double>())
 		{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 			if (inaccurateOptimization && tpa::has_SSE2)
 			{
 				__m128d _num = _mm_set1_pd(num);
 
 				_num = _mm_sqrt_pd(_num);
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 				return static_cast<T>(_num.m128d_f64[0]);
 #else	
 				return static_cast<T>(_num[0]);
@@ -562,7 +559,7 @@ namespace tpa::util
 			{
 #endif
 				return static_cast<T>(std::sqrt(num));
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 			}//End if
 #endif
 		}//End if		
@@ -585,14 +582,14 @@ namespace tpa::util
 	{
 		if constexpr (std::is_same<T, float>())
 		{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 			if (inaccurateOptimization && tpa::has_SSE)
 			{				
 				__m128 _num = _mm_set1_ps(num);
 
 				_num = _mm_invsqrt_ps(_num);
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 				return static_cast<T>(_num.m128_f32[0]);
 #else	
 				return static_cast<T>(_num[0]);
@@ -602,20 +599,20 @@ namespace tpa::util
 			{
 #endif
 				return static_cast<T>(1.0f / std::sqrt(num));
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 			}//End if
 #endif
 		}//End if
 		else if constexpr (std::is_same<T, double>())
 		{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 			if (inaccurateOptimization && tpa::has_SSE2)
 			{
 				__m128d _num = _mm_set1_pd(num);
 
 				_num = _mm_invsqrt_pd(_num);
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 				return static_cast<T>(_num.m128d_f64[0]);
 #else	
 				return static_cast<T>(_num[0]);
@@ -625,7 +622,7 @@ namespace tpa::util
 			{
 #endif
 				return static_cast<T>(1.0 / std::sqrt(num));
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 			}//End if
 #endif
 		}//End if		
@@ -648,14 +645,14 @@ namespace tpa::util
 	{
 		if constexpr (std::is_same<T, float>())
 		{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 			if (inaccurateOptimization && tpa::has_SSE)
 			{
 				__m128 _num = _mm_set1_ps(num);
 
 				_num = _mm_cbrt_ps(_num);
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 				return static_cast<T>(_num.m128_f32[0]);
 #else	
 				return static_cast<T>(_num[0]);
@@ -665,20 +662,20 @@ namespace tpa::util
 			{
 #endif
 				return static_cast<T>(std::cbrt(num));
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 			}//End if
 #endif
 		}//End if
 		else if constexpr (std::is_same<T, double>())
 		{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 			if (inaccurateOptimization && tpa::has_SSE2)
 			{
 				__m128d _num = _mm_set1_pd(num);
 
 				_num = _mm_cbrt_pd(_num);
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 				return static_cast<T>(_num.m128d_f64[0]);
 #else	
 				return static_cast<T>(_num[0]);
@@ -688,7 +685,7 @@ namespace tpa::util
 			{
 #endif
 				return static_cast<T>(std::cbrt(num));
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 			}//End if
 #endif
 		}//End if		
@@ -711,14 +708,14 @@ namespace tpa::util
 	{
 		if constexpr (std::is_same<T, float>())
 		{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 			if (inaccurateOptimization && tpa::has_SSE)
 			{
 				__m128 _num = _mm_set1_ps(num);
 
 				_num = _mm_invcbrt_ps(_num);
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 				return static_cast<T>(_num.m128_f32[0]);
 #else	
 				return static_cast<T>(_num[0]);
@@ -728,20 +725,20 @@ namespace tpa::util
 			{
 #endif
 				return static_cast<T>(1.0f / std::cbrt(num));
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 			}//End if
 #endif
 		}//End if
 		else if constexpr (std::is_same<T, double>())
 		{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 			if (inaccurateOptimization && tpa::has_SSE2)
 			{
 				__m128d _num = _mm_set1_pd(num);
 
 				_num = _mm_invcbrt_pd(_num);
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 				return static_cast<T>(_num.m128d_f64[0]);
 #else	
 				return static_cast<T>(_num[0]);
@@ -751,7 +748,7 @@ namespace tpa::util
 			{
 #endif
 				return static_cast<T>(1.0 / std::cbrt(num));
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 			}//End if
 #endif
 		}//End if		
@@ -776,7 +773,7 @@ namespace tpa::util
 		inline constexpr double r2d_offset = static_cast<double>(180.0 / std::numbers::pi);
 		inline constexpr float f_r2d_offset = static_cast<float>(180.0f / std::numbers::pi);
 
-#ifdef _M_AMD64	
+#ifdef TPA_X86_64	
 
 		inline constexpr __m512 avx512_f_r2d_offset = { f_r2d_offset, f_r2d_offset, f_r2d_offset, f_r2d_offset, f_r2d_offset, f_r2d_offset, f_r2d_offset, f_r2d_offset, f_r2d_offset, f_r2d_offset, f_r2d_offset, f_r2d_offset, f_r2d_offset, f_r2d_offset, f_r2d_offset, f_r2d_offset };
 
@@ -816,7 +813,7 @@ namespace tpa::util
 	template<typename T>
 	[[nodiscard]] inline constexpr T degrees_to_radians(const T& degree) noexcept
 	{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 		static_assert(!std::is_same<T, __m512i>() && !std::is_same<T, __m256i>() && !std::is_same<T, __m128i>(), "Integer-type SIMD registers are not supported as there is no way to automatically determin thier data type. Use tpa::simd::calculate to compute: (n * (pi / 180)) instead.");
 
 		if constexpr (std::is_same<T, __m512>())
@@ -883,7 +880,7 @@ namespace tpa::util
 	template<typename T>
 	[[nodiscard]] inline constexpr T radians_to_degrees(const T& radian) noexcept
 	{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 		static_assert(!std::is_same<T, __m512i>() && !std::is_same<T, __m256i>() && !std::is_same<T, __m128i>(), "Integer-type SIMD registers are not supported as there is no way to automatically determin thier data type. Use tpa::simd::calculate to compute: (n * (180 / pi)) instead.");
 
 		if constexpr (std::is_same<T, __m512>())
@@ -1084,27 +1081,16 @@ namespace tpa
 	};//End of angle
 
 	/// <summary>
-	/// Provides a list of valid SIMD-enabled equations
-	/// </summary>
-	const enum class eqt {
-		SUM,
-		DIFFERENCE_, //has an underscore in the name because 'DIFFERENCE' is a pre-defined macro in msvc
-		PRODUCT,
-		QUOTIENT,
-		REMAINDER
-	};
-
-	/// <summary>
 	/// <para>Provides a list of valid floating-point SIMD rounding modes</para>
 	/// <para>Please note that some ARM CPUs do not support IEEE-754 rounding modes</para>
 	/// </summary>
 	const enum class rnd {
-#if defined(_M_AMD64)
+#if defined(TPA_X86_64)
 		NEAREST_INT = _MM_FROUND_TO_NEAREST_INT,//SIMD eqivilant of FE_TONEAREST
 		DOWN = _MM_FROUND_TO_NEG_INF,//SIMD eqivilant of FE_DOWNWARD
 		UP = _MM_FROUND_TO_POS_INF,//SIMD equivilant of FE_UPWARD
 		TRUNCATE_TO_ZERO = _MM_FROUND_TO_ZERO //SIMD eqivilant of FE_TOWARDZERO
-#elif defined(_M_ARM64)
+#elif defined(TPA_ARM)
 		NEAREST_INT = FE_TONEAREST,
 		DOWN = FE_DOWNWARD,
 		UP = FE_UPWARD,
@@ -1321,7 +1307,7 @@ namespace tpa::util {
 	{
 		try
 		{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 			if constexpr (std::is_same<T, float>())
 			{
 				//Use SSE for better defined behavior if possible
@@ -1354,7 +1340,7 @@ namespace tpa::util {
 							static_assert(flag, "INVALID PREDICATED passed in tpa::util::fp_bitwise()");
 						}();
 					}
-#ifdef _WIN32
+#ifdef _MSC_VER
 					return static_cast<T>(result.m128_f32[0]);
 #else	
 					return static_cast<T>(result[0]);
@@ -1426,7 +1412,7 @@ namespace tpa::util {
 							static_assert(flag, "INVALID PREDICATED passed in tpa::util::fp_bitwise()");
 						}();
 					}//End else
-#ifdef _WIN32
+#ifdef _MSC_VER
 					return static_cast<T>(result.m128d_f64[0]);
 #else	
 					return static_cast<T>(result[0]);
@@ -1587,7 +1573,7 @@ namespace tpa::util {
 #pragma endregion
 
 #pragma region misc_avx
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 
 	///<summary>
 	///<para> Multiply Packed 64-Bit Integers (Signed and Unsigned) in 'a' by 'b' and returns 'product' using AVX2</para>
