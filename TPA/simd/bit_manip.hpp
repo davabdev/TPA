@@ -23,20 +23,11 @@
 #include <bitset>
 #include <bit>
 
-#ifdef _M_AMD64
-#include <immintrin.h>
-#elif defined (_M_ARM64)
-#ifdef _WIN32
-#include "arm64_neon.h"
-#else
-#include "arm_neon.h"
-#endif
-#endif
-
 #include "../_util.hpp"
 #include "../ThreadPool.hpp"
 #include "../excepts.hpp"
 #include "../size_t_lit.hpp"
+#include "../_util.hpp"
 
 /// <summary>
 /// <para>Truly Parallel Algorithms</para>
@@ -165,6 +156,78 @@ namespace tpa::bit_manip
 	}//End of bit_clear
 
 	/// <summary>
+	/// <para>Reverses the order of all the bits in a primitive numeric type</para>
+	/// <para>Can be undone by calling the 'reverse' again.</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <returns></returns>
+	template<typename T>
+	inline constexpr void reverse(T& x)
+	{
+		try
+		{
+			if constexpr (std::is_integral<T>())
+			{
+				T rev = 0;
+				size_t s = sizeof(T) * CHAR_BIT;
+
+				for (size_t i = 0uz; i < s; ++i, x >>= 1) 
+				{
+					rev = (rev << 1) | (x & 0x01);
+				}//End for
+
+				x = rev;
+			}//End if
+			else if constexpr (std::is_same<T, float>())
+			{
+				int32_t x_as_int = *reinterpret_cast<int32_t*>(&x);
+
+				T rev = 0;
+				size_t s = sizeof(T) * CHAR_BIT;
+
+				for (size_t i = 0uz; i < s; ++i, x_as_int >>= 1)
+				{
+					rev = (rev << 1) | (x_as_int & 0x01);
+				}//End for
+
+				x = *reinterpret_cast<float*>(&rev);
+			}//End if
+			else if constexpr (std::is_same<T, double>())
+			{
+				int64_t x_as_int = *reinterpret_cast<int64_t*>(&x);
+
+				T rev = 0;
+				size_t s = sizeof(T) * CHAR_BIT;
+
+				for (size_t i = 0uz; i < s; ++i, x_as_int >>= 1)
+				{
+					rev = (rev << 1) | (x_as_int & 0x01);
+				}//End for
+
+				x = *reinterpret_cast<double*>(&rev);
+			}//End if
+			else
+			{
+				[] <bool flag = false>()
+				{
+					static_assert(flag, "Non-standard types are not supported.");
+				}();
+			}//End else
+		}//End of try
+		catch (const std::exception& ex)
+		{
+			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
+			std::cerr << "Exception thrown in tpa::bit_manip::reverse: " << ex.what() << "\n";
+		}//End catch
+		catch (...)
+		{
+			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
+			std::cerr << "Exception thrown in tpa::bit_manip::reverse: unknown!\n";
+		}//End catch
+	}//End of reverse
+
+	/// <summary>
 	/// <para>Toggles (flips) a bit at the specified position</para>
 	/// <para>The bit to be toggled must be within the bounds of 'x'</para>
 	/// </summary>
@@ -222,6 +285,57 @@ namespace tpa::bit_manip
 			std::cerr << "Exception thrown in tpa::bit_manip::toggle: unknown!\n";
 		}//End catch
 	}//End of toggle
+
+	/// <summary>
+	/// <para>Toggles (flips) all the bits in x</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <returns></returns>
+	template<typename T>
+	inline constexpr void toggle_all(T& x)
+	{
+		try
+		{
+			if constexpr (std::is_integral<T>())
+			{
+				x = ~x;
+			}//End if
+			else if constexpr (std::is_same<T, float>())
+			{
+				int32_t x_as_int = *reinterpret_cast<int32_t*>(&x);
+
+				x_as_int = ~x_as_int;
+
+				x = *reinterpret_cast<float*>(&x_as_int);
+			}//End if
+			else if constexpr (std::is_same<T, double>())
+			{
+				int64_t x_as_int = *reinterpret_cast<int64_t*>(&x);
+
+				x_as_int = ~x_as_int;
+
+				x = *reinterpret_cast<double*>(&x_as_int);
+			}//End if
+			else
+			{
+				[] <bool flag = false>()
+				{
+					static_assert(flag, "Non-standard types are not supported.");
+				}();
+			}//End else
+		}//End of try
+		catch (const std::exception& ex)
+		{
+			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
+			std::cerr << "Exception thrown in tpa::bit_manip::toggle_all: " << ex.what() << "\n";
+		}//End catch
+		catch (...)
+		{
+			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
+			std::cerr << "Exception thrown in tpa::bit_manip::toggle_all: unknown!\n";
+		}//End catch
+	}//End of toggle_all
 
 	/// <summary>
 	/// <para>Sets all trailing zeros (0) to one (1)</para>
@@ -602,7 +716,7 @@ namespace tpa::bit_manip
 	{
 		if constexpr (std::is_integral<T>())
 		{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 			if (tpa::hasPOPCNT)
 			{
 				if constexpr (std::is_same<T, uint64_t>() || std::is_same<T, int64_t>())
@@ -632,14 +746,14 @@ namespace tpa::bit_manip
 
 			return c;
 #endif
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 			}//End else
 #endif
 		}//End if
 		else if constexpr (std::is_same<T, float>())
 		{
 		uint32_t temp = *reinterpret_cast<uint32_t*>(&x);
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 		if (tpa::hasPOPCNT)
 		{
 			return static_cast<uint64_t>(_mm_popcnt_u32(temp));
@@ -664,13 +778,13 @@ namespace tpa::bit_manip
 		return c;
 		}
 #endif
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 		}//End if
 #endif
 		else if constexpr (std::is_same<T, double>())
 		{
 			uint64_t temp = *reinterpret_cast<uint64_t*>(&x);
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 			if (tpa::hasPOPCNT)
 			{
 				return _mm_popcnt_u64(temp);
@@ -693,7 +807,7 @@ namespace tpa::bit_manip
 
 			return c;
 #endif
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 			}//End else
 #endif
 		}//End if
@@ -720,7 +834,7 @@ namespace tpa::bit_manip
 	template<typename T>
 	[[nodiscard]] inline constexpr uint64_t leading_zero_count(T x) noexcept
 	{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 		if constexpr (std::is_same<T, int64_t>() || std::is_same<T, uint64_t>())
 		{
 			if (tpa::hasLZCNT)
@@ -936,7 +1050,7 @@ namespace tpa::bit_manip
 	template<typename T>
 	[[nodiscard]] inline constexpr uint64_t trailing_zero_count(T x) noexcept
 	{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 		if constexpr (std::is_same<T, int64_t>() || std::is_same<T, uint64_t>())
 		{
 			if (tpa::hasBMI1)
@@ -1320,7 +1434,7 @@ namespace tpa::bit_manip
 	{
 		unsigned long index = {};
 
-#if defined(_M_AMD64)
+#if defined(TPA_X86_64)
 		if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
 		{
 			if (x == 0)
@@ -1555,7 +1669,7 @@ namespace tpa::bit_manip
 	{
 		unsigned long index = {};
 
-#if defined(_M_AMD64)	
+#if defined(TPA_X86_64)	
 		if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>() ||
 			std::is_same<T, int16_t>() || std::is_same<T, uint16_t>())
 		{
@@ -1668,7 +1782,7 @@ namespace tpa::bit_manip
 	template<typename T>
 	[[nodiscard]] inline constexpr T next_lexicographic_permutation(T x) noexcept
 	{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 		if constexpr (std::is_integral<T>())
 		{
 			T temp = x | (x - 1);
@@ -1923,7 +2037,7 @@ namespace tpa::bit_manip
 	/// <param name="len"></param>
 	/// <returns></returns>
 	template<typename T>
-	inline constexpr T extract(T x, uint64_t start, uint64_t len)
+	[[nodiscard]] inline constexpr T extract(T x, uint64_t start, uint64_t len)
 	{
 		try
 		{
@@ -1938,7 +2052,7 @@ namespace tpa::bit_manip
 				throw std::out_of_range("'start + len' must be within the bounds of T");
 			}//End if
 
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 			if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>() || std::is_same<T, int16_t>() ||
 				std::is_same<T, uint16_t>())
 			{
@@ -2024,7 +2138,7 @@ namespace tpa::bit_manip
 				return x & mask;
 			}//End else
 
-#elif defined(_M_ARM)
+#elif defined(TPA_ARM)
 			if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>() || std::is_same<T, int16_t>() ||
 				std::is_same<T, uint16_t>())
 			{
@@ -2239,6 +2353,216 @@ namespace tpa::bit_manip
 /// </summary>
 namespace tpa::simd
 {
+
+namespace bit_manip {
+	/// <summary>
+	/// <para>Modifies the bits in a numeric type according to the specified instruction.</para>
+	/// <para></para>
+	/// </summary>
+	/// <typeparam name="CONTAINER_A"></typeparam>
+	/// <param name="x"></param>
+	/// <param name="pos"></param>
+	/// <returns></returns>
+	template<tpa::bit_mod INSTR, typename CONTAINER_A>
+	inline constexpr void bit_modify(CONTAINER_A& source, const uint64_t pos = 0) requires tpa::util::contiguous_seqeunce<CONTAINER_A>
+	{
+		uint32_t complete = 0u;
+		using T = CONTAINER_A::value_type;
+
+		try
+		{
+			//Check Bounds
+			if (pos < 0ull || pos > static_cast<uint64_t>((sizeof(T) * CHAR_BIT) - 1))
+			{
+				throw std::out_of_range("Position must be within the bounds of T");
+			}//End if
+
+			std::vector<std::pair<size_t, size_t>> sections;
+			tpa::util::prepareThreading(sections, source.size());
+
+			std::vector<std::shared_future<uint32_t>> results;
+			results.reserve(tpa::nThreads);
+
+			std::shared_future<uint32_t> temp;
+
+			for (const auto& sec : sections)
+			{
+				//Launch lambda from multiple threads
+				temp = tpa::tp->addTask([&source, &pos, &sec]()
+				{
+					const size_t beg = sec.first;
+					const size_t end = sec.second;
+					size_t i = beg;
+
+#pragma region short
+					if constexpr (std::is_same<T, int16_t>() == true)
+					{						
+#ifdef TPA_X86_64
+						if (tpa::hasAVX512_ByteWord)
+						{
+							const uint32_t p = static_cast<uint32_t>(pos);
+
+							__m512i _source, _DESTi;
+							const __m512i _one = _mm512_set1_epi16(static_cast<int16_t>(1));
+							const __m512i _shifted_left = _mm512_slli_epi16(_one, p);
+
+							for (; (i + 32) < end; i += 32)
+							{
+								//Set Values
+								_source = _mm512_loadu_epi16(&source[i]);
+																
+								if constexpr (INSTR == tpa::bit_mod::SET)
+								{
+									_DESTi = _mm512_or_si512(_shifted_left, _source);
+								}//End if
+								else
+								{
+									[] <bool flag = false>()
+									{
+										static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int16_t>).");
+									}();
+								}//End else
+
+								//Store Result
+								_mm512_storeu_epi16(&source[i], _DESTi);
+							}//End for
+						}//End if hasAVX512
+						else if (tpa::hasAVX2)
+						{
+							const int32_t p = static_cast<int32_t>(pos);
+
+							__m256i _source, _DESTi;
+							const __m256i _one = _mm256_set1_epi16(static_cast<int16_t>(1));
+							const __m256i _shifted_left = _mm256_slli_epi16(_one, p);							
+
+							for (; (i + 16) < end; i += 16)
+							{
+								//Set Values
+								_source = _mm256_load_si256((__m256i*) &source[i]);
+
+								if constexpr (INSTR == tpa::bit_mod::SET)
+								{
+									_DESTi = _mm256_or_si256(_shifted_left, _source);
+								}//End if
+								else
+								{
+									[] <bool flag = false>()
+									{
+										static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int16_t>).");
+									}();
+								}//End else
+
+								//Store Result
+								_mm256_store_si256((__m256i*)&source[i], _DESTi);
+							}//End for
+						}//End if hasAVX2
+						else if (tpa::has_SSE2)
+						{
+							const int32_t p = static_cast<int32_t>(pos);
+
+							__m128i _source, _DESTi;
+							const __m128i _one = _mm_set1_epi16(static_cast<int16_t>(1));
+							const __m128i _shifted_left = _mm_slli_epi16(_one, p);										
+
+							for (; (i + 8) < end; i += 8)
+							{
+								//Set Values
+								_source = _mm_load_si128((__m128i*) & source[i]);
+
+								if constexpr (INSTR == tpa::bit_mod::SET)
+								{
+									_DESTi = _mm_or_si128(_shifted_left, _source);
+								}//End if
+								else
+								{
+									[] <bool flag = false>()
+									{
+										static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int16_t>).");
+									}();
+								}//End else
+
+								//Store Result
+								_mm_store_si128((__m128i*) & source[i], _DESTi);
+							}//End for
+						}//End if
+#endif
+					}//End if
+#pragma endregion
+#pragma region generic
+					for (; i < end; ++i)
+					{
+						if constexpr (INSTR == tpa::bit_mod::SET)
+						{
+							if constexpr (std::is_integral<T>())
+							{
+								source[i] = (1ull << pos) | source[i];
+							}//End if
+							else if constexpr (std::is_same<T, float>())
+							{
+								int32_t x_as_int = *reinterpret_cast<int32_t*>(&source[i]);
+
+								x_as_int = (1ull << pos) | x_as_int;
+
+								source[i] = *reinterpret_cast<float*>(&x_as_int);
+							}//End if
+							else if constexpr (std::is_same<T, double>())
+							{
+								int64_t x_as_int = *reinterpret_cast<int64_t*>(&source[i]);
+
+								x_as_int = (1ull << pos) | x_as_int;
+
+								source[i] = *reinterpret_cast<double*>(&x_as_int);
+							}//End if
+							else
+							{
+								[] <bool flag = false>()
+								{
+									static_assert(flag, "Non-standard types are not supported.");
+								}();
+							}//End else
+						}//End if
+						else
+						{
+							[] <bool flag = false>()
+							{
+								static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<T>).");
+							}();
+						}//End else
+					}//End for
+#pragma endregion
+
+					return static_cast<uint32_t>(1);
+				});//End of lambda
+
+				results.emplace_back(std::move(temp));
+			}//End for
+
+			for (const auto& fut : results)
+			{
+				complete += fut.get();
+			}//End for			
+
+			//Check all threads completed
+			if (complete != nThreads)
+			{
+				throw tpa::exceptions::NotAllThreadsCompleted(complete);
+			}//End if
+
+			
+		}//End of try
+		catch (const std::exception& ex)
+		{
+			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
+			std::cerr << "Exception thrown in tpa::simd::bit_manip::bit_modify: " << ex.what() << "\n";
+		}//End catch
+		catch (...)
+		{
+			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
+			std::cerr << "Exception thrown in tpa::simd::bit_manip::bit_modify: unknown!\n";
+		}//End catch
+	}//End of set
+};
+
 #pragma region generic
 	/// <summary>
 	/// <para>Performs bitwise operations on 2 aligned containers storing the result in a 3rd aligned container.</para> 
@@ -2307,7 +2631,7 @@ namespace tpa::simd
 #pragma region byte
 						if constexpr (std::is_same<T, int8_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512_ByteWord)
 							{
 								__m512i _Ai, _Bi, _DESTi;
@@ -2432,7 +2756,7 @@ namespace tpa::simd
 #pragma region unsigned byte
 						else if constexpr (std::is_same<T, uint8_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512_ByteWord)
 							{
 								__m512i _Ai, _Bi, _DESTi;
@@ -2556,7 +2880,7 @@ namespace tpa::simd
 #pragma region short
 						else if constexpr (std::is_same<T, int16_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512_ByteWord)
 							{
 								__m512i _Ai, _Bi, _DESTi;
@@ -2680,7 +3004,7 @@ namespace tpa::simd
 #pragma region unsigned short
 						else if constexpr (std::is_same<T, uint16_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512_ByteWord)
 							{
 								__m512i _Ai, _Bi, _DESTi;
@@ -2804,7 +3128,7 @@ namespace tpa::simd
 #pragma region int
 						else if constexpr (std::is_same<T, int32_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512)
 							{
 								__m512i _Ai, _Bi, _DESTi;
@@ -2928,7 +3252,7 @@ namespace tpa::simd
 #pragma region unsigned int
 						else if constexpr (std::is_same<T, uint32_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512)
 							{
 								__m512i _Ai, _Bi, _DESTi;
@@ -3052,7 +3376,7 @@ namespace tpa::simd
 #pragma region long
 						else if constexpr (std::is_same<T, int64_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512)
 							{
 								__m512i _Ai, _Bi, _DESTi;
@@ -3176,7 +3500,7 @@ namespace tpa::simd
 #pragma region unsigned long
 						else if constexpr (std::is_same<T, uint64_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512)
 							{
 								__m512i _Ai, _Bi, _DESTi;
@@ -3300,7 +3624,7 @@ namespace tpa::simd
 #pragma region float
 						else if constexpr (std::is_same<T, float>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512_DWQW)
 							{
 								__m512 _Ai, _Bi, _DESTi;
@@ -3424,7 +3748,7 @@ namespace tpa::simd
 #pragma region double
 						else if constexpr (std::is_same<T, double>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512_DWQW)
 							{
 								__m512d _Ai, _Bi, _DESTi;
@@ -3715,7 +4039,7 @@ namespace tpa::simd
 #pragma region byte
 						if constexpr (std::is_same<T, int8_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512_ByteWord)
 							{
 								__m512i _Ai, _DESTi;
@@ -3840,7 +4164,7 @@ namespace tpa::simd
 #pragma region unsigned byte
 						else if constexpr (std::is_same<T, uint8_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512_ByteWord)
 							{
 								__m512i _Ai, _DESTi;
@@ -3964,7 +4288,7 @@ namespace tpa::simd
 #pragma region short
 						else if constexpr (std::is_same<T, int16_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512_ByteWord)
 							{
 								__m512i _Ai, _DESTi;
@@ -4088,7 +4412,7 @@ namespace tpa::simd
 #pragma region unsigned short
 						else if constexpr (std::is_same<T, uint16_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512_ByteWord)
 							{
 								__m512i _Ai, _DESTi;
@@ -4212,7 +4536,7 @@ namespace tpa::simd
 #pragma region int
 						else if constexpr (std::is_same<T, int32_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512)
 							{
 								__m512i _Ai, _DESTi;
@@ -4336,7 +4660,7 @@ namespace tpa::simd
 #pragma region unsigned int
 						else if constexpr (std::is_same<T, uint32_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512)
 							{
 								__m512i _Ai, _DESTi;
@@ -4460,7 +4784,7 @@ namespace tpa::simd
 #pragma region long
 						else if constexpr (std::is_same<T, int64_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512)
 							{
 								__m512i _Ai, _DESTi;
@@ -4584,7 +4908,7 @@ namespace tpa::simd
 #pragma region unsigned long
 						else if constexpr (std::is_same<T, uint64_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512)
 							{
 								__m512i _Ai, _DESTi;
@@ -4708,7 +5032,7 @@ namespace tpa::simd
 #pragma region float
 						else if constexpr (std::is_same<T, float>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512_DWQW)
 							{
 								__m512 _Ai, _DESTi;
@@ -4832,7 +5156,7 @@ namespace tpa::simd
 #pragma region double
 						else if constexpr (std::is_same<T, double>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512_DWQW)
 							{
 								__m512d _Ai, _DESTi;
@@ -5124,7 +5448,7 @@ namespace tpa::simd
 #pragma region short
 					if constexpr (std::is_same<T, int16_t>() == true)
 					{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 						if (tpa::hasAVX512_ByteWord)
 						{
 							__m512i _Ai, _Bi, _DESTi;
@@ -5153,7 +5477,7 @@ namespace tpa::simd
 #pragma region unsigned short
 					else if constexpr (std::is_same<T, uint16_t>() == true)
 					{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 						if (tpa::hasAVX512_ByteWord)
 						{
 							__m512i _Ai, _Bi, _DESTi;
@@ -5182,7 +5506,7 @@ namespace tpa::simd
 #pragma region int
 						else if constexpr (std::is_same<T, int32_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512)
 							{
 								__m512i _Ai, _Bi, _DESTi;
@@ -5233,7 +5557,7 @@ namespace tpa::simd
 #pragma region unsigned int
 						else if constexpr (std::is_same<T, uint32_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512)
 							{
 								__m512i _Ai, _Bi, _DESTi;
@@ -5284,7 +5608,7 @@ namespace tpa::simd
 #pragma region long
 						else if constexpr (std::is_same<T, int64_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512)
 							{
 								__m512i _Ai, _Bi, _DESTi;
@@ -5335,7 +5659,7 @@ namespace tpa::simd
 #pragma region unsigned long
 						else if constexpr (std::is_same<T, uint64_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512)
 							{
 								__m512i _Ai, _Bi, _DESTi;
@@ -5504,7 +5828,7 @@ namespace tpa::simd
 #pragma region short
 						if constexpr (std::is_same<T, int16_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512_ByteWord)
 							{
 								__m512i _Ai, _DESTi;
@@ -5553,7 +5877,7 @@ namespace tpa::simd
 #pragma region unsigned short
 						else if constexpr (std::is_same<T, uint16_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512_ByteWord)
 							{
 								__m512i _Ai, _DESTi;
@@ -5602,7 +5926,7 @@ namespace tpa::simd
 #pragma region int
 						else if constexpr (std::is_same<T, int32_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512)
 							{
 								__m512i _Ai, _DESTi;
@@ -5651,7 +5975,7 @@ namespace tpa::simd
 #pragma region unsigned int
 						else if constexpr (std::is_same<T, uint32_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512)
 							{
 								__m512i _Ai, _DESTi;
@@ -5700,7 +6024,7 @@ namespace tpa::simd
 #pragma region long
 						else if constexpr (std::is_same<T, int64_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512)
 							{
 								__m512i _Ai, _DESTi;
@@ -5749,7 +6073,7 @@ namespace tpa::simd
 #pragma region unsigned long
 						else if constexpr (std::is_same<T, uint64_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512)
 							{
 								__m512i _Ai, _DESTi;
@@ -5918,7 +6242,7 @@ namespace tpa::simd
 #pragma region short
 						if constexpr (std::is_same<T, int16_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512_ByteWord)
 							{
 								__m512i _Ai, _Bi, _DESTi;
@@ -5947,7 +6271,7 @@ namespace tpa::simd
 #pragma region unsigned short
 						else if constexpr (std::is_same<T, uint16_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512_ByteWord)
 							{
 								__m512i _Ai, _Bi, _DESTi;
@@ -5976,7 +6300,7 @@ namespace tpa::simd
 #pragma region int
 						else if constexpr (std::is_same<T, int32_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512)
 							{
 								__m512i _Ai, _Bi, _DESTi;
@@ -6027,7 +6351,7 @@ namespace tpa::simd
 #pragma region unsigned int
 						else if constexpr (std::is_same<T, uint32_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512)
 							{
 								__m512i _Ai, _Bi, _DESTi;
@@ -6078,7 +6402,7 @@ namespace tpa::simd
 #pragma region long
 						else if constexpr (std::is_same<T, int64_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512)
 							{
 								__m512i _Ai, _Bi, _DESTi;
@@ -6107,7 +6431,7 @@ namespace tpa::simd
 #pragma region unsigned long
 						else if constexpr (std::is_same<T, uint64_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512)
 							{
 								__m512i _Ai, _Bi, _DESTi;
@@ -6253,7 +6577,7 @@ namespace tpa::simd
 #pragma region short
 						if constexpr (std::is_same<T, int16_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512_ByteWord)
 							{
 								__m512i _Ai, _DESTi;
@@ -6302,7 +6626,7 @@ namespace tpa::simd
 #pragma region unsigned short
 						else if constexpr (std::is_same<T, uint16_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512_ByteWord)
 							{
 								__m512i _Ai, _DESTi;
@@ -6351,7 +6675,7 @@ namespace tpa::simd
 #pragma region int
 						else if constexpr (std::is_same<T, int32_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512)
 							{
 								__m512i _Ai, _DESTi;
@@ -6400,7 +6724,7 @@ namespace tpa::simd
 #pragma region unsigned int
 						else if constexpr (std::is_same<T, uint32_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512)
 							{
 								__m512i _Ai, _DESTi;
@@ -6449,7 +6773,7 @@ namespace tpa::simd
 #pragma region long
 						else if constexpr (std::is_same<T, int64_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512)
 							{
 								__m512i _Ai, _DESTi;
@@ -6498,7 +6822,7 @@ namespace tpa::simd
 #pragma region unsigned long
 						else if constexpr (std::is_same<T, uint64_t>() == true)
 						{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 							if (tpa::hasAVX512)
 							{
 								__m512i _Ai, _DESTi;
@@ -6659,7 +6983,7 @@ namespace tpa::simd
 #pragma region byte
 					if constexpr (std::is_same<T, int8_t>() == true)
 					{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 						if (tpa::hasAVX512_ByteWord)
 						{
 							__m512i _Ai, _DESTi;
@@ -6710,7 +7034,7 @@ namespace tpa::simd
 #pragma region unsigned byte
 					else if constexpr (std::is_same<T, uint8_t>() == true)
 					{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 						if (tpa::hasAVX512_ByteWord)
 						{
 							__m512i _Ai, _DESTi;
@@ -6761,7 +7085,7 @@ namespace tpa::simd
 #pragma region short
 					else if constexpr (std::is_same<T, int16_t>() == true)
 					{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 						if (tpa::hasAVX512_ByteWord)
 						{
 							__m512i _Ai, _DESTi;
@@ -6812,7 +7136,7 @@ namespace tpa::simd
 #pragma region unsigned short
 					else if constexpr (std::is_same<T, uint16_t>() == true)
 					{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 					if (tpa::hasAVX512_ByteWord)
 					{
 						__m512i _Ai, _DESTi;
@@ -6863,7 +7187,7 @@ namespace tpa::simd
 #pragma region int
 					else if constexpr (std::is_same<T, int32_t>() == true)
 					{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 					if (tpa::hasAVX512)
 					{
 						__m512i _Ai, _DESTi;
@@ -6914,7 +7238,7 @@ namespace tpa::simd
 #pragma region unsigned int
 					else if constexpr (std::is_same<T, uint32_t>() == true)
 					{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 					if (tpa::hasAVX512)
 					{
 						__m512i _Ai, _DESTi;
@@ -6965,7 +7289,7 @@ namespace tpa::simd
 #pragma region long
 					else if constexpr (std::is_same<T, int64_t>() == true)
 					{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 					if (tpa::hasAVX512)
 					{
 						__m512i _Ai, _DESTi;
@@ -7016,7 +7340,7 @@ namespace tpa::simd
 #pragma region unsigned long
 					else if constexpr (std::is_same<T, uint64_t>() == true)
 					{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 					if (tpa::hasAVX512)
 					{
 						__m512i _Ai, _DESTi;
@@ -7067,7 +7391,7 @@ namespace tpa::simd
 #pragma region float
 					else if constexpr (std::is_same<T, float>() == true)
 					{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 					if (tpa::hasAVX512_DWQW)
 					{
 						__m512 _Ai, _DESTi;
@@ -7118,7 +7442,7 @@ namespace tpa::simd
 #pragma region double
 					else if constexpr (std::is_same<T, double>() == true)
 					{
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
 					if (tpa::hasAVX512_DWQW)
 					{
 						__m512d _Ai, _DESTi;
