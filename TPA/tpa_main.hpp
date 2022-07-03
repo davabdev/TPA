@@ -19,7 +19,7 @@
 #ifdef _MSC_VER
 	#if defined(_M_IX86 ) || defined(_M_AMD64)
 		#define TPA_X86_64
-		#define ARCHITECTURE_PROBABLY_HAS_CMOV
+		#define TPA_ARCHITECTURE_PROBABLY_HAS_CMOV
 		#include <intrin.h>
 		#include <immintrin.h>
 	#elif defined(_M_ARM)
@@ -34,7 +34,7 @@
 #elif defined(__INTEL_COMPILER)
 	#if defined(_M_IX86 ) || defined(_M_AMD64)
 		#define TPA_X86_64
-		#define ARCHITECTURE_PROBABLY_HAS_CMOV
+		#define TPA_ARCHITECTURE_PROBABLY_HAS_CMOV
 		#include <immintrin.h>
 	#else
 		#warning("TPA Warning : TPA may not support this architecture.")
@@ -42,7 +42,7 @@
 #elif defined(__GNUC__)
 	#ifdef __x86_64__
 		#define TPA_X86_64
-		#define ARCHITECTURE_PROBABLY_HAS_CMOV
+		#define TPA_ARCHITECTURE_PROBABLY_HAS_CMOV
 		#include <immintrin.h>
 	#elif defined(__arm__)
 		#define TPA_ARM
@@ -56,7 +56,7 @@
 #elif defined(__clang__)
 	#ifdef __x86_64__
 		#define TPA_X86_64
-		#define ARCHITECTURE_PROBABLY_HAS_CMOV
+		#define TPA_ARCHITECTURE_PROBABLY_HAS_CMOV
 		#include <immintrin.h>
 	#elif defined(__arm__)
 		#define TPA_ARM
@@ -70,7 +70,7 @@
 #elif defined(__NVCC__) || defined(__CUDACC__)
 	#ifdef __x86_64__
 		#define TPA_X86_64
-		#define ARCHITECTURE_PROBABLY_HAS_CMOV
+		#define TPA_ARCHITECTURE_PROBABLY_HAS_CMOV
 		#include <immintrin.h>
 	#elif defined(__arm__)
 		#define TPA_ARM

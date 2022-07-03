@@ -21,23 +21,13 @@
 #include <string>
 #include <thread>
 
-#ifdef _M_AMD64
-    #include <immintrin.h>
-
-#ifdef _WIN32
+#ifdef  _MSC_VER 
         #include <intrin.h>
 #define CPUID(registers, function) __cpuid((int*)registers, (int)function);
 #define CPUIDEX(registers, function, extFunction) __cpuidex((int*)registers, (int)function, (int)extFunction);
 #else 
 #define CPUID(registers, function) asm volatile ("cpuid" : "=a" (registers[0]), "=b" (registers[1]), "=c" (registers[2]), "=d" (registers[3]) : "a" (function), "c" (0));
 #define CPUIDEX(registers, function, extFunction) asm volatile ("cpuid" : "=a" (registers[0]), "=b" (registers[1]), "=c" (registers[2]), "=d" (registers[3]) : "a" (function), "c" (extFunction));
-#endif
-#elif defined(_M_ARM64)
-#ifdef _WIN32
-    #include "arm64_neon.h"
-#else
-    #include "arm_neon.h"
-#endif
 #endif
 
 #include "size_t_lit.hpp"
@@ -60,7 +50,7 @@ namespace tpa_cpuid_private {
         std::string Vendor(void) const { return vendor_; }
         std::string Brand(void) const { return brand_; }
 
-#if defined(_M_AMD64)        
+#if defined(TPA_X86_64)        
         
 #pragma region SIMD
         /// <summary>
@@ -571,7 +561,7 @@ namespace tpa_cpuid_private {
         bool MOVDIR64B(void) const noexcept { return f_1_ECX_[28]; }
         bool ENQCMD(void) const noexcept { return f_1_ECX_[29]; }
         bool CMPXCHG16B(void) const noexcept { return f_1_ECX_[13]; }
-        bool CX8(void) const noexcept { return f_81_EDX_[8]; }
+        bool CMPXCHG8B(void) const noexcept { return f_81_EDX_[8]; }
         bool MOVSB(void) const noexcept { return f_7_EBX_[9]; }
         bool STOSB(void) const noexcept { return f_7_EBX_[9]; }
         bool CMPSB(void) const noexcept { return false; /*eax bit 12*/ }
@@ -591,6 +581,22 @@ namespace tpa_cpuid_private {
         //Debug Store
         bool DS(void) const noexcept { return f_1_EDX_[21]; }
 
+        /// <summary>
+        /// <para>CPU has Random Seed Instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#cats=Random&ig_expand=5625
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool RDSEED(void) const noexcept { return f_7_EBX_[18]; }
+
+        /// <summary>
+        /// <para>CPU has Random Instructions if returns true</para>
+        /// <para>See: https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#cats=Random&ig_expand=5625
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        bool RDRAND(void) const noexcept { return f_1_ECX_[30]; }
+
         //Other
         bool FPU(void) const noexcept { return f_1_EDX_[0]; }
         bool F16C(void) const noexcept { return f_1_ECX_[29]; }
@@ -603,8 +609,7 @@ namespace tpa_cpuid_private {
         bool TME_EN(void) const noexcept { return f_1_ECX_[13]; }
         bool RDPID(void) const noexcept { return f_7_ECX_[22]; }
         bool XSAVE(void) const noexcept { return f_1_ECX_[26]; }
-        bool OSXSAVE(void) const noexcept { return f_1_ECX_[27]; }
-        bool RDRAND(void) const noexcept { return f_1_ECX_[30]; }
+        bool OSXSAVE(void) const noexcept { return f_1_ECX_[27]; }        
         bool LAM(void) const noexcept { return false; /*eax bit 26*/ }
 
         bool MSR(void) const noexcept { return f_1_EDX_[5]; }
@@ -619,8 +624,7 @@ namespace tpa_cpuid_private {
         bool HLE(void) const noexcept { return isIntel_ && f_7_EBX_[4]; }
         bool ERMS(void) const noexcept { return f_7_EBX_[9]; }
         bool INVPCID(void) const noexcept { return f_7_EBX_[10]; }
-        bool RDSEED(void) const noexcept { return f_7_EBX_[18]; }
-
+        
         bool RTM(void) const noexcept { return isIntel_ && f_7_EBX_[11]; }
         bool RDT_M(void) const noexcept { return f_7_EBX_[12]; }
         bool RDT_A(void) const noexcept { return f_7_EBX_[15]; }
@@ -745,7 +749,7 @@ namespace tpa_cpuid_private {
             std::cout << "-----------------------------\n\n";
         }//End of output_CPU_info
 
-#elif defined(_M_ARM64)
+#elif defined(TPA_ARM)
         bool NEON(void) const noexcept { return true; }
         bool SVE(void) const noexcept { return true; }
         bool SVE2(void) const noexcept { return true; }
@@ -800,7 +804,7 @@ namespace tpa_cpuid_private {
         std::string vendor_ = {};
         std::string brand_ = {};
 
-#if defined(_M_AMD64)
+#if defined(TPA_X86_64)
         int32_t nIds_ = 0;
         int32_t nExIds_ = 0;
         bool isIntel_ = false;
@@ -903,7 +907,7 @@ namespace tpa_cpuid_private {
                 brand_ = brand;
             }//End if
         };//End of constructor
-#elif defined(_M_ARM64)
+#elif defined(TPA_ARM)
 public:
         /// <summary>
         /// Construct Instruction Set Availability Object
@@ -936,7 +940,7 @@ public:
 namespace tpa{
 static const tpa_cpuid_private::InstructionSet runtime_instruction_set;
 
-#if defined(_M_AMD64)
+#if defined(TPA_X86_64)
 static const bool hasMMX = runtime_instruction_set.MMX();//Automatically set to true if system has MMX at runtime - note that MMX intrinsics should be avoided as Intel has deprecated them and down-clocked them severely in order to cripple thier performance to encourage the use of SSE or better!
 
 static const bool has_SSE = runtime_instruction_set.SSE();//Automatically set to true if system has SSE at runtime
@@ -959,7 +963,9 @@ static const bool hasPOPCNT = runtime_instruction_set.POPCNT();//Automatically s
 static const bool hasLZCNT = runtime_instruction_set.LZCNT();//Automatically set to true if system has Leading Zero Count Instructions at runtime
 static const bool hasABM = runtime_instruction_set.ABM();//Automatically set to true if system has ABM Instructions at runtime
 
-#elif defined(_M_ARM64)
+static const bool hasRD_RAND = runtime_instruction_set.RDRAND() && runtime_instruction_set.RDSEED();//Automatically set to true if system has Random Number Instructions at runtime
+
+#elif defined(TPA_ARM)
     
 static const bool hasNeon = runtime_instruction_set.NEON(); // Automatically set to true if system has NEON Instructions at compile time (required for TPA on ARM)
 static const bool has_SVE = runtime_instruction_set.SVE(); // Automatically set to true if system has SVE Instructions at compile time (required for TPA on ARM)

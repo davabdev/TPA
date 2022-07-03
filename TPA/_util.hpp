@@ -129,7 +129,7 @@ namespace tpa::util
 	template<typename A, typename B>
 	[[nodiscard]] inline constexpr auto min(const A a, const B b) noexcept -> decltype(a+b)
 	{
-#ifdef ARCHITECTURE_PROBABLY_HAS_CMOV
+#ifdef TPA_ARCHITECTURE_PROBABLY_HAS_CMOV
 		return (a < b) ? a : b;
 #else
 		return (a * (a < b) + b * (b <= a));
@@ -148,7 +148,7 @@ namespace tpa::util
 	template<typename A, typename B>
 	[[nodiscard]] inline constexpr auto max(const A a, const B b) noexcept -> decltype(a + b)
 	{
-#ifdef ARCHITECTURE_PROBABLY_HAS_CMOV
+#ifdef TPA_ARCHITECTURE_PROBABLY_HAS_CMOV
 		return (a > b) ? a : b;
 #else
 		return ((a > b) * a + (a <= b) * b);
@@ -425,24 +425,9 @@ namespace tpa::util
 	template<typename N, typename POW>
 	inline constexpr bool isPower(const N n, const POW p) noexcept
 	{
-#ifdef TPA_IS_POWER_SLOW
-		if (n == 1)
-		{
-			return (p == 1);
-		}//End if
-
-		POW pow = 1;
-		while (pow < p)
-		{
-			pow *= n;
-		}//End while
-
-		return pow == p;
-#else
 		double x = std::log(static_cast<double>(n)) / std::log(static_cast<double>(p));
 
 		return (x - std::trunc(x)) < 0.000001;
-#endif
 	}//End of isPower
 
 	/// <summary>
@@ -1036,6 +1021,37 @@ namespace tpa
 		OR,
 		XOR,
 		AND_NOT
+	};//End of bit
+
+	/// <summary>
+	/// Provides a list of valid SIMD bit modification operation predicates.
+	/// </summary>
+	const enum class bit_mod {
+		SET,					//Sets the specified bit to 1
+		SET_ALL,				//Sets all the bits to 1
+		CLEAR,					//Clears the specified bit to 0
+		CLEAR_ALL,				//Clears all the bits to 0
+		TOGGLE,					//Toggles (flips) the specified bit
+		TOGGLE_ALL,				//Toggles (flips) all the bits
+		REVERSE,				//Reverses the order of the bits
+		SET_TRAILING_ZEROS,		//Sets all the trailing 0s to 1s
+		CLEAR_TRAILING_ONES,	//Clears all the trailing 1s to 0s
+		SET_LEADING_ZEROS,		//Sets all the leading 0s to 1s
+		CLEAR_LEADING_ONES		//Clears all the leading 1s to 0s
+	};//End of bit_mod
+
+	/// <summary>
+	/// Provides a list of valid SIMD bit counting operation predicates.
+	/// </summary>
+	const enum class bit_count {
+		POP_COUNT,
+		ONE_COUNT = POP_COUNT,
+		ZERO_COUNT,
+		LEADING_ZERO_COUNT,
+		TRAILING_ZERO_COUNT,
+		LEADING_ONE_COUNT,
+		TRAILING_ONE_COUNT,
+		BIT_ISLAND_COUNT,
 	};//End of bit
 
 	/// <summary>
