@@ -34,7 +34,7 @@
 
 #include "../TPA/tpa_main.hpp"
 
-using numtype = int8_t;//boost::multiprecision::cpp_bin_float_oct;
+using numtype = int16_t;//boost::multiprecision::cpp_bin_float_oct;
 using returnType = uint64_t;//boost::multiprecision::cpp_bin_float_oct; 
 
 std::vector<numtype> vec;
@@ -65,14 +65,14 @@ int main()
 
 		tpa::runtime_instruction_set.output_CPU_info();	
 
-		//Generate		
-		
+		//Generate	
+		/*
 		std::cout << "STD iota Single-Threaded: ";
 		{
 			tpa::util::Timer t;
 			std::iota(vec.begin(), vec.end(), numtype(0));
 		}
-		/*
+		
 		std::cout << "STD Generate Multi-Threaded: ";
 		{
 			tpa::util::Timer t;
@@ -97,52 +97,85 @@ int main()
 
 			std::cout << std::left <<
 				std::setw(5) << i <<
-				std::setw(35) << static_cast<double>(vec[i]) <<
+				std::setw(35) << tpa::util::as_bits(vec[i]) <<
 				//std::setw(35) << static_cast<double>(2) <<
 				//std::setw(35) << static_cast<double>(vec3[i]) <<
 				"\n";
 		}//End for
 
-		/*
-		returnType sum = 0;	
-		std::cout << "STD For Loop sum: ";
+		std::cout << "STD Set Single Bit: ";
 		{
 			tpa::util::Timer t;
 			
 			for (size_t i = 0uz; i < vec.size(); ++i)
 			{
-				sum += static_cast<returnType>(vec[i]);
+				tpa::bit_manip::set(vec[i], 7);
 			}//End for
 		}
-		std::cout << "sum: " << sum << "\n";
 
-		sum = 0;
-		std::cout << "STD accumulate: ";
+		std::cout << "vec1 \t+\t vec2 \t=\t vec3\n";
+		for (size_t i = 0; i != vec.size(); ++i)
+		{
+			if (i > 101)
+			{
+				break;
+			}
+
+			std::cout << std::left <<
+				std::setw(5) << i <<
+				std::setw(35) << tpa::util::as_bits(vec[i]) <<
+				//std::setw(35) << static_cast<double>(2) <<
+				//std::setw(35) << static_cast<double>(vec3[i]) <<
+				"\n";
+		}//End for
+
+		std::cout << "STD Set Single Bit Multi-Threaded: ";
 		{
 			tpa::util::Timer t;
 
-			sum = static_cast<returnType>(std::accumulate(vec.cbegin(), vec.cend(), returnType(0)));
+			std::for_each(std::execution::par_unseq, vec.begin(), vec.end(),
+				[](numtype& x) { tpa::bit_manip::set(x, 11);});
 		}
-		std::cout << "sum: " << sum << "\n";
 
-		sum = 0;
-		std::cout << "STD reduce: ";
+		std::cout << "vec1 \t+\t vec2 \t=\t vec3\n";
+		for (size_t i = 0; i != vec.size(); ++i)
 		{
-			tpa::util::Timer t;
+			if (i > 101)
+			{
+				break;
+			}
 
-			sum = static_cast<returnType>(std::reduce(std::execution::par_unseq,vec.cbegin(), vec.cend(), returnType(0)));
-		}
-		std::cout << "sum: " << sum << "\n";
+			std::cout << std::left <<
+				std::setw(5) << i <<
+				std::setw(35) << tpa::util::as_bits(vec[i]) <<
+				//std::setw(35) << static_cast<double>(2) <<
+				//std::setw(35) << static_cast<double>(vec3[i]) <<
+				"\n";
+		}//End for
 				
-		sum = 0;
-		std::cout << "TPA accumulate: ";
+		std::cout << "TPA Set Single Bit Multi-Threaded SIMD: ";
 		{
-			tpa::util::Timer t;			
-			
-			sum = tpa::accumulate<returnType>(vec);
+			tpa::util::Timer t;
+
+			tpa::simd::bit_manip::bit_modify<tpa::bit_mod::SET>(vec, 11);
 		}
-		std::cout << "sum: " << sum << "\n";
-		*/
+
+		std::cout << "vec1 \t+\t vec2 \t=\t vec3\n";
+		for (size_t i = 0; i != vec.size(); ++i)
+		{
+			if (i > 101)
+			{
+				break;
+			}
+
+			std::cout << std::left <<
+				std::setw(5) << i <<
+				std::setw(35) << tpa::util::as_bits(vec[i]) <<
+				//std::setw(35) << static_cast<double>(2) <<
+				//std::setw(35) << static_cast<double>(vec3[i]) <<
+				"\n";
+		}//End for
+
 		std::cout << "End of Benchmark.\n";
 		
 		return EXIT_SUCCESS;
