@@ -12,7 +12,7 @@ Pre-Alpha Release.
 |Functions to utilize intrinics directly on std::array-like and std::vector-like structures  |incomplete, subject to change                  |
 |Paralellized & vectorized basic math                                                        |complete, subject to change                    |
 |Paralellized & vectorized comparisions                                                      |complete, subject to change                    |
-|Paralellized & vectorized cmath functions                                                   |complete, subject to change                    |
+|Paralellized & vectorized cmath functions                                                   |incomplete, subject to change                    |
 |Paralellized & vectorized type converstion (static_cast)                                    |incomplete                                     |
 |Paralellized & vectorized implementation of std::algorithims                                |very, very incomplete!, subject to change      |
 |Paralellized & vectorized implementation of std::numeric                                    |very, very incomplete!, subject to change      |
@@ -70,14 +70,23 @@ ISA Support (including runtime detection and dispatch) as of 2021-11-15 (this li
 ***NEON is required when compiling for ARM
 
 
-Compiler Support as of 2021-11-15:
+Compiler Support as of 2022-07-08:
 
 |Platform   | MSVC  | Intel (Windows)  | Intel (Linux)   |  AMD AOCC (Linux Only)  | Clang (Windows)  | Clang (Linux)   |GCC (Linux)    | NVCC |
 |-----------|-------|------------------|-----------------|-------------------------|------------------|-----------------|---------------|------|
-|AMD-64     |YES    |No, Coming Soon   |No, Coming Soon  |No, Coming Later         |No, Coming later  |No, Coming Later |No, Coming Soon| No   |
+|AMD-64     |Yes    |No, Coming Soon   |No, Coming Soon  |No, Coming Later         |No, Coming later  |No, Coming Later |No, Coming Soon| No   |
 |x86        |Yes*   |No, Coming Soon   |No, Coming Soon  |No, Coming Later         |No, Coming later  |No, Coming Later |No, Coming Soon| No   |
 |ARM-64     |Yes**  |No, Coming Soon   |No, Coming Soon  |No, Coming Later         |No, Coming later  |No, Coming Later |No, Coming Soon| No   |
 |ARM-32***  |No     |No                |No               |No                       |No                |No               |No             | No   |
+|IA-32      |No     |No                |No               |No                       |No                |No               |No             | No   |
+|IA-64      |No     |No                |No               |No                       |No                |No               |No             | No   |
+|PowerPC-32 |No     |No                |No               |No                       |No                |No               |No             | No   | 
+|PowerPC-64 |No     |No                |No               |No                       |No                |No               |No             | No   | 
+|MIPS-32    |No     |No                |No               |No                       |No                |No               |No             | No   | 
+|MIPS-64    |No     |No                |No               |No                       |No                |No               |No             | No   | 
+|SPARC-32   |No     |No                |No               |No                       |No                |No               |No             | No   | 
+|SPARC-64   |No     |No                |No               |No                       |No                |No               |No             | No   | 
+|IBM zOS    |No     |No                |No               |No                       |No                |No               |No             | No   | 
 
 *Building for x86 is not officially supported on any platform, it may work but I do not intend to support or make any considerations for 32-bit platforms.
 
