@@ -32,10 +32,10 @@
 #include "../InstructionSet.hpp"
 #include "simd.hpp"
 
-
 #undef min
 #undef max
 #undef abs
+#undef pow
 
 /// <summary>
 /// <para>Truly Parallel Algorithms</para>
@@ -348,6 +348,127 @@ namespace tpa
 									_mm_store_si128((__m128i*) & dest[i], _DESTi);
 								}//End for
 							}//End if has_SSE2
+
+#elif defined(TPA_ARM)
+							if (tpa::hasNeon)
+							{
+								int8x16_t _Ai, _Bi, _DESTi;
+
+								for (; (i + 16uz) < end; i += 16uz)
+								{
+									//Set Values
+									_Ai = vld1q_s8(&source1[i]);
+									_Bi = vld1q_s8(&source2[i]);
+
+									//Calc
+									if constexpr (INSTR == tpa::op::ADD)
+									{
+										_DESTi = vaddq_s8(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::SUBTRACT)
+									{
+										_DESTi = vsubq_s8(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::MULTIPLY)
+									{
+										_DESTi = vmulq_s8(_Ai, _Bi);;
+									}//End if
+									else if constexpr (INSTR == tpa::op::DIVIDE)
+									{
+										break;
+									}//End if
+									else if constexpr (INSTR == tpa::op::MODULO)
+									{
+										break;
+									}//End if									
+									else if constexpr (INSTR == tpa::op::MIN)
+									{
+										_DESTi = vminq_s8(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::MAX)
+									{
+										_DESTi = vmaxq_s8(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::AVERAGE)
+									{
+										break;
+									}//End if
+									else if constexpr (INSTR == tpa::op::POWER)
+									{
+										break;
+									}//End if
+									else
+									{
+										[] <bool flag = false>()
+										{
+											static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::calculate<__UNDEFINED_PREDICATE__>(CONTAINER<int8_t>).");
+										}();
+									}//End else
+
+									//Store Result
+									vst1q_s8(&dest[i], _DESTi);
+								}//End for
+							}//End if hasNEON
+#elif defined(TPA_ARM)
+if (tpa::hasNeon)
+{
+	int8x16_t _Ai, _Bi, _DESTi;
+
+	for (; (i + 16uz) < end; i += 16uz)
+	{
+		//Set Values
+		_Ai = vld1q_s8(&source1[i]);
+		_Bi = vld1q_s8(&source2[i]);
+
+		//Calc
+		if constexpr (INSTR == tpa::op::ADD)
+		{
+			_DESTi = vaddq_s8(_Ai, _Bi);
+		}//End if
+		else if constexpr (INSTR == tpa::op::SUBTRACT)
+		{
+			_DESTi = vsubq_s8(_Ai, _Bi);
+		}//End if
+		else if constexpr (INSTR == tpa::op::MULTIPLY)
+		{
+			_DESTi = vmulq_s8(_Ai, _Bi);;
+		}//End if
+		else if constexpr (INSTR == tpa::op::DIVIDE)
+		{
+			break;
+		}//End if
+		else if constexpr (INSTR == tpa::op::MODULO)
+		{
+			break;
+		}//End if									
+		else if constexpr (INSTR == tpa::op::MIN)
+		{
+			_DESTi = vminq_s8(_Ai, _Bi);
+		}//End if
+		else if constexpr (INSTR == tpa::op::MAX)
+		{
+			_DESTi = vmaxq_s8(_Ai, _Bi);
+		}//End if
+		else if constexpr (INSTR == tpa::op::AVERAGE)
+		{
+			break;
+		}//End if
+		else if constexpr (INSTR == tpa::op::POWER)
+		{
+			break;
+		}//End if
+		else
+		{
+			[] <bool flag = false>()
+			{
+				static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::calculate<__UNDEFINED_PREDICATE__>(CONTAINER<int8_t>).");
+			}();
+		}//End else
+
+		//Store Result
+		vst1q_s8(&dest[i], _DESTi);
+	}//End for
+}//End if hasNEON
 #endif
 						}//End if
 
@@ -557,7 +678,67 @@ namespace tpa
 									_mm_store_si128((__m128i*) & dest[i], _DESTi);
 								}//End for
 							}//End if has_SSE2
-#endif				
+#elif defined(TPA_ARM)
+							if (tpa::hasNeon)
+							{
+								int8x16_t _Ai, _Bi, _DESTi;
+
+								for (; (i + 16uz) < end; i += 16uz)
+								{
+									//Set Values
+									_Ai = vld1q_u8(&source1[i]);
+									_Bi = vld1q_u8(&source2[i]);
+
+									//Calc
+									if constexpr (INSTR == tpa::op::ADD)
+									{
+										_DESTi = vaddq_u8(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::SUBTRACT)
+									{
+										_DESTi = vsubq_u8(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::MULTIPLY)
+									{
+										_DESTi = vmulq_u8(_Ai, _Bi);;
+									}//End if
+									else if constexpr (INSTR == tpa::op::DIVIDE)
+									{
+										break;
+									}//End if
+									else if constexpr (INSTR == tpa::op::MODULO)
+									{
+										break;
+									}//End if									
+									else if constexpr (INSTR == tpa::op::MIN)
+									{
+										_DESTi = vminq_u8(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::MAX)
+									{
+										_DESTi = vmaxq_u8(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::AVERAGE)
+									{
+										break;
+									}//End if
+									else if constexpr (INSTR == tpa::op::POWER)
+									{
+										break;
+									}//End if
+									else
+									{
+										[] <bool flag = false>()
+										{
+											static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::calculate<__UNDEFINED_PREDICATE__>(CONTAINER<int8_t>).");
+										}();
+									}//End else
+
+									//Store Result
+									vst1q_u8(&dest[i], _DESTi);
+								}//End for
+							}//End if hasNEON
+#endif			
 						}//End if
 #pragma endregion
 #pragma region short
@@ -786,7 +967,67 @@ namespace tpa
 									_mm_store_si128((__m128i*) & dest[i], _DESTi);
 								}//End for
 							}//End if has_SSE2
-#endif							
+#elif defined(TPA_ARM)
+							if (tpa::hasNeon)
+							{
+								int16x8_t _Ai, _Bi, _DESTi;
+
+								for (; (i + 8uz) < end; i += 8uz)
+								{
+									//Set Values
+									_Ai = vld1q_s16(&source1[i]);
+									_Bi = vld1q_s16(&source2[i]);
+
+									//Calc
+									if constexpr (INSTR == tpa::op::ADD)
+									{
+										_DESTi = vaddq_s16(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::SUBTRACT)
+									{
+										_DESTi = vsubq_s16(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::MULTIPLY)
+									{
+										_DESTi = vmulq_s16(_Ai, _Bi);;
+									}//End if
+									else if constexpr (INSTR == tpa::op::DIVIDE)
+									{
+										break;
+									}//End if
+									else if constexpr (INSTR == tpa::op::MODULO)
+									{
+										break;
+									}//End if									
+									else if constexpr (INSTR == tpa::op::MIN)
+									{
+										_DESTi = vminq_s16(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::MAX)
+									{
+										_DESTi = vmaxq_s16(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::AVERAGE)
+									{
+										break;
+									}//End if
+									else if constexpr (INSTR == tpa::op::POWER)
+									{
+										break;
+									}//End if
+									else
+									{
+										[] <bool flag = false>()
+										{
+											static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::calculate<__UNDEFINED_PREDICATE__>(CONTAINER<int8_t>).");
+										}();
+									}//End else
+
+									//Store Result
+									vst1q_s16(&dest[i], _DESTi);
+								}//End for
+							}//End if hasNEON
+#endif						
 						}//End if
 #pragma endregion
 #pragma region unsigned short
@@ -1008,7 +1249,67 @@ namespace tpa
 									_mm_store_si128((__m128i*) & dest[i], _DESTi);
 								}//End for
 							}//End if has_SSE2
-#endif 							
+#elif defined(TPA_ARM)
+							if (tpa::hasNeon)
+							{
+								int16x8_t _Ai, _Bi, _DESTi;
+
+								for (; (i + 8uz) < end; i += 8uz)
+								{
+									//Set Values
+									_Ai = vld1q_u16(&source1[i]);
+									_Bi = vld1q_u16(&source2[i]);
+
+									//Calc
+									if constexpr (INSTR == tpa::op::ADD)
+									{
+										_DESTi = vaddq_u16(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::SUBTRACT)
+									{
+										_DESTi = vsubq_u16(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::MULTIPLY)
+									{
+										_DESTi = vmulq_u16(_Ai, _Bi);;
+									}//End if
+									else if constexpr (INSTR == tpa::op::DIVIDE)
+									{
+										break;
+									}//End if
+									else if constexpr (INSTR == tpa::op::MODULO)
+									{
+										break;
+									}//End if									
+									else if constexpr (INSTR == tpa::op::MIN)
+									{
+										_DESTi = vminq_u16(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::MAX)
+									{
+										_DESTi = vmaxq_u16(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::AVERAGE)
+									{
+										break;
+									}//End if
+									else if constexpr (INSTR == tpa::op::POWER)
+									{
+										break;
+									}//End if
+									else
+									{
+										[] <bool flag = false>()
+										{
+											static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::calculate<__UNDEFINED_PREDICATE__>(CONTAINER<int8_t>).");
+										}();
+									}//End else
+
+									//Store Result
+									vst1q_u16(&dest[i], _DESTi);
+								}//End for
+							}//End if hasNEON
+#endif												
 			}//End if
 #pragma endregion
 #pragma region int
@@ -1247,7 +1548,67 @@ namespace tpa
 									_mm_store_si128((__m128i*) & dest[i], _DESTi);
 								}//End for
 							}//End if has_SSE2
-#endif							
+#elif defined(TPA_ARM)
+							if (tpa::hasNeon)
+							{
+								int32x4_t _Ai, _Bi, _DESTi;
+
+								for (; (i + 4uz) < end; i += 4uz)
+								{
+									//Set Values
+									_Ai = vld1q_s32(&source1[i]);
+									_Bi = vld1q_s32(&source2[i]);
+
+									//Calc
+									if constexpr (INSTR == tpa::op::ADD)
+									{
+										_DESTi = vaddq_s32(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::SUBTRACT)
+									{
+										_DESTi = vsubq_s32(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::MULTIPLY)
+									{
+										_DESTi = vmulq_s32(_Ai, _Bi);;
+									}//End if
+									else if constexpr (INSTR == tpa::op::DIVIDE)
+									{
+										break;
+									}//End if
+									else if constexpr (INSTR == tpa::op::MODULO)
+									{
+										break;
+									}//End if									
+									else if constexpr (INSTR == tpa::op::MIN)
+									{
+										_DESTi = vminq_s32(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::MAX)
+									{
+										_DESTi = vmaxq_s32(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::AVERAGE)
+									{
+										break;
+									}//End if
+									else if constexpr (INSTR == tpa::op::POWER)
+									{
+										break;
+									}//End if
+									else
+									{
+										[] <bool flag = false>()
+										{
+											static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::calculate<__UNDEFINED_PREDICATE__>(CONTAINER<int8_t>).");
+										}();
+									}//End else
+
+									//Store Result
+									vst1q_s32(&dest[i], _DESTi);
+								}//End for
+							}//End if hasNEON
+#endif													
 						}//End if
 #pragma endregion
 #pragma region unsigned int
@@ -1490,7 +1851,67 @@ namespace tpa
 									_mm_store_si128((__m128i*) & dest[i], _DESTi);
 								}//End for
 							}//End if has_SSE2
-#endif							
+#elif defined(TPA_ARM)
+							if (tpa::hasNeon)
+							{
+								int32x4_t _Ai, _Bi, _DESTi;
+
+								for (; (i + 4uz) < end; i += 4uz)
+								{
+									//Set Values
+									_Ai = vld1q_u32(&source1[i]);
+									_Bi = vld1q_u32(&source2[i]);
+
+									//Calc
+									if constexpr (INSTR == tpa::op::ADD)
+									{
+										_DESTi = vaddq_u32(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::SUBTRACT)
+									{
+										_DESTi = vsubq_u32(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::MULTIPLY)
+									{
+										_DESTi = vmulq_u32(_Ai, _Bi);;
+									}//End if
+									else if constexpr (INSTR == tpa::op::DIVIDE)
+									{
+										break;
+									}//End if
+									else if constexpr (INSTR == tpa::op::MODULO)
+									{
+										break;
+									}//End if									
+									else if constexpr (INSTR == tpa::op::MIN)
+									{
+										_DESTi = vminq_u32(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::MAX)
+									{
+										_DESTi = vmaxq_u32(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::AVERAGE)
+									{
+										break;
+									}//End if
+									else if constexpr (INSTR == tpa::op::POWER)
+									{
+										break;
+									}//End if
+									else
+									{
+										[] <bool flag = false>()
+										{
+											static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::calculate<__UNDEFINED_PREDICATE__>(CONTAINER<int8_t>).");
+										}();
+									}//End else
+
+									//Store Result
+									vst1q_u32(&dest[i], _DESTi);
+								}//End for
+							}//End if hasNEON
+#endif													
 						}//End if
 #pragma endregion
 #pragma region long
@@ -1730,7 +2151,67 @@ namespace tpa
 									_mm_store_si128((__m128i*) & dest[i], _DESTi);
 								}//End for
 							}//End if has_SSE2
-#endif							
+#elif defined(TPA_ARM)
+							if (tpa::hasNeon)
+							{
+								int64x2_t _Ai, _Bi, _DESTi;
+
+								for (; (i + 2uz) < end; i += 2uz)
+								{
+									//Set Values
+									_Ai = vld1q_s64(&source1[i]);
+									_Bi = vld1q_s64(&source2[i]);
+
+									//Calc
+									if constexpr (INSTR == tpa::op::ADD)
+									{
+										_DESTi = vaddq_s64(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::SUBTRACT)
+									{
+										_DESTi = vsubq_s64(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::MULTIPLY)
+									{
+										break;
+									}//End if
+									else if constexpr (INSTR == tpa::op::DIVIDE)
+									{
+										break;
+									}//End if
+									else if constexpr (INSTR == tpa::op::MODULO)
+									{
+										break;
+									}//End if									
+									else if constexpr (INSTR == tpa::op::MIN)
+									{
+										break;
+									}//End if
+									else if constexpr (INSTR == tpa::op::MAX)
+									{
+										break;
+									}//End if
+									else if constexpr (INSTR == tpa::op::AVERAGE)
+									{
+										break;
+									}//End if
+									else if constexpr (INSTR == tpa::op::POWER)
+									{
+										break;
+									}//End if
+									else
+									{
+										[] <bool flag = false>()
+										{
+											static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::calculate<__UNDEFINED_PREDICATE__>(CONTAINER<int8_t>).");
+										}();
+									}//End else
+
+									//Store Result
+									vst1q_s64(&dest[i], _DESTi);
+								}//End for
+							}//End if hasNEON
+#endif													
 						}//End if
 #pragma endregion
 #pragma region unsigned long
@@ -1970,8 +2451,196 @@ namespace tpa
 									_mm_store_si128((__m128i*) & dest[i], _DESTi);
 								}//End for
 							}//End if has_SSE2
-#endif							
+#elif defined(TPA_ARM)
+							if (tpa::hasNeon)
+							{
+								int64x2_t _Ai, _Bi, _DESTi;
+
+								for (; (i + 2uz) < end; i += 2uz)
+								{
+									//Set Values
+									_Ai = vld1q_u64(&source1[i]);
+									_Bi = vld1q_u64(&source2[i]);
+
+									//Calc
+									if constexpr (INSTR == tpa::op::ADD)
+									{
+										_DESTi = vaddq_u64(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::SUBTRACT)
+									{
+										_DESTi = vsubq_u64(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::MULTIPLY)
+									{
+										break;
+									}//End if
+									else if constexpr (INSTR == tpa::op::DIVIDE)
+									{
+										break;
+									}//End if
+									else if constexpr (INSTR == tpa::op::MODULO)
+									{
+										break;
+									}//End if									
+									else if constexpr (INSTR == tpa::op::MIN)
+									{
+										break;
+									}//End if
+									else if constexpr (INSTR == tpa::op::MAX)
+									{
+										break;
+									}//End if
+									else if constexpr (INSTR == tpa::op::AVERAGE)
+									{
+										break;
+									}//End if
+									else if constexpr (INSTR == tpa::op::POWER)
+									{
+										break;
+									}//End if
+									else
+									{
+										[] <bool flag = false>()
+										{
+											static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::calculate<__UNDEFINED_PREDICATE__>(CONTAINER<int8_t>).");
+										}();
+									}//End else
+
+									//Store Result
+									vst1q_u64(&dest[i], _DESTi);
+								}//End for
+							}//End if hasNEON
+#endif								
 						}//End if
+#pragma endregion
+#pragma region half
+#if !defined(_MSC_VER)
+						else if constexpr (std::is_same<T, short float>() && std::is_same<T2, short float>() && std::is_same<RES, short float>())
+						{
+#ifdef TPA_X86_64
+						if (tpa::hasAVX512_FP16)
+						{
+							__m512h _Ai, _Bi, _DESTi;
+
+							for (; (i + 32uz) < end; i += 32uz)
+							{
+								//Set Values
+								_Ai = _mm512_load_ph(&source1[i]);
+								_Bi = _mm512_load_ph(&source2[i]);
+
+								//Calc
+								if constexpr (INSTR == tpa::op::ADD)
+								{
+									_DESTi = _mm512_add_ph(_Ai, _Bi);
+								}//End if
+								else if constexpr (INSTR == tpa::op::SUBTRACT)
+								{
+									_DESTi = _mm512_sub_ph(_Ai, _Bi);
+								}//End if
+								else if constexpr (INSTR == tpa::op::MULTIPLY)
+								{
+									_DESTi = _mm512_mul_ph(_Ai, _Bi);
+								}//End if
+								else if constexpr (INSTR == tpa::op::DIVIDE)
+								{
+									_DESTi = _mm512_div_ph(_Ai, _Bi);
+								}//End if
+								else if constexpr (INSTR == tpa::op::MODULO)
+								{
+									break;
+								}//End if									
+								else if constexpr (INSTR == tpa::op::MIN)
+								{
+									_DESTi = _mm512_min_ph(_Ai, _Bi);
+								}//End if
+								else if constexpr (INSTR == tpa::op::MAX)
+								{
+									_DESTi = _mm512_max_ph(_Ai, _Bi);
+								}//End if
+								else if constexpr (INSTR == tpa::op::AVERAGE)
+								{
+									break;
+								}//End if
+								else if constexpr (INSTR == tpa::op::POWER)
+								{
+									break;
+								}//End if
+								else
+								{
+									[] <bool flag = false>()
+									{
+										static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::calculate<__UNDEFINED_PREDICATE__>(CONTAINER<int8_t>).");
+									}();
+								}//End else
+
+								//Store Result
+								_mm512_store_ph(&dest[i], _DESTi);
+							}//End for
+						}//End if hasAVX512-FP16
+#elif defined(TPA_ARM)
+							if (tpa::hasNeon)
+							{
+								float16x8_t _Ai, _Bi, _DESTi;
+
+								for (; (i + 8uz) < end; i += 8uz)
+								{
+									//Set Values
+									_Ai = vld1_f16(&source1[i]);
+									_Bi = vld1_f16(&source2[i]);
+
+									//Calc
+									if constexpr (INSTR == tpa::op::ADD)
+									{
+										_DESTi = vaddq_f16(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::SUBTRACT)
+									{
+										_DESTi = vsubq_f16(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::MULTIPLY)
+									{
+										_DESTi = vmulq_f16(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::DIVIDE)
+									{
+										_DESTi = vdivq_f16(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::MODULO)
+									{
+										break;
+									}//End if									
+									else if constexpr (INSTR == tpa::op::MIN)
+									{
+										_DESTi = vminq_f16(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::MAX)
+									{
+										_DESTi = vmaxq_f16(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::AVERAGE)
+									{
+										break;
+									}//End if
+									else if constexpr (INSTR == tpa::op::POWER)
+									{
+										break;
+									}//End if
+									else
+									{
+										[] <bool flag = false>()
+										{
+											static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::calculate<__UNDEFINED_PREDICATE__>(CONTAINER<int8_t>).");
+										}();
+									}//End else
+
+									//Store Result
+									vst1_f16(&dest[i], _DESTi);
+								}//End for
+							}//End if hasNEON
+#endif
+						}//End if
+#endif
 #pragma endregion
 #pragma region float
 						else if constexpr (std::is_same<T, float>() && std::is_same<T2, float>() && std::is_same<RES, float>())
@@ -2163,7 +2832,67 @@ namespace tpa
 									_mm_store_ps(&dest[i], _DESTi);
 								}//End for
 							}//End if has_SSE
-#endif						
+#elif defined(TPA_ARM)
+							if (tpa::hasNeon)
+							{
+								float32x4_t _Ai, _Bi, _DESTi;
+
+								for (; (i + 4uz) < end; i += 4uz)
+								{
+									//Set Values
+									_Ai = vld1q_f32(&source1[i]);
+									_Bi = vld1q_f32(&source2[i]);
+
+									//Calc
+									if constexpr (INSTR == tpa::op::ADD)
+									{
+										_DESTi = vaddq_f32(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::SUBTRACT)
+									{
+										_DESTi = vsubq_f32(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::MULTIPLY)
+									{
+										_DESTi = vmulq_f32(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::DIVIDE)
+									{
+										_DESTi = vdivq_f32(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::MODULO)
+									{
+										break;
+									}//End if									
+									else if constexpr (INSTR == tpa::op::MIN)
+									{
+										_DESTi = vminq_f32(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::MAX)
+									{
+										_DESTi = vmaxq_f32(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::AVERAGE)
+									{
+										break;
+									}//End if
+									else if constexpr (INSTR == tpa::op::POWER)
+									{
+										break;
+									}//End if
+									else
+									{
+										[] <bool flag = false>()
+										{
+											static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::calculate<__UNDEFINED_PREDICATE__>(CONTAINER<int8_t>).");
+										}();
+									}//End else
+
+									//Store Result
+									vst1q_f32(&dest[i], _DESTi);
+								}//End for
+							}//End if hasNEON
+#endif							
 						}//End if
 #pragma endregion
 #pragma region double
@@ -2356,7 +3085,67 @@ namespace tpa
 									_mm_store_pd(&dest[i], _DESTi);
 								}//End for
 							}//End if has_SSE2
-#endif						
+#elif defined(TPA_ARM)
+							if (tpa::hasNeon)
+							{
+								float64x2_t _Ai, _Bi, _DESTi;
+
+								for (; (i + 2uz) < end; i += 2uz)
+								{
+									//Set Values
+									_Ai = vld1q_f64(&source1[i]);
+									_Bi = vld1q_f64(&source2[i]);
+
+									//Calc
+									if constexpr (INSTR == tpa::op::ADD)
+									{
+										_DESTi = vaddq_f64(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::SUBTRACT)
+									{
+										_DESTi = vsubq_f64(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::MULTIPLY)
+									{
+										_DESTi = vmulq_f64(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::DIVIDE)
+									{
+										_DESTi = vdivq_f64(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::MODULO)
+									{
+										break;
+									}//End if									
+									else if constexpr (INSTR == tpa::op::MIN)
+									{
+										_DESTi = vminq_f64(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::MAX)
+									{
+										_DESTi = vmaxq_f64(_Ai, _Bi);
+									}//End if
+									else if constexpr (INSTR == tpa::op::AVERAGE)
+									{
+										break;
+									}//End if
+									else if constexpr (INSTR == tpa::op::POWER)
+									{
+										break;
+									}//End if
+									else
+									{
+										[] <bool flag = false>()
+										{
+											static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::calculate<__UNDEFINED_PREDICATE__>(CONTAINER<int8_t>).");
+										}();
+									}//End else
+
+									//Store Result
+									vst1q_f64(&dest[i], _DESTi);
+								}//End for
+							}//End if hasNEON
+#endif					
 						}//End if
 #pragma endregion
 #pragma region generic

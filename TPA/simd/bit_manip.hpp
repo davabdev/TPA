@@ -2143,7 +2143,7 @@ namespace tpa::bit_manip
 				return x & mask;
 			}//End else
 
-#elif defined(TPA_ARM)
+#elif defined(TPA_ARM) & !defined(_MSC_VER)
 			if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>() || std::is_same<T, int16_t>() ||
 				std::is_same<T, uint16_t>())
 			{
@@ -2360,7 +2360,8 @@ namespace tpa{
 
 namespace bit_manip {
 	/// <summary>
-	/// <para>Modifies the bits in a numeric type according to the specified instruction.</para>
+	/// <para>Modifies the bits in a numeric type according to the specified instruction at the specified position.</para>
+	/// <para>The position must be with in the bounds of a type. EX: Bounds of int32_t = Bit 0 to Bit 31.</para>
 	/// <para></para>
 	/// </summary>
 	/// <typeparam name="CONTAINER_A"></typeparam>
@@ -2376,7 +2377,7 @@ namespace bit_manip {
 		try
 		{
 			//Check Bounds
-			if (pos < 0ull || pos > static_cast<uint64_t>((sizeof(T) * CHAR_BIT) - 1))
+			if (pos < 0ull || pos > static_cast<uint64_t>((static_cast<uint64_t>(sizeof(T)) * static_cast<uint64_t>(CHAR_BIT)) - 1ull))
 			{
 				throw std::out_of_range("Position must be within the bounds of T");
 			}//End if
@@ -2557,12 +2558,12 @@ namespace bit_manip {
 		catch (const std::exception& ex)
 		{
 			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
-			std::cerr << "Exception thrown in tpa::simd::bit_manip::bit_modify: " << ex.what() << "\n";
+			std::cerr << "Exception thrown in tpa::bit_manip::bit_modify: " << ex.what() << "\n";
 		}//End catch
 		catch (...)
 		{
 			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
-			std::cerr << "Exception thrown in tpa::simd::bit_manip::bit_modify: unknown!\n";
+			std::cerr << "Exception thrown in tpa::bit_manip::bit_modify: unknown!\n";
 		}//End catch
 	}//End of set
 };
