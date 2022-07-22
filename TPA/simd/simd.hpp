@@ -505,6 +505,45 @@ namespace tpa::simd {
 #ifdef TPA_X86_64
 
 	///<summary>
+	///<para> Bitwise Not of __m128i Vector using SSE2</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without SSE2.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m128i</returns>
+	[[nodiscard]] inline __m128i _mm_not_si128(const __m128i& x) noexcept
+	{
+		return _mm_xor_si128(x, _mm_set1_epi64x(-1LL));
+	}//End of _mm_not_si128
+
+	///<summary>
+	///<para> Bitwise Not of __m256i Vector using AVX2</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without AVX2.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m256i</returns>
+	[[nodiscard]] inline __m256i _mm256_not_si256(const __m256i& x) noexcept
+	{
+		return _mm256_xor_si256(x, _mm256_set1_epi64x(-1LL));
+	}//End of _mm256_not_si256
+
+	///<summary>
+	///<para> Bitwise Not of __m512i Vector using AVX-512</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without AVX-512.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m512i</returns>
+	[[nodiscard]] inline __m512i _mm512_not_si512(const __m512i& x) noexcept
+	{
+		return _mm512_xor_si512(x, _mm512_set1_epi64(-1LL));
+	}//End of _mm512_not_si512
+
+	///<summary>
 	///<para> Multiply Packed 64-Bit Integers (Signed and Unsigned) in 'a' by 'b' and returns 'product' using AVX2</para>
 	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
 	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>

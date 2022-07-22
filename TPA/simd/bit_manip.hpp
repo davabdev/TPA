@@ -56,7 +56,7 @@ namespace tpa::bit_manip
 		try
 		{
 			//Check Bounds
-			if (pos < 0ull || pos > static_cast<uint64_t>((sizeof(T) * CHAR_BIT)-1))
+			if (pos < 0ull || pos > static_cast<uint64_t>((sizeof(T) * static_cast<uint64_t>(CHAR_BIT))-1ull))
 			{
 				throw std::out_of_range("Position must be within the bounds of T");
 			}//End if
@@ -2400,7 +2400,7 @@ namespace bit_manip {
 					size_t i = beg;
 
 #pragma region short
-					if constexpr (std::is_same<T, int16_t>() == true)
+					if constexpr (std::is_same<T, int16_t>() || std::is_same<T, uint16_t>())
 					{						
 #ifdef TPA_X86_64
 						if (tpa::hasAVX512_ByteWord)
@@ -2408,10 +2408,12 @@ namespace bit_manip {
 							const uint32_t p = static_cast<uint32_t>(pos);
 
 							__m512i _source, _DESTi;
+							const __m512i _zero = _mm512_setzero_si512();
 							const __m512i _one = _mm512_set1_epi16(static_cast<int16_t>(1));
 							const __m512i _shifted_left = _mm512_slli_epi16(_one, p);
+							const __m512i _not_shifted_left = tpa::simd::_mm512_not_si512(_shifted_left);
 
-							for (; (i + 32) < end; i += 32)
+							for (; (i + 32uz) < end; i += 32uz)
 							{
 								//Set Values
 								_source = _mm512_loadu_epi16(&source[i]);
@@ -2420,11 +2422,20 @@ namespace bit_manip {
 								{
 									_DESTi = _mm512_or_si512(_shifted_left, _source);
 								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
+								{
+									_DESTi = tpa::simd::_mm512_not_si512(_mm512_and_si512(_source, _zero));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR)
+								{
+									//~(1ull << pos) & source[i]
+									_DESTi = _mm512_and_si512(_not_shifted_left, _source);
+								}//End if
 								else
 								{
 									[] <bool flag = false>()
 									{
-										static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int16_t>).");
+										static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int16_t> / uint16_t).");
 									}();
 								}//End else
 
@@ -2437,10 +2448,12 @@ namespace bit_manip {
 							const int32_t p = static_cast<int32_t>(pos);
 
 							__m256i _source, _DESTi;
+							const __m256i _zero = _mm256_setzero_si256();
 							const __m256i _one = _mm256_set1_epi16(static_cast<int16_t>(1));
-							const __m256i _shifted_left = _mm256_slli_epi16(_one, p);							
+							const __m256i _shifted_left = _mm256_slli_epi16(_one, p);	
+							const __m256i _not_shifted_left = tpa::simd::_mm256_not_si256(_shifted_left);
 
-							for (; (i + 16) < end; i += 16)
+							for (; (i + 16uz) < end; i += 16uz)
 							{
 								//Set Values
 								_source = _mm256_load_si256((__m256i*) &source[i]);
@@ -2449,11 +2462,20 @@ namespace bit_manip {
 								{
 									_DESTi = _mm256_or_si256(_shifted_left, _source);
 								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
+								{
+									_DESTi = tpa::simd::_mm256_not_si256(_mm256_and_si256(_source, _zero));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR)
+								{
+									//~(1ull << pos) & source[i]
+									_DESTi = _mm256_and_si256(_not_shifted_left, _source);
+								}//End if
 								else
 								{
 									[] <bool flag = false>()
 									{
-										static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int16_t>).");
+										static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int16_t / uint16_t>).");
 									}();
 								}//End else
 
@@ -2466,10 +2488,12 @@ namespace bit_manip {
 							const int32_t p = static_cast<int32_t>(pos);
 
 							__m128i _source, _DESTi;
+							const __m128i _zero = _mm_setzero_si128();
 							const __m128i _one = _mm_set1_epi16(static_cast<int16_t>(1));
-							const __m128i _shifted_left = _mm_slli_epi16(_one, p);										
+							const __m128i _shifted_left = _mm_slli_epi16(_one, p);	
+							const __m128i _not_shifted_left = tpa::simd::_mm_not_si128(_shifted_left);
 
-							for (; (i + 8) < end; i += 8)
+							for (; (i + 8uz) < end; i += 8uz)
 							{
 								//Set Values
 								_source = _mm_load_si128((__m128i*) & source[i]);
@@ -2478,11 +2502,20 @@ namespace bit_manip {
 								{
 									_DESTi = _mm_or_si128(_shifted_left, _source);
 								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
+								{
+									_DESTi = tpa::simd::_mm_not_si128(_mm_and_si128(_source, _zero));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR)
+								{
+									//~(1ull << pos) & source[i]
+									_DESTi = _mm_and_si128(_not_shifted_left, _source);
+								}//End if
 								else
 								{
 									[] <bool flag = false>()
 									{
-										static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int16_t>).");
+										static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int16_t / uint16_t>).");
 									}();
 								}//End else
 
@@ -2490,6 +2523,442 @@ namespace bit_manip {
 								_mm_store_si128((__m128i*) & source[i], _DESTi);
 							}//End for
 						}//End if
+#endif
+					}//End if
+#pragma endregion
+#pragma region int
+					else if constexpr (std::is_same<T, int32_t>() || std::is_same<T, uint32_t>())
+					{
+#ifdef TPA_X86_64
+						if (tpa::hasAVX512)
+						{
+							const uint32_t p = static_cast<uint32_t>(pos);
+
+							__m512i _source, _DESTi;
+							const __m512i _zero = _mm512_setzero_si512();
+							const __m512i _one = _mm512_set1_epi32(1);
+							const __m512i _shifted_left = _mm512_slli_epi32(_one, p);
+
+							for (; (i + 16uz) < end; i += 16uz)
+							{
+								//Set Values
+								_source = _mm512_load_epi32(&source[i]);
+
+								if constexpr (INSTR == tpa::bit_mod::SET)
+								{
+									_DESTi = _mm512_or_si512(_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
+								{
+									_DESTi = tpa::simd::_mm512_not_si512(_mm512_and_si512(_source, _zero));
+								}//End if
+								else
+								{
+									[] <bool flag = false>()
+									{
+										static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int32_t / uint32_t>).");
+									}();
+								}//End else
+
+								//Store Result
+								_mm512_store_epi32(&source[i], _DESTi);
+							}//End for
+						}//End if hasAVX512
+						else if (tpa::hasAVX2)
+						{
+							const int32_t p = static_cast<int32_t>(pos);
+
+							__m256i _source, _DESTi;
+							const __m256i _zero = _mm256_setzero_si256();
+							const __m256i _one = _mm256_set1_epi32(1);
+							const __m256i _shifted_left = _mm256_slli_epi32(_one, p);
+
+							for (; (i + 8uz) < end; i += 8uz)
+							{
+								//Set Values
+								_source = _mm256_load_si256((__m256i*) & source[i]);
+
+								if constexpr (INSTR == tpa::bit_mod::SET)
+								{
+									_DESTi = _mm256_or_si256(_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
+								{
+									_DESTi = tpa::simd::_mm256_not_si256(_mm256_and_si256(_source, _zero));
+								}//End if
+								else
+								{
+									[] <bool flag = false>()
+									{
+										static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int32_t / uint32_t>).");
+									}();
+								}//End else
+
+								//Store Result
+								_mm256_store_si256((__m256i*) & source[i], _DESTi);
+							}//End for
+						}//End if hasAVX2
+						else if (tpa::has_SSE2)
+						{
+							const int32_t p = static_cast<int32_t>(pos);
+
+							__m128i _source, _DESTi;
+							const __m128i _zero = _mm_setzero_si128();
+							const __m128i _one = _mm_set1_epi32(1);
+							const __m128i _shifted_left = _mm_slli_epi32(_one, p);
+
+							for (; (i + 4uz) < end; i += 4uz)
+							{
+								//Set Values
+								_source = _mm_load_si128((__m128i*) & source[i]);
+
+								if constexpr (INSTR == tpa::bit_mod::SET)
+								{
+									_DESTi = _mm_or_si128(_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
+								{
+									_DESTi = tpa::simd::_mm_not_si128(_mm_and_si128(_source, _zero));
+								}//End if
+								else
+								{
+									[] <bool flag = false>()
+									{
+										static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int32_t / uint32_t>).");
+									}();
+								}//End else
+
+								//Store Result
+								_mm_store_si128((__m128i*) & source[i], _DESTi);
+							}//End for
+						}//End if
+#endif
+					}//End if
+#pragma endregion 
+#pragma region long
+					else if constexpr (std::is_same<T, int64_t>() || std::is_same<T, uint64_t>())
+					{
+#ifdef TPA_X86_64
+					if (tpa::hasAVX512)
+					{
+						const uint32_t p = static_cast<uint32_t>(pos);
+
+						__m512i _source, _DESTi;
+						const __m512i _zero = _mm512_setzero_si512();
+						const __m512i _one = _mm512_set1_epi64(1ll);
+						const __m512i _shifted_left = _mm512_slli_epi64(_one, p);
+
+						for (; (i + 8uz) < end; i += 8uz)
+						{
+							//Set Values
+							_source = _mm512_load_epi64(&source[i]);
+
+							if constexpr (INSTR == tpa::bit_mod::SET)
+							{
+								_DESTi = _mm512_or_si512(_shifted_left, _source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
+							{
+								_DESTi = tpa::simd::_mm512_not_si512(_mm512_and_si512(_source, _zero));
+							}//End if
+							else
+							{
+								[] <bool flag = false>()
+								{
+									static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int32_t / uint32_t>).");
+								}();
+							}//End else
+
+							//Store Result
+							_mm512_store_epi64(&source[i], _DESTi);
+						}//End for
+					}//End if hasAVX512
+					else if (tpa::hasAVX2)
+					{
+						const int32_t p = static_cast<int32_t>(pos);
+
+						__m256i _source, _DESTi;
+						const __m256i _zero = _mm256_setzero_si256();
+						const __m256i _one = _mm256_set1_epi64x(1ll);
+						const __m256i _shifted_left = _mm256_slli_epi64(_one, p);
+
+						for (; (i + 4uz) < end; i += 4uz)
+						{
+							//Set Values
+							_source = _mm256_load_si256((__m256i*) & source[i]);
+
+							if constexpr (INSTR == tpa::bit_mod::SET)
+							{
+								_DESTi = _mm256_or_si256(_shifted_left, _source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
+							{
+								_DESTi = tpa::simd::_mm256_not_si256(_mm256_and_si256(_source, _zero));
+							}//End if
+							else
+							{
+								[] <bool flag = false>()
+								{
+									static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int32_t / uint32_t>).");
+								}();
+							}//End else
+
+							//Store Result
+							_mm256_store_si256((__m256i*) & source[i], _DESTi);
+						}//End for
+					}//End if hasAVX2
+					else if (tpa::has_SSE2)
+					{
+						const int32_t p = static_cast<int32_t>(pos);
+
+						__m128i _source, _DESTi;
+						const __m128i _zero = _mm_setzero_si128();
+						const __m128i _one = _mm_set1_epi64x(1ll);
+						const __m128i _shifted_left = _mm_slli_epi64(_one, p);
+
+						for (; (i + 2uz) < end; i += 2uz)
+						{
+							//Set Values
+							_source = _mm_load_si128((__m128i*) & source[i]);
+
+							if constexpr (INSTR == tpa::bit_mod::SET)
+							{
+								_DESTi = _mm_or_si128(_shifted_left, _source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
+							{
+								_DESTi = tpa::simd::_mm_not_si128(_mm_and_si128(_source, _zero));
+							}//End if
+							else
+							{
+								[] <bool flag = false>()
+								{
+									static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int32_t / uint32_t>).");
+								}();
+							}//End else
+
+							//Store Result
+							_mm_store_si128((__m128i*) & source[i], _DESTi);
+						}//End for
+					}//End if
+#endif
+					}//End if
+#pragma endregion
+#pragma region float
+					else if constexpr (std::is_same<T, float>())
+					{
+#ifdef TPA_X86_64
+					if (tpa::hasAVX512)
+					{
+						const uint32_t p = static_cast<uint32_t>(pos);
+
+						__m512i _source, _DESTi;
+						const __m512i _zero = _mm512_setzero_si512();
+						const __m512i _one = _mm512_set1_epi32(1);
+						const __m512i _shifted_left = _mm512_slli_epi32(_one, p);
+
+						for (; (i + 16uz) < end; i += 16uz)
+						{
+							//Set Values
+							_source = _mm512_castps_si512(_mm512_load_ps(&source[i]));
+
+							if constexpr (INSTR == tpa::bit_mod::SET)
+							{
+								_DESTi = _mm512_or_si512(_shifted_left, _source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
+							{
+								_DESTi = tpa::simd::_mm512_not_si512(_mm512_and_si512(_source, _zero));
+							}//End if
+							else
+							{
+								[] <bool flag = false>()
+								{
+									static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int32_t / uint32_t>).");
+								}();
+							}//End else
+
+							//Store Result
+							_mm512_store_ps(&source[i], _mm512_castsi512_ps(_DESTi));
+						}//End for
+					}//End if hasAVX512
+					else if (tpa::hasAVX2)
+					{
+						const int32_t p = static_cast<int32_t>(pos);
+
+						__m256i _source, _DESTi;
+						const __m256i _zero = _mm256_setzero_si256();
+						const __m256i _one = _mm256_set1_epi32(1);
+						const __m256i _shifted_left = _mm256_slli_epi32(_one, p);
+
+						for (; (i + 8uz) < end; i += 8uz)
+						{
+							//Set Values
+							_source = _mm256_castps_si256(_mm256_load_ps(&source[i]));
+
+							if constexpr (INSTR == tpa::bit_mod::SET)
+							{
+								_DESTi = _mm256_or_si256(_shifted_left, _source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
+							{
+								_DESTi = tpa::simd::_mm256_not_si256(_mm256_and_si256(_source, _zero));
+							}//End if
+							else
+							{
+								[] <bool flag = false>()
+								{
+									static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int32_t / uint32_t>).");
+								}();
+							}//End else
+
+							//Store Result
+							_mm256_store_ps(&source[i], _mm256_castsi256_ps(_DESTi));
+						}//End for
+					}//End if hasAVX2
+					else if (tpa::has_SSE2)
+					{
+						const int32_t p = static_cast<int32_t>(pos);
+
+						__m128i _source, _DESTi;
+						const __m128i _zero = _mm_setzero_si128();
+						const __m128i _one = _mm_set1_epi32(1);
+						const __m128i _shifted_left = _mm_slli_epi32(_one, p);
+
+						for (; (i + 4uz) < end; i += 4uz)
+						{
+							//Set Values
+							_source = _mm_castps_si128(_mm_load_ps( &source[i]));
+
+							if constexpr (INSTR == tpa::bit_mod::SET)
+							{
+								_DESTi = _mm_or_si128(_shifted_left, _source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
+							{
+								_DESTi = tpa::simd::_mm_not_si128(_mm_and_si128(_source, _zero));
+							}//End if
+							else
+							{
+								[] <bool flag = false>()
+								{
+									static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int32_t / uint32_t>).");
+								}();
+							}//End else
+
+							//Store Result
+							_mm_store_ps(&source[i], _mm_castsi128_ps(_DESTi));
+						}//End for
+					}//End if
+#endif
+					}//End if
+#pragma endregion
+#pragma region double
+					else if constexpr (std::is_same<T, double>())
+					{
+#ifdef TPA_X86_64
+					if (tpa::hasAVX512)
+					{
+						const uint32_t p = static_cast<uint32_t>(pos);
+
+						__m512i _source, _DESTi;
+						const __m512i _zero = _mm512_setzero_si512();
+						const __m512i _one = _mm512_set1_epi64(1ll);
+						const __m512i _shifted_left = _mm512_slli_epi64(_one, p);
+
+						for (; (i + 8uz) < end; i += 8uz)
+						{
+							//Set Values
+							_source = _mm512_castpd_si512(_mm512_load_pd(&source[i]));
+
+							if constexpr (INSTR == tpa::bit_mod::SET)
+							{
+								_DESTi = _mm512_or_si512(_shifted_left, _source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
+							{
+								_DESTi = tpa::simd::_mm512_not_si512(_mm512_and_si512(_source, _zero));
+							}//End if
+							else
+							{
+								[] <bool flag = false>()
+								{
+									static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int32_t / uint32_t>).");
+								}();
+							}//End else
+
+							//Store Result
+							_mm512_store_pd(&source[i], _mm512_castsi512_pd(_DESTi));
+						}//End for
+					}//End if hasAVX512
+					else if (tpa::hasAVX2)
+					{
+						const int32_t p = static_cast<int32_t>(pos);
+
+						__m256i _source, _DESTi;
+						const __m256i _zero = _mm256_setzero_si256();
+						const __m256i _one = _mm256_set1_epi64x(1ll);
+						const __m256i _shifted_left = _mm256_slli_epi64(_one, p);
+
+						for (; (i + 4uz) < end; i += 4uz)
+						{
+							//Set Values
+							_source = _mm256_castpd_si256(_mm256_load_pd(&source[i]));
+
+							if constexpr (INSTR == tpa::bit_mod::SET)
+							{
+								_DESTi = _mm256_or_si256(_shifted_left, _source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
+							{
+								_DESTi = tpa::simd::_mm256_not_si256(_mm256_and_si256(_source, _zero));
+							}//End if
+							else
+							{
+								[] <bool flag = false>()
+								{
+									static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int32_t / uint32_t>).");
+								}();
+							}//End else
+
+							//Store Result
+							_mm256_store_pd(&source[i], _mm256_castsi256_pd(_DESTi));
+						}//End for
+					}//End if hasAVX2
+					else if (tpa::has_SSE2)
+					{
+						const int32_t p = static_cast<int32_t>(pos);
+
+						__m128i _source, _DESTi;
+						const __m128i _zero = _mm_setzero_si128();
+						const __m128i _one = _mm_set1_epi64x(1ll);
+						const __m128i _shifted_left = _mm_slli_epi64(_one, p);
+
+						for (; (i + 2uz) < end; i += 2uz)
+						{
+							//Set Values
+							_source = _mm_castpd_si128(_mm_load_pd(&source[i]));
+
+							if constexpr (INSTR == tpa::bit_mod::SET)
+							{
+								_DESTi = _mm_or_si128(_shifted_left, _source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
+							{
+								_DESTi = tpa::simd::_mm_not_si128(_mm_and_si128(_source, _zero));
+							}//End if
+							else
+							{
+								[] <bool flag = false>()
+								{
+									static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int32_t / uint32_t>).");
+								}();
+							}//End else
+
+							//Store Result
+							_mm_store_pd(&source[i], _mm_castsi128_pd(_DESTi));
+						}//End for
+					}//End if
 #endif
 					}//End if
 #pragma endregion
@@ -2525,6 +2994,59 @@ namespace bit_manip {
 									static_assert(flag, "Non-standard types are not supported.");
 								}();
 							}//End else
+						}//End if
+						else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
+						{
+							if constexpr (std::is_integral<T>())
+							{
+								source[i] = ~(source[i] & 0ll);
+							}//End if
+							else if constexpr (std::is_same<T, float>())
+							{
+								int32_t x_as_int = *reinterpret_cast<int32_t*>(&source[i]);
+
+								x_as_int = ~(x_as_int & 0ll);
+
+								source[i] = *reinterpret_cast<float*>(&x_as_int);
+							}//End if
+							else if constexpr (std::is_same<T, double>())
+							{
+								int64_t x_as_int = *reinterpret_cast<int64_t*>(&source[i]);
+
+								x_as_int = ~(x_as_int & 0ll);
+
+								source[i] = *reinterpret_cast<double*>(&x_as_int);
+							}//End if
+							else
+							{
+								[] <bool flag = false>()
+								{
+									static_assert(flag, "Non-standard types are not supported.");
+								}();
+							}//End else
+						}//End if
+						else if constexpr (INSTR == tpa::bit_mod::CLEAR)
+						{
+							if constexpr (std::is_integral<T>())
+							{
+								source[i] = ~(1ull << pos) & source[i];
+							}//End if
+							else if constexpr (std::is_same<T, float>())
+							{
+								int32_t x_as_int = *reinterpret_cast<int32_t*>(&source[i]);
+
+								x_as_int = ~(1ull << pos) & x_as_int;
+
+								source[i] = *reinterpret_cast<float*>(&x_as_int);
+							}//End if
+							else if constexpr (std::is_same<T, double>())
+							{
+								int64_t x_as_int = *reinterpret_cast<int64_t*>(&source[i]);
+
+								x_as_int = ~(1ull << pos) & x_as_int;
+
+								source[i] = *reinterpret_cast<double*>(&x_as_int);
+							}//End if
 						}//End if
 						else
 						{
