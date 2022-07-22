@@ -36,7 +36,7 @@
 /// <para>Version 0.1</para> 
 /// </summary>
 namespace tpa {
-	static const uint32_t nThreads = std::thread::hardware_concurrency();
+	static const uint64_t nThreads = static_cast<uint64_t>(std::thread::hardware_concurrency());
 }//End of namespace
 
 /// <summary>
@@ -44,7 +44,7 @@ namespace tpa {
 /// </summary>
 namespace tpa_thread_pool_private {
 
-#if defined(_WIN32) && defined(TPA_X86_64) && !defined(USE_GENERIC_THREAD_POOL)
+#if defined(_MSC_VER) && defined(TPA_X86_64) && !defined(USE_GENERIC_THREAD_POOL)
 #include <Windows.h>
 	//Note: Many win32 api declspec types cannot be a member of a class
 	//Note: queue must be outside class or causes access violation
@@ -77,7 +77,7 @@ namespace tpa_thread_pool_private {
 		ThreadPool(ThreadPool&&) = delete;
 		ThreadPool& operator=(ThreadPool&&) = delete;
 
-#if defined(_WIN32) && defined(TPA_X86_64) && !defined(USE_GENERIC_THREAD_POOL)
+#if defined(_MSC_VER) && defined(TPA_X86_64) && !defined(USE_GENERIC_THREAD_POOL)
 
 	//Windows Implementation
 	private:
@@ -114,7 +114,7 @@ namespace tpa_thread_pool_private {
 					t();
 				}//End if
 			}//End infinite for
-			return 0;
+			return 0ul;
 		}//End of perfromTask()
 
 		/// <summary>
