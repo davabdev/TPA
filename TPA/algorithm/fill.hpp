@@ -50,9 +50,11 @@ namespace tpa {
     inline constexpr void fill(CONTAINER& arr, const T val, size_t item_count = 0)
         requires tpa::util::contiguous_seqeunce<CONTAINER>
     {
+        using CONTAINER_TYPE = CONTAINER::value_type;
+
         try
         {
-            static_assert(std::is_same<CONTAINER::value_type, T>() == true, "Compile Error! The container must be of the same value type as the supplied value!");
+            static_assert(std::is_same<CONTAINER_TYPE, T>(), "Compile Error! The container must be of the same value type as the supplied value!");
 
             //Prevent overflow
             if (item_count <= 0 || item_count > arr.size())
