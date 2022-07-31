@@ -80,7 +80,7 @@ namespace tpa {
                         const size_t end = sec.second;
                         size_t i = beg;
 #pragma region byte
-                        if constexpr (std::is_same<T, int8_t>() == true)
+                        if constexpr (std::is_same<T, int8_t>())
                         {
                             /*
                             const __m256i _Val = _mm256_set1_epi8(static_cast<int8_t>(val));
@@ -105,7 +105,7 @@ namespace tpa {
                         }//End if
 #pragma endregion
 #pragma region unsigned byte
-                        else if constexpr (std::is_same<T, uint8_t>() == true)
+                        else if constexpr (std::is_same<T, uint8_t>())
                         {
                             /*
                             const __m256i _Val = _mm256_set1_epi8(static_cast<uint8_t>(val));
@@ -136,20 +136,38 @@ namespace tpa {
                         }//End if
 #pragma endregion
 #pragma region short
-                        else if constexpr (std::is_same<T, int16_t>() == true)
+                        else if constexpr (std::is_same<T, int16_t>())
                         {
 #ifdef TPA_X86_64
-                            if (tpa::hasAVX2)
+                            if (tpa::hasAVX512)
+                            {
+                                const __m512i _Val = _mm512_set1_epi16(static_cast<int16_t>(val));
+
+                                for (; (i + 32uz) < end; i += 32uz)
+                                {
+                                    _mm512_store_si512(&arr[i], _Val);
+                                }//End for
+                            }//End if hasAVX512
+                            else if (tpa::hasAVX2)
                             {
                                 const __m256i _Val = _mm256_set1_epi16(static_cast<int16_t>(val));
 
-                                for (; i + 16 < end; i += 16)
+                                for (; (i + 16uz) < end; i += 16uz)
                                 {
-                                    _mm256_store_si256((__m256i*) & arr[i], _Val);
+                                    _mm256_store_si256((__m256i*) &arr[i], _Val);
+                                }//End for
+                            }//End if hasAVX2
+                            else if (tpa::has_SSE2)
+                            {
+                                const __m128i _Val = _mm_set1_epi16(static_cast<int16_t>(val));
+
+                                for (; (i + 8uz) < end; i += 8uz)
+                                {
+                                    _mm_store_si128((__m128i*) &arr[i], _Val);
                                 }//End for
                             }//End if hasAVX2
 #endif
-                        //Finish leftovers
+                            //Finish leftovers
                             for (; i != end; ++i)
                             {
                                 arr[i] = val;
@@ -157,14 +175,23 @@ namespace tpa {
                         }//End if
 #pragma endregion
 #pragma region unsigned short
-                        else if constexpr (std::is_same<T, uint16_t>() == true)
+                        else if constexpr (std::is_same<T, uint16_t>())
                         {
 #ifdef _MSC_VER
                             __stosw(reinterpret_cast<uint16_t*>(&arr[i]), val, end - i);
 #else
 
 #ifdef TPA_X86_64
-                            if (tpa::hasAVX2)
+                            if (tpa::hasAVX512)
+                            {
+                                const __m512i _Val = _mm512_set1_epi16(static_cast<uint16_t>(val));
+
+                                for (; (i + 32uz) < end; i += 32uz)
+                                {
+                                    _mm512_store_si512(&arr[i], _Val);
+                                }//End for
+                            }//End if hasAVX512
+                            else if (tpa::hasAVX2)
                             {
                                 const __m256i _Val = _mm256_set1_epi16(static_cast<uint16_t>(val));
 
@@ -173,8 +200,17 @@ namespace tpa {
                                     _mm256_store_si256((__m256i*) & arr[i], _Val);
                                 }//End for
                             }//End if hasAVX2
+                            else if (tpa::has_SSE2)
+                            {
+                                const __m128i _Val = _mm_set1_epi16(static_cast<uint16_t>(val));
+
+                                for (; (i + 8uz) < end; i += 8uz)
+                                {
+                                    _mm_store_si128((__m128i*) & arr[i], _Val);
+                                }//End for
+                            }//End if hasAVX2
 #endif
-                        //Finish leftovers
+                            //Finish leftovers
                             for (; i != end; ++i)
                             {
                                 arr[i] = val;
@@ -183,18 +219,36 @@ namespace tpa {
                         }//End if
 #pragma endregion
 #pragma region int
-                        else if constexpr (std::is_same<T, int32_t>() == true)
+                        else if constexpr (std::is_same<T, int32_t>())
                         {
-#ifdef _M_AMD64
+#ifdef TPA_X86_64
+                            if (tpa::hasAVX512)
+                            {
+                                const __m512i _Val = _mm512_set1_epi32(static_cast<int32_t>(val));
+
+                                for (; (i + 16uz) < end; i += 16uz)
+                                {
+                                    _mm512_store_si512(&arr[i], _Val);
+                                }//End for
+                            }//End if hasAVX512
                             if (tpa::hasAVX2)
                             {
                                 const __m256i _Val = _mm256_set1_epi32(static_cast<int32_t>(val));
 
-                                for (; i + 8 < end; i += 8)
+                                for (; (i + 8uz) < end; i += 8uz)
                                 {
                                     _mm256_store_si256((__m256i*) & arr[i], _Val);
                                 }//End for
                             }//End if hasAVX2
+                            else if (tpa::has_SSE2)
+                            {
+                                const __m128i _Val = _mm_set1_epi32(static_cast<int32_t>(val));
+
+                                for (; (i + 4uz) < end; i += 4uz)
+                                {
+                                    _mm_store_si128((__m128i*) & arr[i], _Val);
+                                }//End for
+                            }//End if hasSSE
 #endif
                         //Finish leftovers
                             for (; i != end; ++i)
@@ -204,23 +258,41 @@ namespace tpa {
                         }//End if
 #pragma endregion
 #pragma region unsigned int
-                        else if constexpr (std::is_same<T, uint32_t>() == true)
+                        else if constexpr (std::is_same<T, uint32_t>())
                         {
 #ifdef _MSC_VER
                             __stosd(reinterpret_cast<unsigned long*>(&arr[i]), val, end - i);
 #else
 #ifdef TPA_X86_64
-                            if (tpa::hasAVX2)
+                            if (tpa::hasAVX512)
+                            {
+                                const __m512i _Val = _mm512_set1_epi32(static_cast<uint32_t>(val));
+
+                                for (; (i + 16uz) < end; i += 16uz)
+                                {
+                                    _mm512_store_si512(&arr[i], _Val);
+                                }//End for
+                            }//End if hasAVX512
+                            else if (tpa::hasAVX2)
                             {
                                 const __m256i _Val = _mm256_set1_epi32(static_cast<uint32_t>(val));
 
-                                for (; i + 8 < end; i += 8)
+                                for (; (i + 8uz) < end; i += 8uz)
                                 {
                                     _mm256_store_si256((__m256i*) & arr[i], _Val);
                                 }//End for
                             }//End if haxAVX2
+                            else if (tpa::has_SSE2)
+                            {
+                                const __m128i _Val = _mm_set1_epi32(static_cast<uint32_t>(val));
+
+                                for (; (i + 4uz) < end; i += 4uz)
+                                {
+                                    _mm_store_si128((__m128i*) & arr[i], _Val);
+                                }//End for
+                            }//End if hasSSE
 #endif
-                        //Finish leftovers
+                            //Finish leftovers
                             for (; i != end; ++i)
                             {
                                 arr[i] = val;
@@ -229,18 +301,36 @@ namespace tpa {
                         }//End if
 #pragma endregion
 #pragma region long
-                        else if constexpr (std::is_same<T, int64_t>() == true)
+                        else if constexpr (std::is_same<T, int64_t>())
                         {
 #ifdef TPA_X86_64
-                            if (tpa::hasAVX2)
+                            if (tpa::hasAVX512)
+                            {
+                                const __m512i _Val = _mm512_set1_epi64(static_cast<int64_t>(val));
+
+                                for (; (i + 8uz) < end; i += 8uz)
+                                {
+                                    _mm512_store_si512(&arr[i], _Val);
+                                }//End for
+                            }//End if hasAVX512
+                            else if (tpa::hasAVX2)
                             {
                                 const __m256i _Val = _mm256_set1_epi64x(static_cast<int64_t>(val));
 
-                                for (; i + 4 < end; i += 4)
+                                for (; (i + 4uz) < end; i += 4uz)
                                 {
                                     _mm256_store_si256((__m256i*) & arr[i], _Val);
                                 }//End for
                             }//End if hasAVX2
+                            else if (tpa::has_SSE2)
+                            {
+                                const __m128i _Val = _mm_set1_epi64x(static_cast<int64_t>(val));
+
+                                for (; (i + 2uz) < end; i += 2uz)
+                                {
+                                    _mm_store_si128((__m128i*) & arr[i], _Val);
+                                }//End for
+                            }//End if hasSSE
 #endif 
                         //Finish leftovers
                             for (; i != end; ++i)
@@ -250,21 +340,39 @@ namespace tpa {
                         }//End if
 #pragma endregion
 #pragma region unsigned long
-                        else if constexpr (std::is_same<T, uint64_t>() == true)
+                        else if constexpr (std::is_same<T, uint64_t>())
                         {
 #ifdef _MSC_VER
                             __stosq(reinterpret_cast<uint64_t*>(&arr[i]), val, end - i);
 #else
 #ifdef TPA_X86_64
-                            if (tpa::hasAVX2)
+                            if (tpa::hasAVX512)
+                            {
+                                const __m512i _Val = _mm512_set1_epi64(static_cast<uint64_t>(val));
+
+                                for (; (i + 8uz) < end; i += 8uz)
+                                {
+                                    _mm512_store_si512(&arr[i], _Val);
+                                }//End for
+                            }//End if hasAVX512
+                            else if (tpa::hasAVX2)
                             {
                                 const __m256i _Val = _mm256_set1_epi64x(static_cast<uint64_t>(val));
 
-                                for (; i + 4 < end; i += 4)
+                                for (; (i + 4uz) < end; i += 4uz)
                                 {
                                     _mm256_store_si256((__m256i*) & arr[i], _Val);
                                 }//End for
                             }//End if hasAVX2
+                            else if (tpa::has_SSE2)
+                            {
+                                const __m128i _Val = _mm_set1_epi64x(static_cast<uint64_t>(val));
+
+                                for (; (i + 2uz) < end; i += 2uz)
+                                {
+                                    _mm_store_si128((__m128i*) & arr[i], _Val);
+                                }//End for
+                            }//End if hasSSE
 #endif
                         //Finish leftovers
                             for (; i != end; ++i)
@@ -275,18 +383,36 @@ namespace tpa {
                         }//End if
 #pragma endregion
 #pragma region float
-                        else if constexpr (std::is_same < T, float >() == true)
+                        else if constexpr (std::is_same < T, float >())
                         {
 #ifdef TPA_X86_64
-                            if (tpa::hasAVX)
+                            if (tpa::hasAVX512)
+                            {
+                                const __m512 _Val = _mm512_set1_ps(static_cast<float>(val));
+
+                                for (; (i + 16uz) < end; i += 16uz)
+                                {
+                                    _mm512_store_ps(&arr[i], _Val);
+                                }//End for
+                            }//End if hasAVX512
+                            else if (tpa::hasAVX)
                             {
                                 const __m256 _Val = _mm256_set1_ps(static_cast<float>(val));
 
-                                for (; i + 8 < end; i += 8)
+                                for (; (i + 8uz) < end; i += 8uz)
                                 {
                                     _mm256_store_ps(&arr[i], _Val);
                                 }//End for
                             }//End if
+                            else if (tpa::has_SSE)
+                            {
+                                const __m128 _Val = _mm_set1_ps(static_cast<float>(val));
+
+                                for (; (i + 4uz) < end; i += 4uz)
+                                {
+                                    _mm_store_ps(&arr[i], _Val);
+                                }//End for
+                            }//End if hasSSE
 #endif
                         //Finish leftovers
                             for (; i != end; ++i)
@@ -296,18 +422,36 @@ namespace tpa {
                         }//End if
 #pragma endregion
 #pragma region double
-                        else if constexpr (std::is_same <T, double>() == true)
+                        else if constexpr (std::is_same <T, double>())
                         {
 #ifdef TPA_X86_64
-                            if (tpa::hasAVX)
+                            if (tpa::hasAVX512)
+                            {
+                                const __m512d _Val = _mm512_set1_pd(static_cast<double>(val));
+
+                                for (; (i + 8uz) < end; i += 8uz)
+                                {
+                                    _mm512_store_pd(&arr[i], _Val);
+                                }//End for
+                            }//End if hasAVX512
+                            else if (tpa::hasAVX)
                             {
                                 const __m256d _Val = _mm256_set1_pd(static_cast<double>(val));
 
-                                for (; i + 4 < end; i += 4)
+                                for (; (i + 4uz) < end; i += 4uz)
                                 {
                                     _mm256_store_pd(&arr[i], _Val);
                                 }//End for
                             }//End if hasAVX2
+                            else if (tpa::has_SSE2)
+                            {
+                                const __m128d _Val = _mm_set1_pd(static_cast<double> (val));
+
+                                for (; (i + 2uz) < end; i += 2uz)
+                                {
+                                    _mm_store_pd(&arr[i], _Val);
+                                }//End for
+                            }//End if hasSSE2
 #endif
                         //Finish leftovers
                             for (; i != end; ++i)
