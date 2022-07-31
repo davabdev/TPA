@@ -2410,6 +2410,7 @@ namespace bit_manip {
 							__m512i _source, _DESTi;
 							const __m512i _zero = _mm512_setzero_si512();
 							const __m512i _one = _mm512_set1_epi16(static_cast<int16_t>(1));
+							const __m512i _max = _mm512_set1_epi16(std::numeric_limits<uint16_t>::max());
 							const __m512i _shifted_left = _mm512_slli_epi16(_one, p);
 							const __m512i _not_shifted_left = tpa::simd::_mm512_not_si512(_shifted_left);
 
@@ -2424,12 +2425,16 @@ namespace bit_manip {
 								}//End if
 								else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
 								{
-									_DESTi = tpa::simd::_mm512_not_si512(_mm512_and_si512(_source, _zero));
+									_DESTi = _max;
 								}//End if
 								else if constexpr (INSTR == tpa::bit_mod::CLEAR)
 								{
 									//~(1ull << pos) & source[i]
 									_DESTi = _mm512_and_si512(_not_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
+								{
+									_DESTi = _zero;
 								}//End if
 								else
 								{
@@ -2450,6 +2455,7 @@ namespace bit_manip {
 							__m256i _source, _DESTi;
 							const __m256i _zero = _mm256_setzero_si256();
 							const __m256i _one = _mm256_set1_epi16(static_cast<int16_t>(1));
+							const __m256i _max = _mm256_set1_epi16(std::numeric_limits<uint16_t>::max());
 							const __m256i _shifted_left = _mm256_slli_epi16(_one, p);	
 							const __m256i _not_shifted_left = tpa::simd::_mm256_not_si256(_shifted_left);
 
@@ -2464,12 +2470,16 @@ namespace bit_manip {
 								}//End if
 								else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
 								{
-									_DESTi = tpa::simd::_mm256_not_si256(_mm256_and_si256(_source, _zero));
+									_DESTi = _max;
 								}//End if
 								else if constexpr (INSTR == tpa::bit_mod::CLEAR)
 								{
 									//~(1ull << pos) & source[i]
 									_DESTi = _mm256_and_si256(_not_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
+								{
+									_DESTi = _zero;
 								}//End if
 								else
 								{
@@ -2490,6 +2500,7 @@ namespace bit_manip {
 							__m128i _source, _DESTi;
 							const __m128i _zero = _mm_setzero_si128();
 							const __m128i _one = _mm_set1_epi16(static_cast<int16_t>(1));
+							const __m128i _max = _mm_set1_epi16(std::numeric_limits<uint16_t>::max());
 							const __m128i _shifted_left = _mm_slli_epi16(_one, p);	
 							const __m128i _not_shifted_left = tpa::simd::_mm_not_si128(_shifted_left);
 
@@ -2504,12 +2515,16 @@ namespace bit_manip {
 								}//End if
 								else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
 								{
-									_DESTi = tpa::simd::_mm_not_si128(_mm_and_si128(_source, _zero));
+									_DESTi = _max;
 								}//End if
 								else if constexpr (INSTR == tpa::bit_mod::CLEAR)
 								{
 									//~(1ull << pos) & source[i]
 									_DESTi = _mm_and_si128(_not_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
+								{
+									_DESTi = _zero;
 								}//End if
 								else
 								{
@@ -2537,7 +2552,9 @@ namespace bit_manip {
 							__m512i _source, _DESTi;
 							const __m512i _zero = _mm512_setzero_si512();
 							const __m512i _one = _mm512_set1_epi32(1);
+							const __m512i _max = _mm512_set1_epi32(std::numeric_limits<uint32_t>::max());
 							const __m512i _shifted_left = _mm512_slli_epi32(_one, p);
+							const __m512i _not_shifted_left = tpa::simd::_mm512_not_si512(_shifted_left);
 
 							for (; (i + 16uz) < end; i += 16uz)
 							{
@@ -2550,7 +2567,16 @@ namespace bit_manip {
 								}//End if
 								else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
 								{
-									_DESTi = tpa::simd::_mm512_not_si512(_mm512_and_si512(_source, _zero));
+									_DESTi = _max;
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR)
+								{
+									//~(1ull << pos) & source[i]
+									_DESTi = _mm512_and_si512(_not_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
+								{
+									_DESTi = _zero;
 								}//End if
 								else
 								{
@@ -2571,7 +2597,9 @@ namespace bit_manip {
 							__m256i _source, _DESTi;
 							const __m256i _zero = _mm256_setzero_si256();
 							const __m256i _one = _mm256_set1_epi32(1);
+							const __m256i _max = _mm256_set1_epi32(std::numeric_limits<uint32_t>::max());
 							const __m256i _shifted_left = _mm256_slli_epi32(_one, p);
+							const __m256i _not_shifted_left = tpa::simd::_mm256_not_si256(_shifted_left);
 
 							for (; (i + 8uz) < end; i += 8uz)
 							{
@@ -2584,7 +2612,16 @@ namespace bit_manip {
 								}//End if
 								else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
 								{
-									_DESTi = tpa::simd::_mm256_not_si256(_mm256_and_si256(_source, _zero));
+									_DESTi = _max;
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR)
+								{
+									//~(1ull << pos) & source[i]
+									_DESTi = _mm256_and_si256(_not_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
+								{
+									_DESTi = _zero;
 								}//End if
 								else
 								{
@@ -2605,7 +2642,9 @@ namespace bit_manip {
 							__m128i _source, _DESTi;
 							const __m128i _zero = _mm_setzero_si128();
 							const __m128i _one = _mm_set1_epi32(1);
+							const __m128i _max = _mm_set1_epi32(std::numeric_limits<uint32_t>::max());
 							const __m128i _shifted_left = _mm_slli_epi32(_one, p);
+							const __m128i _not_shifted_left = tpa::simd::_mm_not_si128(_shifted_left);
 
 							for (; (i + 4uz) < end; i += 4uz)
 							{
@@ -2618,7 +2657,16 @@ namespace bit_manip {
 								}//End if
 								else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
 								{
-									_DESTi = tpa::simd::_mm_not_si128(_mm_and_si128(_source, _zero));
+									_DESTi = _max;
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR)
+								{
+									//~(1ull << pos) & source[i]
+									_DESTi = _mm_and_si128(_not_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
+								{
+									_DESTi = _zero;
 								}//End if
 								else
 								{
@@ -2646,7 +2694,9 @@ namespace bit_manip {
 						__m512i _source, _DESTi;
 						const __m512i _zero = _mm512_setzero_si512();
 						const __m512i _one = _mm512_set1_epi64(1ll);
+						const __m512i _max = _mm512_set1_epi64(std::numeric_limits<uint64_t>::max());
 						const __m512i _shifted_left = _mm512_slli_epi64(_one, p);
+						const __m512i _not_shifted_left = tpa::simd::_mm512_not_si512(_shifted_left);
 
 						for (; (i + 8uz) < end; i += 8uz)
 						{
@@ -2659,7 +2709,16 @@ namespace bit_manip {
 							}//End if
 							else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
 							{
-								_DESTi = tpa::simd::_mm512_not_si512(_mm512_and_si512(_source, _zero));
+								_DESTi = _max;
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::CLEAR)
+							{
+								//~(1ull << pos) & source[i]
+								_DESTi = _mm512_and_si512(_not_shifted_left, _source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
+							{
+								_DESTi = _zero;
 							}//End if
 							else
 							{
@@ -2680,7 +2739,9 @@ namespace bit_manip {
 						__m256i _source, _DESTi;
 						const __m256i _zero = _mm256_setzero_si256();
 						const __m256i _one = _mm256_set1_epi64x(1ll);
+						const __m256i _max = _mm256_set1_epi64x(std::numeric_limits<uint64_t>::max());
 						const __m256i _shifted_left = _mm256_slli_epi64(_one, p);
+						const __m256i _not_shifted_left = tpa::simd::_mm256_not_si256(_shifted_left);
 
 						for (; (i + 4uz) < end; i += 4uz)
 						{
@@ -2693,7 +2754,16 @@ namespace bit_manip {
 							}//End if
 							else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
 							{
-								_DESTi = tpa::simd::_mm256_not_si256(_mm256_and_si256(_source, _zero));
+								_DESTi = _max;
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::CLEAR)
+							{
+								//~(1ull << pos) & source[i]
+								_DESTi = _mm256_and_si256(_not_shifted_left, _source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
+							{
+								_DESTi = _zero;
 							}//End if
 							else
 							{
@@ -2714,7 +2784,9 @@ namespace bit_manip {
 						__m128i _source, _DESTi;
 						const __m128i _zero = _mm_setzero_si128();
 						const __m128i _one = _mm_set1_epi64x(1ll);
-						const __m128i _shifted_left = _mm_slli_epi64(_one, p);
+						const __m128i _max = _mm_set1_epi64x(std::numeric_limits<uint64_t>::max());
+						const __m128i _shifted_left = _mm_slli_epi32(_one, p);
+						const __m128i _not_shifted_left = tpa::simd::_mm_not_si128(_shifted_left);
 
 						for (; (i + 2uz) < end; i += 2uz)
 						{
@@ -2727,7 +2799,16 @@ namespace bit_manip {
 							}//End if
 							else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
 							{
-								_DESTi = tpa::simd::_mm_not_si128(_mm_and_si128(_source, _zero));
+								_DESTi = _max;
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::CLEAR)
+							{
+								//~(1ull << pos) & source[i]
+								_DESTi = _mm_and_si128(_not_shifted_left, _source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
+							{
+								_DESTi = _zero;
 							}//End if
 							else
 							{
@@ -2755,7 +2836,9 @@ namespace bit_manip {
 						__m512i _source, _DESTi;
 						const __m512i _zero = _mm512_setzero_si512();
 						const __m512i _one = _mm512_set1_epi32(1);
+						const __m512i _max = _mm512_set1_epi32(std::numeric_limits<uint32_t>::max());
 						const __m512i _shifted_left = _mm512_slli_epi32(_one, p);
+						const __m512i _not_shifted_left = tpa::simd::_mm512_not_si512(_shifted_left);
 
 						for (; (i + 16uz) < end; i += 16uz)
 						{
@@ -2768,7 +2851,16 @@ namespace bit_manip {
 							}//End if
 							else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
 							{
-								_DESTi = tpa::simd::_mm512_not_si512(_mm512_and_si512(_source, _zero));
+								_DESTi = _max;
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::CLEAR)
+							{
+								//~(1ull << pos) & source[i]
+								_DESTi = _mm512_and_si512(_not_shifted_left, _source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
+							{
+								_DESTi = _zero;
 							}//End if
 							else
 							{
@@ -2789,7 +2881,9 @@ namespace bit_manip {
 						__m256i _source, _DESTi;
 						const __m256i _zero = _mm256_setzero_si256();
 						const __m256i _one = _mm256_set1_epi32(1);
+						const __m256i _max = _mm256_set1_epi32(std::numeric_limits<uint32_t>::max());
 						const __m256i _shifted_left = _mm256_slli_epi32(_one, p);
+						const __m256i _not_shifted_left = tpa::simd::_mm256_not_si256(_shifted_left);
 
 						for (; (i + 8uz) < end; i += 8uz)
 						{
@@ -2802,7 +2896,16 @@ namespace bit_manip {
 							}//End if
 							else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
 							{
-								_DESTi = tpa::simd::_mm256_not_si256(_mm256_and_si256(_source, _zero));
+								_DESTi = _max;
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::CLEAR)
+							{
+								//~(1ull << pos) & source[i]
+								_DESTi = _mm256_and_si256(_not_shifted_left, _source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
+							{
+								_DESTi = _zero;
 							}//End if
 							else
 							{
@@ -2823,7 +2926,9 @@ namespace bit_manip {
 						__m128i _source, _DESTi;
 						const __m128i _zero = _mm_setzero_si128();
 						const __m128i _one = _mm_set1_epi32(1);
+						const __m128i _max = _mm_set1_epi32(std::numeric_limits<uint32_t>::max());
 						const __m128i _shifted_left = _mm_slli_epi32(_one, p);
+						const __m128i _not_shifted_left = tpa::simd::_mm_not_si128(_shifted_left);
 
 						for (; (i + 4uz) < end; i += 4uz)
 						{
@@ -2836,7 +2941,16 @@ namespace bit_manip {
 							}//End if
 							else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
 							{
-								_DESTi = tpa::simd::_mm_not_si128(_mm_and_si128(_source, _zero));
+								_DESTi = _max;
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::CLEAR)
+							{
+								//~(1ull << pos) & source[i]
+								_DESTi = _mm_and_si128(_not_shifted_left, _source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
+							{
+								_DESTi = _zero;
 							}//End if
 							else
 							{
@@ -2864,7 +2978,9 @@ namespace bit_manip {
 						__m512i _source, _DESTi;
 						const __m512i _zero = _mm512_setzero_si512();
 						const __m512i _one = _mm512_set1_epi64(1ll);
+						const __m512i _max = _mm512_set1_epi64(std::numeric_limits<uint64_t>::max());
 						const __m512i _shifted_left = _mm512_slli_epi64(_one, p);
+						const __m512i _not_shifted_left = tpa::simd::_mm512_not_si512(_shifted_left);
 
 						for (; (i + 8uz) < end; i += 8uz)
 						{
@@ -2877,7 +2993,16 @@ namespace bit_manip {
 							}//End if
 							else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
 							{
-								_DESTi = tpa::simd::_mm512_not_si512(_mm512_and_si512(_source, _zero));
+								_DESTi = _max;
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::CLEAR)
+							{
+								//~(1ull << pos) & source[i]
+								_DESTi = _mm512_and_si512(_not_shifted_left, _source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
+							{
+								_DESTi = _zero;
 							}//End if
 							else
 							{
@@ -2898,7 +3023,9 @@ namespace bit_manip {
 						__m256i _source, _DESTi;
 						const __m256i _zero = _mm256_setzero_si256();
 						const __m256i _one = _mm256_set1_epi64x(1ll);
+						const __m256i _max = _mm256_set1_epi64x(std::numeric_limits<uint64_t>::max());
 						const __m256i _shifted_left = _mm256_slli_epi64(_one, p);
+						const __m256i _not_shifted_left = tpa::simd::_mm256_not_si256(_shifted_left);
 
 						for (; (i + 4uz) < end; i += 4uz)
 						{
@@ -2911,7 +3038,16 @@ namespace bit_manip {
 							}//End if
 							else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
 							{
-								_DESTi = tpa::simd::_mm256_not_si256(_mm256_and_si256(_source, _zero));
+								_DESTi = _max;
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::CLEAR)
+							{
+								//~(1ull << pos) & source[i]
+								_DESTi = _mm256_and_si256(_not_shifted_left, _source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
+							{
+								_DESTi = _zero;
 							}//End if
 							else
 							{
@@ -2933,6 +3069,9 @@ namespace bit_manip {
 						const __m128i _zero = _mm_setzero_si128();
 						const __m128i _one = _mm_set1_epi64x(1ll);
 						const __m128i _shifted_left = _mm_slli_epi64(_one, p);
+						const __m128i _max = _mm_set1_epi64x(std::numeric_limits<uint64_t>::max());
+						const __m128i _shifted_left = _mm_slli_epi32(_one, p);
+						const __m128i _not_shifted_left = tpa::simd::_mm_not_si128(_shifted_left);
 
 						for (; (i + 2uz) < end; i += 2uz)
 						{
@@ -2945,7 +3084,16 @@ namespace bit_manip {
 							}//End if
 							else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
 							{
-								_DESTi = tpa::simd::_mm_not_si128(_mm_and_si128(_source, _zero));
+								_DESTi = _max;
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::CLEAR)
+							{
+								//~(1ull << pos) & source[i]
+								_DESTi = _mm_and_si128(_not_shifted_left, _source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
+							{
+								_DESTi = _zero;
 							}//End if
 							else
 							{
@@ -3044,6 +3192,29 @@ namespace bit_manip {
 								int64_t x_as_int = *reinterpret_cast<int64_t*>(&source[i]);
 
 								x_as_int = ~(1ull << pos) & x_as_int;
+
+								source[i] = *reinterpret_cast<double*>(&x_as_int);
+							}//End if
+						}//End if
+						else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
+						{
+							if constexpr (std::is_integral<T>())
+							{
+								source[i] = static_cast<T>(0);
+							}//End if
+							else if constexpr (std::is_same<T, float>())
+							{
+								int32_t x_as_int = *reinterpret_cast<int32_t*>(&source[i]);
+
+								x_as_int = 0u;
+
+								source[i] = *reinterpret_cast<float*>(&x_as_int);
+							}//End if
+							else if constexpr (std::is_same<T, double>())
+							{
+								int64_t x_as_int = *reinterpret_cast<int64_t*>(&source[i]);
+
+								x_as_int = 0ull;
 
 								source[i] = *reinterpret_cast<double*>(&x_as_int);
 							}//End if
