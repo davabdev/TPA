@@ -90,8 +90,8 @@ Compiler Support as of 2022-07-08:
 
 *Building for x86 is not officially supported on any platform, it may work but I do not intend to support or make any considerations for 32-bit platforms.
 
-**Building for ARM-64 works, however very little NEON code is implemented at this time, so this library will only allow you to benefit from multi-threading as of 2021-11-15
+**Building for ARM-64 works, however very little NEON code is implemented at this time, so this library will only allow you to benefit from multi-threading as of 2022-07-30
 
 ***There will never be any support official or otherwise for building on ARM-32 as (eventually) NEON instructions will be a requirement of this library when building for ARM and there is no good way to detect the presence of the NEON instruction set extentions on ARM-32 at runtime, they are part of the base feature set of ARM-64.
 
-The Nvidia CUDA C++ Compiler still has zero C++20 support as of 2021-12-06. Until C++20 is avaialble on NVCC, there will be no support official or unofficial for compiling with NVCC whatsoever. 
+The Nvidia CUDA C++ Compiler still has zero C++20 support as of 2022-07-30. Until C++20 is avaialble on NVCC, there will be no support official or unofficial for compiling with NVCC whatsoever. 
