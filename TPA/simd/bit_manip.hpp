@@ -177,10 +177,12 @@ namespace tpa::bit_manip
 				T rev = 0;
 				size_t s = sizeof(T) * CHAR_BIT;
 
-				for (size_t i = 0uz; i < s; ++i, x >>= 1) 
+				while(s > 0)
 				{
 					rev = (rev << 1) | (x & 0x01);
-				}//End for
+					x >>= 1;
+					s -= 1uz;
+				}//End while
 
 				x = rev;
 			}//End if
@@ -188,13 +190,15 @@ namespace tpa::bit_manip
 			{
 				int32_t x_as_int = *reinterpret_cast<int32_t*>(&x);
 
-				T rev = 0;
+				int32_t rev = 0;
 				size_t s = sizeof(T) * CHAR_BIT;
 
-				for (size_t i = 0uz; i < s; ++i, x_as_int >>= 1)
+				while(s > 0)
 				{
-					rev = (rev << 1) | (x_as_int & 0x01);
-				}//End for
+					rev = (rev << 1) | (x_as_int & 1);
+					x_as_int >>= 1;
+					s -= 1uz;
+				}//End while
 
 				x = *reinterpret_cast<float*>(&rev);
 			}//End if
@@ -202,12 +206,14 @@ namespace tpa::bit_manip
 			{
 				int64_t x_as_int = *reinterpret_cast<int64_t*>(&x);
 
-				T rev = 0;
+				int64_t rev = 0ll;
 				size_t s = sizeof(T) * CHAR_BIT;
 
-				for (size_t i = 0uz; i < s; ++i, x_as_int >>= 1)
+				while(s > 0)
 				{
-					rev = (rev << 1) | (x_as_int & 0x01);
+					rev = (rev << 1ll) | (x_as_int & 1ll);
+					x_as_int >>= 1ll;
+					s -= 1uz;
 				}//End for
 
 				x = *reinterpret_cast<double*>(&rev);
@@ -2362,7 +2368,7 @@ namespace bit_manip {
 	/// <summary>
 	/// <para>Modifies the bits in a numeric type according to the specified instruction at the specified position.</para>
 	/// <para>The position must be with in the bounds of a type. EX: Bounds of int32_t = Bit 0 to Bit 31.</para>
-	/// <para></para>
+	/// <para>Note: tpa::fill may perform better than tpa::bit_modify with tpa::bit_mod::SET_ALL and tpa:bit_mod::CLEAR_ALL</para>
 	/// </summary>
 	/// <typeparam name="CONTAINER_A"></typeparam>
 	/// <param name="x"></param>
@@ -2397,7 +2403,7 @@ namespace bit_manip {
 				{
 					const size_t beg = sec.first;
 					const size_t end = sec.second;
-					size_t i = beg;
+					size_t i = beg;					
 
 #pragma region short
 					if constexpr (std::is_same<T, int16_t>() || std::is_same<T, uint16_t>())
@@ -2407,7 +2413,8 @@ namespace bit_manip {
 						{
 							const uint32_t p = static_cast<uint32_t>(pos);
 
-							__m512i _source, _DESTi;
+							__m512i _source = _mm512_setzero_si512(); 
+							__m512i _DESTi = _mm512_setzero_si512();
 							const __m512i _zero = _mm512_setzero_si512();
 							const __m512i _one = _mm512_set1_epi16(static_cast<int16_t>(1));
 							const __m512i _max = _mm512_set1_epi16(std::numeric_limits<uint16_t>::max());
@@ -2436,6 +2443,24 @@ namespace bit_manip {
 								{
 									_DESTi = _zero;
 								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
+								{
+									_DESTi = _mm512_xor_si512(_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
+								{
+									_DESTi = tpa::simd::_mm512_not_si512(_source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::REVERSE)
+								{
+									size_t bits = sizeof(T) * CHAR_BIT;
+									while(bits > 0uz)
+									{										
+										_DESTi = _mm512_or_si512(_mm512_slli_epi16(_DESTi, 1u), _mm512_and_si512(_source, _one));
+										_source = _mm512_srli_epi16(_source, 1u);
+										bits -= 1uz;
+									}//End for
+								}//End if
 								else
 								{
 									[] <bool flag = false>()
@@ -2450,9 +2475,10 @@ namespace bit_manip {
 						}//End if hasAVX512
 						else if (tpa::hasAVX2)
 						{
-							const int32_t p = static_cast<int32_t>(pos);
+							const int32_t p = static_cast<int32_t>(pos);							
 
-							__m256i _source, _DESTi;
+							__m256i _source = _mm256_setzero_si256();
+							__m256i _DESTi = _mm256_setzero_si256();
 							const __m256i _zero = _mm256_setzero_si256();
 							const __m256i _one = _mm256_set1_epi16(static_cast<int16_t>(1));
 							const __m256i _max = _mm256_set1_epi16(std::numeric_limits<uint16_t>::max());
@@ -2481,6 +2507,24 @@ namespace bit_manip {
 								{
 									_DESTi = _zero;
 								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
+								{
+									_DESTi = _mm256_xor_si256(_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
+								{
+									_DESTi = tpa::simd::_mm256_not_si256(_source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::REVERSE)
+								{
+									size_t bits = sizeof(T) * CHAR_BIT;
+									while(bits > 0uz)
+									{
+										_DESTi = _mm256_or_si256(_mm256_slli_epi16(_DESTi, 1), _mm256_and_si256(_source, _one));
+										_source = _mm256_srli_epi16(_source, 1);
+										bits -= 1uz;
+									}//End while
+								}//End if
 								else
 								{
 									[] <bool flag = false>()
@@ -2497,7 +2541,8 @@ namespace bit_manip {
 						{
 							const int32_t p = static_cast<int32_t>(pos);
 
-							__m128i _source, _DESTi;
+							__m128i _source = _mm_setzero_si128();
+							__m128i _DESTi = _mm_setzero_si128();
 							const __m128i _zero = _mm_setzero_si128();
 							const __m128i _one = _mm_set1_epi16(static_cast<int16_t>(1));
 							const __m128i _max = _mm_set1_epi16(std::numeric_limits<uint16_t>::max());
@@ -2526,6 +2571,24 @@ namespace bit_manip {
 								{
 									_DESTi = _zero;
 								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
+								{
+									_DESTi = _mm_xor_si128(_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
+								{
+									_DESTi = tpa::simd::_mm_not_si128(_source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::REVERSE)
+								{
+									size_t bits = sizeof(T) * CHAR_BIT;
+									while(bits > 0)
+									{										
+										_DESTi = _mm_or_si128(_mm_slli_epi16(_DESTi, 1), _mm_and_si128(_source, _one));
+										_source = _mm_srli_epi16(_source, 1);
+										bits -= 1;
+									}//End for
+								}//End if
 								else
 								{
 									[] <bool flag = false>()
@@ -2549,7 +2612,8 @@ namespace bit_manip {
 						{
 							const uint32_t p = static_cast<uint32_t>(pos);
 
-							__m512i _source, _DESTi;
+							__m512i _source = _mm512_setzero_si512();
+							__m512i _DESTi = _mm512_setzero_si512();
 							const __m512i _zero = _mm512_setzero_si512();
 							const __m512i _one = _mm512_set1_epi32(1);
 							const __m512i _max = _mm512_set1_epi32(std::numeric_limits<uint32_t>::max());
@@ -2578,6 +2642,24 @@ namespace bit_manip {
 								{
 									_DESTi = _zero;
 								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
+								{
+									_DESTi = _mm512_xor_si512(_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
+								{
+									_DESTi = tpa::simd::_mm512_not_si512(_source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::REVERSE)
+								{
+									size_t bits = sizeof(T) * CHAR_BIT;
+									while (bits > 0uz)
+									{
+										_DESTi = _mm512_or_si512(_mm512_slli_epi32(_DESTi, 1u), _mm512_and_si512(_source, _one));
+										_source = _mm512_srli_epi32(_source, 1u);
+										bits -= 1uz;
+									}//End for
+								}//End if
 								else
 								{
 									[] <bool flag = false>()
@@ -2594,7 +2676,8 @@ namespace bit_manip {
 						{
 							const int32_t p = static_cast<int32_t>(pos);
 
-							__m256i _source, _DESTi;
+							__m256i _source = _mm256_setzero_si256();
+							__m256i _DESTi = _mm256_setzero_si256();
 							const __m256i _zero = _mm256_setzero_si256();
 							const __m256i _one = _mm256_set1_epi32(1);
 							const __m256i _max = _mm256_set1_epi32(std::numeric_limits<uint32_t>::max());
@@ -2623,6 +2706,24 @@ namespace bit_manip {
 								{
 									_DESTi = _zero;
 								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
+								{
+									_DESTi = _mm256_xor_si256(_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
+								{
+									_DESTi = tpa::simd::_mm256_not_si256(_source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::REVERSE)
+								{
+									size_t bits = sizeof(T) * CHAR_BIT;
+									while (bits > 0uz)
+									{
+										_DESTi = _mm256_or_si256(_mm256_slli_epi32(_DESTi, 1), _mm256_and_si256(_source, _one));
+										_source = _mm256_srli_epi32(_source, 1);
+										bits -= 1uz;
+									}//End for
+								}//End if
 								else
 								{
 									[] <bool flag = false>()
@@ -2639,7 +2740,8 @@ namespace bit_manip {
 						{
 							const int32_t p = static_cast<int32_t>(pos);
 
-							__m128i _source, _DESTi;
+							__m128i _source = _mm_setzero_si128();
+							__m128i _DESTi = _mm_setzero_si128();
 							const __m128i _zero = _mm_setzero_si128();
 							const __m128i _one = _mm_set1_epi32(1);
 							const __m128i _max = _mm_set1_epi32(std::numeric_limits<uint32_t>::max());
@@ -2668,6 +2770,24 @@ namespace bit_manip {
 								{
 									_DESTi = _zero;
 								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
+								{
+									_DESTi = _mm_xor_si128(_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
+								{
+									_DESTi = tpa::simd::_mm_not_si128(_source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::REVERSE)
+								{
+									size_t bits = sizeof(T) * CHAR_BIT;
+									while (bits > 0uz)
+									{
+										_DESTi = _mm_or_si128(_mm_slli_epi32(_DESTi, 1), _mm_and_si128(_source, _one));
+										_source = _mm_srli_epi32(_source, 1);
+										bits -= 1uz;
+									}//End for
+								}//End if
 								else
 								{
 									[] <bool flag = false>()
@@ -2691,7 +2811,8 @@ namespace bit_manip {
 					{
 						const uint32_t p = static_cast<uint32_t>(pos);
 
-						__m512i _source, _DESTi;
+						__m512i _source = _mm512_setzero_si512();
+						__m512i _DESTi = _mm512_setzero_si512();
 						const __m512i _zero = _mm512_setzero_si512();
 						const __m512i _one = _mm512_set1_epi64(1ll);
 						const __m512i _max = _mm512_set1_epi64(std::numeric_limits<uint64_t>::max());
@@ -2720,6 +2841,24 @@ namespace bit_manip {
 							{
 								_DESTi = _zero;
 							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
+							{
+								_DESTi = _mm512_xor_si512(_shifted_left, _source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
+							{
+								_DESTi = tpa::simd::_mm512_not_si512(_source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::REVERSE)
+							{
+								size_t bits = sizeof(T) * CHAR_BIT;
+								while (bits > 0uz)
+								{
+									_DESTi = _mm512_or_si512(_mm512_slli_epi64(_DESTi, 1u), _mm512_and_si512(_source, _one));
+									_source = _mm512_srli_epi64(_source, 1u);
+									bits -= 1uz;
+								}//End for
+							}//End if
 							else
 							{
 								[] <bool flag = false>()
@@ -2736,7 +2875,8 @@ namespace bit_manip {
 					{
 						const int32_t p = static_cast<int32_t>(pos);
 
-						__m256i _source, _DESTi;
+						__m256i _source = _mm256_setzero_si256();
+						__m256i _DESTi = _mm256_setzero_si256();
 						const __m256i _zero = _mm256_setzero_si256();
 						const __m256i _one = _mm256_set1_epi64x(1ll);
 						const __m256i _max = _mm256_set1_epi64x(std::numeric_limits<uint64_t>::max());
@@ -2765,6 +2905,24 @@ namespace bit_manip {
 							{
 								_DESTi = _zero;
 							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
+							{
+								_DESTi = _mm256_xor_si256(_shifted_left, _source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
+							{
+								_DESTi = tpa::simd::_mm256_not_si256(_source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::REVERSE)
+							{
+								size_t bits = sizeof(T) * CHAR_BIT;
+								while (bits > 0uz)
+								{
+									_DESTi = _mm256_or_si256(_mm256_slli_epi64(_DESTi, 1), _mm256_and_si256(_source, _one));
+									_source = _mm256_srli_epi64(_source,1);
+									bits -= 1uz;
+								}//End for
+							}//End if
 							else
 							{
 								[] <bool flag = false>()
@@ -2781,7 +2939,8 @@ namespace bit_manip {
 					{
 						const int32_t p = static_cast<int32_t>(pos);
 
-						__m128i _source, _DESTi;
+						__m128i _source = _mm_setzero_si128();
+						__m128i _DESTi = _mm_setzero_si128();
 						const __m128i _zero = _mm_setzero_si128();
 						const __m128i _one = _mm_set1_epi64x(1ll);
 						const __m128i _max = _mm_set1_epi64x(std::numeric_limits<uint64_t>::max());
@@ -2810,6 +2969,24 @@ namespace bit_manip {
 							{
 								_DESTi = _zero;
 							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
+							{
+								_DESTi = _mm_xor_si128(_shifted_left, _source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
+							{
+								_DESTi = tpa::simd::_mm_not_si128(_source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::REVERSE)
+							{
+								size_t bits = sizeof(T) * CHAR_BIT;
+								while (bits > 0uz)
+								{
+									_DESTi = _mm_or_si128(_mm_slli_epi64(_DESTi, 1), _mm_and_si128(_source, _one));
+									_source = _mm_srli_epi64(_source, 1);
+									bits -= 1uz;
+								}//End for
+							}//End if
 							else
 							{
 								[] <bool flag = false>()
@@ -2833,7 +3010,8 @@ namespace bit_manip {
 					{
 						const uint32_t p = static_cast<uint32_t>(pos);
 
-						__m512i _source, _DESTi;
+						__m512i _source = _mm512_setzero_si512(); 
+						__m512i _DESTi = _mm512_setzero_si512();
 						const __m512i _zero = _mm512_setzero_si512();
 						const __m512i _one = _mm512_set1_epi32(1);
 						const __m512i _max = _mm512_set1_epi32(std::numeric_limits<uint32_t>::max());
@@ -2862,6 +3040,24 @@ namespace bit_manip {
 							{
 								_DESTi = _zero;
 							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
+							{
+								_DESTi = _mm512_xor_si512(_shifted_left, _source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
+							{
+								_DESTi = tpa::simd::_mm512_not_si512(_source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::REVERSE)
+							{
+								size_t bits = sizeof(T) * CHAR_BIT;
+								while (bits > 0uz)
+								{
+									_DESTi = _mm512_or_si512(_mm512_slli_epi32(_DESTi, 1u), _mm512_and_si512(_source, _one));
+									_source = _mm512_srli_epi32(_source, 1u);
+									bits -= 1uz;
+								}//End for
+							}//End if
 							else
 							{
 								[] <bool flag = false>()
@@ -2878,7 +3074,8 @@ namespace bit_manip {
 					{
 						const int32_t p = static_cast<int32_t>(pos);
 
-						__m256i _source, _DESTi;
+						__m256i _source = _mm256_setzero_si256();
+						__m256i _DESTi = _mm256_setzero_si256();
 						const __m256i _zero = _mm256_setzero_si256();
 						const __m256i _one = _mm256_set1_epi32(1);
 						const __m256i _max = _mm256_set1_epi32(std::numeric_limits<uint32_t>::max());
@@ -2907,6 +3104,24 @@ namespace bit_manip {
 							{
 								_DESTi = _zero;
 							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
+							{
+								_DESTi = _mm256_xor_si256(_shifted_left, _source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
+							{
+								_DESTi = tpa::simd::_mm256_not_si256(_source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::REVERSE)
+							{
+								size_t bits = sizeof(T) * CHAR_BIT;
+								while (bits > 0uz)
+								{
+									_DESTi = _mm256_or_si256(_mm256_slli_epi32(_DESTi, 1), _mm256_and_si256(_source, _one));
+									_source = _mm256_srli_epi32(_source, 1);
+									bits -= 1uz;
+								}//End for
+							}//End if
 							else
 							{
 								[] <bool flag = false>()
@@ -2923,7 +3138,8 @@ namespace bit_manip {
 					{
 						const int32_t p = static_cast<int32_t>(pos);
 
-						__m128i _source, _DESTi;
+						__m128i _source = _mm_setzero_si128();
+						__m128i _DESTi = _mm_setzero_si128();
 						const __m128i _zero = _mm_setzero_si128();
 						const __m128i _one = _mm_set1_epi32(1);
 						const __m128i _max = _mm_set1_epi32(std::numeric_limits<uint32_t>::max());
@@ -2952,6 +3168,24 @@ namespace bit_manip {
 							{
 								_DESTi = _zero;
 							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
+							{
+								_DESTi = _mm_xor_si128(_shifted_left, _source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
+							{
+								_DESTi = tpa::simd::_mm_not_si128(_source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::REVERSE)
+							{
+								size_t bits = sizeof(T) * CHAR_BIT;
+								while (bits > 0uz)
+								{
+									_DESTi = _mm_or_si128(_mm_slli_epi32(_DESTi, 1), _mm_and_si128(_source, _one));
+									_source = _mm_srli_epi32(_source, 1);
+									bits -= 1uz;
+								}//End for
+							}//End if
 							else
 							{
 								[] <bool flag = false>()
@@ -2975,7 +3209,8 @@ namespace bit_manip {
 					{
 						const uint32_t p = static_cast<uint32_t>(pos);
 
-						__m512i _source, _DESTi;
+						__m512i _source = _mm512_setzero_si512();
+						__m512i _DESTi = _mm512_setzero_si512();
 						const __m512i _zero = _mm512_setzero_si512();
 						const __m512i _one = _mm512_set1_epi64(1ll);
 						const __m512i _max = _mm512_set1_epi64(std::numeric_limits<uint64_t>::max());
@@ -3004,6 +3239,24 @@ namespace bit_manip {
 							{
 								_DESTi = _zero;
 							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
+							{
+								_DESTi = _mm512_xor_si512(_shifted_left, _source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
+							{
+								_DESTi = tpa::simd::_mm512_not_si512(_source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::REVERSE)
+							{
+								size_t bits = sizeof(T) * CHAR_BIT;
+								while (bits > 0uz)
+								{
+									_DESTi = _mm512_or_si512(_mm512_slli_epi64(_DESTi, 1u), _mm512_and_si512(_source, _one));
+									_source = _mm512_srli_epi64(_source, 1u);
+									bits -= 1uz;
+								}//End for
+							}//End if
 							else
 							{
 								[] <bool flag = false>()
@@ -3020,7 +3273,8 @@ namespace bit_manip {
 					{
 						const int32_t p = static_cast<int32_t>(pos);
 
-						__m256i _source, _DESTi;
+						__m256i _source = _mm256_setzero_si256();
+						__m256i _DESTi = _mm256_setzero_si256();
 						const __m256i _zero = _mm256_setzero_si256();
 						const __m256i _one = _mm256_set1_epi64x(1ll);
 						const __m256i _max = _mm256_set1_epi64x(std::numeric_limits<uint64_t>::max());
@@ -3049,6 +3303,24 @@ namespace bit_manip {
 							{
 								_DESTi = _zero;
 							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
+							{
+								_DESTi = _mm256_xor_si256(_shifted_left, _source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
+							{
+								_DESTi = tpa::simd::_mm256_not_si256(_source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::REVERSE)
+							{
+								size_t bits = sizeof(T) * CHAR_BIT;
+								while (bits > 0uz)
+								{
+									_DESTi = _mm256_or_si256(_mm256_slli_epi64(_DESTi, 1), _mm256_and_si256(_source, _one));
+									_source = _mm256_srli_epi64(_source, 1);
+									bits -= 1uz;
+								}//End for
+							}//End if
 							else
 							{
 								[] <bool flag = false>()
@@ -3065,12 +3337,12 @@ namespace bit_manip {
 					{
 						const int32_t p = static_cast<int32_t>(pos);
 
-						__m128i _source, _DESTi;
+						__m128i _source = _mm_setzero_si128();
+						__m128i _DESTi = _mm_setzero_si128();
 						const __m128i _zero = _mm_setzero_si128();
 						const __m128i _one = _mm_set1_epi64x(1ll);
 						const __m128i _shifted_left = _mm_slli_epi64(_one, p);
 						const __m128i _max = _mm_set1_epi64x(std::numeric_limits<uint64_t>::max());
-						const __m128i _shifted_left = _mm_slli_epi32(_one, p);
 						const __m128i _not_shifted_left = tpa::simd::_mm_not_si128(_shifted_left);
 
 						for (; (i + 2uz) < end; i += 2uz)
@@ -3094,6 +3366,24 @@ namespace bit_manip {
 							else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
 							{
 								_DESTi = _zero;
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
+							{
+								_DESTi = _mm_xor_si128(_shifted_left, _source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
+							{
+								_DESTi = tpa::simd::_mm_not_si128(_source);
+							}//End if
+							else if constexpr (INSTR == tpa::bit_mod::REVERSE)
+							{
+								size_t bits = sizeof(T) * CHAR_BIT;
+								while (bits > 0uz)
+								{
+									_DESTi = _mm_or_si128(_mm_slli_epi64(_DESTi, 1), _mm_and_si128(_source, _one));
+									_source = _mm_srli_epi64(_source, 1);
+									bits -= 1uz;
+								}//End for
 							}//End if
 							else
 							{
@@ -3218,6 +3508,129 @@ namespace bit_manip {
 
 								source[i] = *reinterpret_cast<double*>(&x_as_int);
 							}//End if
+							else
+							{
+								[] <bool flag = false>()
+								{
+									static_assert(flag, "Non-standard types are not supported.");
+								}();
+							}//End else
+						}//End if
+						else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
+						{
+							if constexpr (std::is_integral<T>())
+							{
+								source[i] = (1ull << pos) ^ source[i];
+							}//End if
+							else if constexpr (std::is_same<T, float>())
+							{
+								int32_t x_as_int = *reinterpret_cast<int32_t*>(&source[i]);
+
+								x_as_int = (1ull << pos) ^ x_as_int;
+
+								source[i] = *reinterpret_cast<float*>(&x_as_int);
+							}//End if
+							else if constexpr (std::is_same<T, double>())
+							{
+								int64_t x_as_int = *reinterpret_cast<int64_t*>(&source[i]);
+
+								x_as_int = (1ull << pos) ^ x_as_int;
+
+								source[i] = *reinterpret_cast<double*>(&x_as_int);
+							}//End if
+							else
+							{
+								[] <bool flag = false>()
+								{
+									static_assert(flag, "Non-standard types are not supported.");
+								}();
+							}//End else
+						}//End if
+						else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
+						{
+							if constexpr (std::is_integral<T>())
+							{
+								source[i] = ~source[i];
+							}//End if
+							else if constexpr (std::is_same<T, float>())
+							{
+								int32_t x_as_int = *reinterpret_cast<int32_t*>(&source[i]);
+
+								x_as_int = ~x_as_int;
+
+								source[i] = *reinterpret_cast<float*>(&x_as_int);
+							}//End if
+							else if constexpr (std::is_same<T, double>())
+							{
+								int64_t x_as_int = *reinterpret_cast<int64_t*>(&source[i]);
+
+								x_as_int = ~x_as_int;
+
+								source[i] = *reinterpret_cast<double*>(&x_as_int);
+							}//End if
+							else
+							{
+								[] <bool flag = false>()
+								{
+									static_assert(flag, "Non-standard types are not supported.");
+								}();
+							}//End else
+						}//End if
+						else if constexpr (INSTR == tpa::bit_mod::REVERSE)
+						{
+							if constexpr (std::is_integral<T>())
+							{
+								T rev = 0;
+								size_t bits = sizeof(T) * CHAR_BIT;
+
+								while(bits > 0)
+								{									
+									rev = (rev << 1) | (source[i] & 1);
+									source[i] >>= 1;
+									bits -= 1;
+								}//End while
+
+								source[i] = rev;
+							}//End if
+							else if constexpr (std::is_same<T, float>())
+							{
+								int32_t x_as_int = *reinterpret_cast<int32_t*>(&source[i]);
+
+								int32_t rev = 0;
+								size_t bits = sizeof(T) * CHAR_BIT;
+
+								while(bits > 0)
+								{
+									rev = (rev << 1) | (x_as_int & 1);
+									x_as_int >>= 1;
+									bits -= 1;
+								}//End for
+
+								source[i] = *reinterpret_cast<float*>(&rev);
+							}//End if
+							else if constexpr (std::is_same<T, double>())
+							{
+								int64_t x_as_int = *reinterpret_cast<int64_t*>(&source[i]);
+
+								int64_t rev = 0ll;
+								size_t bits = sizeof(T) * CHAR_BIT;
+
+								while(bits > 0)
+								{
+									rev = (rev << 1ll) | (x_as_int & 1ll);
+									x_as_int >>= 1ll;
+									bits -= 1;
+								}//End for
+
+								source[i] = *reinterpret_cast<double*>(&rev);
+							}//End if
+							else
+							{
+								[] <bool flag = false>()
+								{
+									static_assert(flag, "Non-standard types are not supported.");
+								}();
+							}//End else
 						}//End if
 						else
 						{
