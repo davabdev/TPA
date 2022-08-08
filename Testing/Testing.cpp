@@ -35,7 +35,7 @@
 #include "../TPA/tpa_main.hpp"
 
 using numtype = int16_t;//boost::multiprecision::cpp_bin_float_oct;
-using returnType = uint64_t;//boost::multiprecision::cpp_bin_float_oct; 
+using returnType = int16_t;//boost::multiprecision::cpp_bin_float_oct; 
 
 std::vector<numtype> vec;
 std::vector<numtype> vec2;
@@ -83,7 +83,7 @@ int main()
 		std::cout << "TPA iota Multi-Threaded SIMD: ";
 		{
 			tpa::util::Timer t;
-			tpa::iota(vec, numtype(0));
+			tpa::fill(vec, static_cast<numtype>(1419));
 			//tpa::generate<tpa::gen::UNIFORM>(vec2, 0, 1'000);
 		}
 
@@ -103,13 +103,13 @@ int main()
 				"\n";
 		}//End for
 
-		std::cout << "STD Set Single Bit: ";
+		std::cout << "STD Toggle Bits: ";
 		{
 			tpa::util::Timer t;
 			
 			for (size_t i = 0uz; i < vec.size(); ++i)
 			{
-				tpa::bit_manip::set(vec[i], 7);
+				tpa::bit_manip::reverse(vec[i]);
 			}//End for
 		}
 
@@ -134,7 +134,7 @@ int main()
 			tpa::util::Timer t;
 
 			std::for_each(std::execution::par_unseq, vec.begin(), vec.end(),
-				[](numtype& x) { tpa::bit_manip::set(x, 11);});
+				[](numtype& x) { tpa::bit_manip::reverse(x); });
 		}
 
 		std::cout << "vec1 \t+\t vec2 \t=\t vec3\n";
@@ -152,11 +152,11 @@ int main()
 				//std::setw(35) << static_cast<double>(vec3[i]) <<
 				"\n";
 		}//End for
-				
+						
 		std::cout << "TPA Set Single Bit Multi-Threaded SIMD: ";
 		{
 			tpa::util::Timer t;
-			tpa::bit_manip::bit_modify<tpa::bit_mod::SET>(vec, 11);
+			tpa::bit_manip::bit_modify<tpa::bit_mod::REVERSE>(vec);
 		}
 
 		std::cout << "vec1 \t+\t vec2 \t=\t vec3\n";
