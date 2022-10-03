@@ -502,7 +502,7 @@ namespace tpa::simd {
 #pragma endregion
 
 #pragma region misc_avx
-#ifdef TPA_X86_64
+#ifdef TPA_X86_64	
 
 	///<summary>
 	///<para> Bitwise Not of __m128i Vector using SSE2</para>
@@ -542,6 +542,380 @@ namespace tpa::simd {
 	{
 		return _mm512_xor_si512(x, _mm512_set1_epi64(-1LL));
 	}//End of _mm512_not_si512
+
+	///<summary>
+	///<para> Set leading zeros of 16-bit integers in an __m128i.</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without SSE2.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m128i</returns>
+	[[nodiscard]] inline __m128i _mm_lzset_epi16(const __m128i& x) noexcept
+	{
+		__m128i _mask = _mm_or_si128(x, _mm_srli_epi16(x, 1));
+
+		_mask = _mm_or_si128(_mask, _mm_srli_epi16(_mask, 2));
+		_mask = _mm_or_si128(_mask, _mm_srli_epi16(_mask, 4));
+		_mask = _mm_or_si128(_mask, _mm_srli_epi16(_mask, 8));
+
+		return _mm_or_si128(x, _mm_not_si128(_mask));
+	}//End of _mm_lzset_epi16
+
+	///<summary>
+	///<para> Set leading zeros of 32-bit integers in an __m128i.</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without SSE2.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m128i</returns>
+	[[nodiscard]] inline __m128i _mm_lzset_epi32(const __m128i& x) noexcept
+	{
+		__m128i _mask = _mm_or_si128(x, _mm_srli_epi32(x, 1));
+
+		_mask = _mm_or_si128(_mask, _mm_srli_epi32(_mask, 2));
+		_mask = _mm_or_si128(_mask, _mm_srli_epi32(_mask, 4));
+		_mask = _mm_or_si128(_mask, _mm_srli_epi32(_mask, 8));
+		_mask = _mm_or_si128(_mask, _mm_srli_epi32(_mask, 16));
+
+		return _mm_or_si128(x, _mm_not_si128(_mask));
+	}//End of _mm_lzset_epi32
+
+	///<summary>
+	///<para> Set leading zeros of 64-bit integers in an __m128i.</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without SSE2.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m128i</returns>
+	[[nodiscard]] inline __m128i _mm_lzset_epi64(const __m128i& x) noexcept
+	{
+		__m128i _mask = _mm_or_si128(x, _mm_srli_epi64(x, 1));
+
+		_mask = _mm_or_si128(_mask, _mm_srli_epi64(_mask, 2));
+		_mask = _mm_or_si128(_mask, _mm_srli_epi64(_mask, 4));
+		_mask = _mm_or_si128(_mask, _mm_srli_epi64(_mask, 8));
+		_mask = _mm_or_si128(_mask, _mm_srli_epi64(_mask, 16));
+		_mask = _mm_or_si128(_mask, _mm_srli_epi64(_mask, 32));
+
+		return _mm_or_si128(x, _mm_not_si128(_mask));
+	}//End of _mm_lzset_epi64
+
+	///<summary>
+	///<para> Set leading zeros of 16-bit integers in an __m256i.</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without AVX2.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m256i</returns>
+	[[nodiscard]] inline __m256i _mm256_lzset_epi16(const __m256i& x) noexcept
+	{
+		__m256i _mask = _mm256_or_si256(x, _mm256_srli_epi16(x, 1));
+
+		_mask = _mm256_or_si256(_mask, _mm256_srli_epi16(_mask, 2));
+		_mask = _mm256_or_si256(_mask, _mm256_srli_epi16(_mask, 4));
+		_mask = _mm256_or_si256(_mask, _mm256_srli_epi16(_mask, 8));
+
+		return _mm256_or_si256(x, _mm256_not_si256(_mask));
+	}//End of _mm256_lzset_epi16
+
+	///<summary>
+	///<para> Set leading zeros of 32-bit integers in an __m256i.</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without AVX2.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m256i</returns>
+	[[nodiscard]] inline __m256i _mm256_lzset_epi32(const __m256i& x) noexcept
+	{
+		__m256i _mask = _mm256_or_si256(x, _mm256_srli_epi32(x, 1));
+
+		_mask = _mm256_or_si256(_mask, _mm256_srli_epi32(_mask, 2));
+		_mask = _mm256_or_si256(_mask, _mm256_srli_epi32(_mask, 4));
+		_mask = _mm256_or_si256(_mask, _mm256_srli_epi32(_mask, 8));
+		_mask = _mm256_or_si256(_mask, _mm256_srli_epi32(_mask, 16));
+
+		return _mm256_or_si256(x, _mm256_not_si256(_mask));
+	}//End of _mm256_lzset_epi32
+
+	///<summary>
+	///<para> Set leading zeros of 64-bit integers in an __m128i.</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without SSE2.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m256i</returns>
+	[[nodiscard]] inline __m256i _mm256_lzset_epi64(const __m256i& x) noexcept
+	{
+		__m256i _mask = _mm256_or_si256(x, _mm256_srli_epi64(x, 1));
+
+		_mask = _mm256_or_si256 (_mask, _mm256_srli_epi64(_mask, 2));
+		_mask = _mm256_or_si256 (_mask, _mm256_srli_epi64(_mask, 4));
+		_mask = _mm256_or_si256 (_mask, _mm256_srli_epi64(_mask, 8));
+		_mask = _mm256_or_si256 (_mask, _mm256_srli_epi64(_mask, 16));
+		_mask = _mm256_or_si256 (_mask, _mm256_srli_epi64(_mask, 32));
+
+		return _mm256_or_si256(x, _mm256_not_si256(_mask));
+	}//End of _mm256_lzset_epi64
+
+	///<summary>
+	///<para> Set leading zeros of 16-bit integers in an __m512i.</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without AVX-512.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m512i</returns>
+	[[nodiscard]] inline __m512i _mm512_lzset_epi16(const __m512i& x) noexcept
+	{
+		__m512i _mask = _mm512_or_si512(x, _mm512_srli_epi16(x, 1));
+
+		_mask = _mm512_or_si512(_mask, _mm512_srli_epi16(_mask, 2));
+		_mask = _mm512_or_si512(_mask, _mm512_srli_epi16(_mask, 4));
+		_mask = _mm512_or_si512(_mask, _mm512_srli_epi16(_mask, 8));
+
+		return _mm512_or_si512(x, _mm512_not_si512(_mask));
+	}//End of _mm512_lzset_epi16
+
+	///<summary>
+	///<para> Set leading zeros of 32-bit integers in an __m512i.</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without AVX-512.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m512i</returns>
+	[[nodiscard]] inline __m512i _mm512_lzset_epi32(const __m512i& x) noexcept
+	{
+		__m512i _mask = _mm512_or_si512(x, _mm512_srli_epi32(x, 1));
+
+		_mask = _mm512_or_si512(_mask, _mm512_srli_epi32(_mask, 2));
+		_mask = _mm512_or_si512(_mask, _mm512_srli_epi32(_mask, 4));
+		_mask = _mm512_or_si512(_mask, _mm512_srli_epi32(_mask, 8));
+		_mask = _mm512_or_si512(_mask, _mm512_srli_epi32(_mask, 16));
+
+		return _mm512_or_si512(x, _mm512_not_si512(_mask));
+	}//End of _mm512_lzset_epi32
+
+	///<summary>
+	///<para> Set leading zeros of 64-bit integers in an __m512i.</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without AVX-512.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m512i</returns>
+	[[nodiscard]] inline __m512i _mm512_lzset_epi64(const __m512i& x) noexcept
+	{
+		__m512i _mask = _mm512_or_si512(x, _mm512_srli_epi64(x, 1));
+
+		_mask = _mm512_or_si512(_mask, _mm512_srli_epi64(_mask, 2));
+		_mask = _mm512_or_si512(_mask, _mm512_srli_epi64(_mask, 4));
+		_mask = _mm512_or_si512(_mask, _mm512_srli_epi64(_mask, 8));
+		_mask = _mm512_or_si512(_mask, _mm512_srli_epi64(_mask, 16));
+		_mask = _mm512_or_si512(_mask, _mm512_srli_epi64(_mask, 32));
+
+		return _mm512_or_si512(x, _mm512_not_si512(_mask));
+	}//End of _mm512_lzset_epi64
+
+	///<summary>
+	///<para> Compares 8-bit integers in an __m128i for not equality.</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without SSE2.</para>
+	///</summary>
+	/// <param name="a"></param>
+	/// <param name="b"></param>
+	/// <returns>__m128i</returns>
+	[[nodiscard]] inline __m128i _mm_cmpneq_epi8(const __m128i& a, const __m128i& b) noexcept
+	{
+		const __m128i _NEG_ONE = _mm_set1_epi8(static_cast<int8_t>(-1));
+		__m128i _mask = _mm_setzero_si128();
+
+		_mask = _mm_cmpeq_epi8(a, b);
+		_mask = _mm_xor_si128(_mask, _NEG_ONE);//Not Equal
+
+		return _mask;
+	}//End of _mm_cmpneq_epi8
+
+	///<summary>
+	///<para> Compares 16-bit integers in an __m128i for not equality.</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without SSE2.</para>
+	///</summary>
+	/// <param name="a"></param>
+	/// <param name="b"></param>
+	/// <returns>__m128i</returns>
+	[[nodiscard]] inline __m128i _mm_cmpneq_epi16(const __m128i& a, const __m128i& b) noexcept
+	{
+		const __m128i _NEG_ONE = _mm_set1_epi16(static_cast<int16_t>(-1));
+		__m128i _mask = _mm_setzero_si128();
+
+		_mask = _mm_cmpeq_epi16(a, b);
+		_mask = _mm_xor_si128(_mask, _NEG_ONE);//Not Equal
+
+		return _mask;
+	}//End of _mm_cmpneq_epi16
+
+	///<summary>
+	///<para> Compares 32-bit integers in an __m128i for not equality.</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without SSE2.</para>
+	///</summary>
+	/// <param name="a"></param>
+	/// <param name="b"></param>
+	/// <returns>__m128i</returns>
+	[[nodiscard]] inline __m128i _mm_cmpneq_epi32(const __m128i& a, const __m128i& b) noexcept
+	{
+		const __m128i _NEG_ONE = _mm_set1_epi32(-1);
+		__m128i _mask = _mm_setzero_si128();
+
+		_mask = _mm_cmpeq_epi32(a, b);
+		_mask = _mm_xor_si128(_mask, _NEG_ONE);//Not Equal
+
+		return _mask;
+	}//End of _mm_cmpneq_epi32
+
+	///<summary>
+	///<para> Compares 64-bit integers in an __m128i for not equality.</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without SSE4.1.</para>
+	///</summary>
+	/// <param name="a"></param>
+	/// <param name="b"></param>
+	/// <returns>__m128i</returns>
+	[[nodiscard]] inline __m128i _mm_cmpneq_epi64(const __m128i& a, const __m128i& b) noexcept
+	{
+		const __m128i _NEG_ONE = _mm_set1_epi64x(static_cast<int64_t>(-1));
+		__m128i _mask = _mm_setzero_si128();
+
+		_mask = _mm_cmpeq_epi64(a, b);
+		_mask = _mm_xor_si128(_mask, _NEG_ONE);//Not Equal
+
+		return _mask;
+	}//End of _mm_cmpneq_epi64
+
+	///<summary>
+	///<para> Compares 8-bit integers in an __m256i for not equality.</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without AVX2.</para>
+	///</summary>
+	/// <param name="a"></param>
+	/// <param name="b"></param>
+	/// <returns>__m256i</returns>
+	[[nodiscard]] inline __m256i _mm256_cmpneq_epi8(const __m256i& a, const __m256i& b) noexcept
+	{
+		const __m256i _NEG_ONE = _mm256_set1_epi8(static_cast<int8_t>(-1));
+		__m256i _mask = _mm256_setzero_si256();
+
+		_mask = _mm256_cmpeq_epi8(a, b);
+		_mask = _mm256_xor_si256(_mask, _NEG_ONE);//Not Equal
+
+		return _mask;
+	}//End of _mm256_cmpneq_epi8
+
+	///<summary>
+	///<para> Compares 16-bit integers in an __m256i for not equality.</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without AVX2.</para>
+	///</summary>
+	/// <param name="a"></param>
+	/// <param name="b"></param>
+	/// <returns>__m256i</returns>
+	[[nodiscard]] inline __m256i _mm256_cmpneq_epi16(const __m256i& a, const __m256i& b) noexcept
+	{
+		const __m256i _NEG_ONE = _mm256_set1_epi16(static_cast<int16_t>(-1));
+		__m256i _mask = _mm256_setzero_si256();
+
+		_mask = _mm256_cmpeq_epi16(a, b);
+		_mask = _mm256_xor_si256(_mask, _NEG_ONE);//Not Equal
+
+		return _mask;
+	}//End of _mm256_cmpneq_epi16
+
+	///<summary>
+	///<para> Compares 32-bit integers in an __m256i for not equality.</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without AVX2.</para>
+	///</summary>
+	/// <param name="a"></param>
+	/// <param name="b"></param>
+	/// <returns>__m256i</returns>
+	[[nodiscard]] inline __m256i _mm256_cmpneq_epi32(const __m256i& a, const __m256i& b) noexcept
+	{
+		const __m256i _NEG_ONE = _mm256_set1_epi32(-1);
+		__m256i _mask = _mm256_setzero_si256();
+
+		_mask = _mm256_cmpeq_epi32(a, b);
+		_mask = _mm256_xor_si256(_mask, _NEG_ONE);//Not Equal
+
+		return _mask;
+	}//End of _mm256_cmpneq_epi32
+
+	///<summary>
+	///<para> Compares 64-bit integers in an __m256i for not equality.</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without SSE4.1.</para>
+	///</summary>
+	/// <param name="a"></param>
+	/// <param name="b"></param>
+	/// <returns>__m256i</returns>
+	[[nodiscard]] inline __m256i _mm256_cmpneq_epi64(const __m256i& a, const __m256i& b) noexcept
+	{
+		const __m256i _NEG_ONE = _mm256_set1_epi64x(static_cast<int64_t>(-1));
+		__m256i _mask = _mm256_setzero_si256();
+
+		_mask = _mm256_cmpeq_epi64(a, b);
+		_mask = _mm256_xor_si256(_mask, _NEG_ONE);//Not Equal
+
+		return _mask;
+	}//End of _mm_cmpneq_epi64
+
+	///<summary>
+	///<para> Returns the indexes of the lowest set bits of 16-bit integers in an __m128i.</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without SSE2.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m128i</returns>
+	[[nodiscard]] inline __m128i _mm_bsf_epi16(__m128i x) noexcept
+	{
+		__m128i _lsb = _mm_setzero_si128();
+
+		const __m128i _zero = _mm_setzero_si128();
+		const __m128i _two = _mm_set1_epi16(static_cast<int16_t>(2));
+		const __m128i _hex1 = _mm_set1_epi16(static_cast<int16_t>(0xff00));
+		const __m128i _hex2 = _mm_set1_epi16(static_cast<int16_t>(0xf0f0));
+		const __m128i _hex3 = _mm_set1_epi16(static_cast<int16_t>(0xcccc));
+		const __m128i _hex4 = _mm_set1_epi16(static_cast<int16_t>(0xaaaa));
+
+		x = _mm_and_si128(x, _mm_sub_epi16(_zero, x));
+
+		_lsb = _mm_or_si128(x, _mm_srli_epi16(x, 8));
+
+		return	_mm_add_epi16(
+					_mm_add_epi16(
+						_mm_add_epi16(
+							_mm_add_epi16(
+								_mm_mullo_epi16(_mm_abs_epi16(tpa::simd::_mm_cmpneq_epi16(_mm_srli_epi16(x, 8), _zero)), _two),
+									_mm_mullo_epi16(_mm_abs_epi16(tpa::simd::_mm_cmpneq_epi16(_mm_and_si128(_lsb, _hex1), _zero)), _two)),
+										_mm_mullo_epi16(_mm_abs_epi16(tpa::simd::_mm_cmpneq_epi16(_mm_and_si128(_lsb, _hex2), _zero)), _two)),
+											_mm_mullo_epi16(_mm_abs_epi16(tpa::simd::_mm_cmpneq_epi16(_mm_and_si128(_lsb, _hex3), _zero)), _two)),
+												_mm_abs_epi16(tpa::simd::_mm_cmpneq_epi16(_mm_and_si128(_lsb, _hex4), _zero)));
+	}//End of _mm_bsf_epi16
 
 	///<summary>
 	///<para> Multiply Packed 64-Bit Integers (Signed and Unsigned) in 'a' by 'b' and returns 'product' using AVX2</para>

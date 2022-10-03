@@ -435,39 +435,26 @@ namespace tpa::bit_manip
 	{
 		if constexpr (std::is_integral<T>())
 		{
-			int32_t count = 0;
-			int32_t copy = x;
+			T m = x | (x >> 1);
+			m |= m >> 2;
+			m |= m >> 4;
+			m |= m >> 8;
+			m |= m >> 16;
+			m |= m >> 32;
 
-			while (!(copy & (~INT_MAX)))
-			{
-				count++;
-				copy <<= 1;
-			}//End while
-
-			for (int32_t i = 0; i < count; ++i)
-			{
-				tpa::bit_manip::set(x, (((sizeof(T) * CHAR_BIT)-1) - i));
-			}//End for
-
-			x = *reinterpret_cast<float*>(&x);
+			x = (x | ~m);
 		}//End if
 		else if constexpr (std::is_same<T, float>())
 		{
 			int32_t x_as_int = *reinterpret_cast<int32_t*>(&x);
 
-			int32_t count = 0;
-			int32_t copy = x_as_int;
+			int32_t m = x_as_int | (x_as_int >> 1);
+			m |= m >> 2;
+			m |= m >> 4;
+			m |= m >> 8;
+			m |= m >> 16;
 
-			while (!(copy & (~INT_MAX)))
-			{
-				count++;
-				copy <<= 1;
-			}//End while
-
-			for (int32_t i = 0; i < count; ++i)
-			{
-				tpa::bit_manip::set(x_as_int, (((sizeof(float) * CHAR_BIT)-1) -i));
-			}//End for
+			x_as_int = (x_as_int | ~m);
 
 			x = *reinterpret_cast<float*>(&x_as_int);
 		}//End if
@@ -475,19 +462,14 @@ namespace tpa::bit_manip
 		{
 			int64_t x_as_int = *reinterpret_cast<int64_t*>(&x);
 
-			int64_t count = 0;
-			int64_t copy = x_as_int;
+			int64_t m = x_as_int | (x_as_int >> 1ll);
+			m |= m >> 2ll;
+			m |= m >> 4ll;
+			m |= m >> 8ll;
+			m |= m >> 16ll;
+			m |= m >> 32ll;
 
-			while (!(copy & (~INT_MAX)))
-			{
-				count++;
-				copy <<= 1;
-			}//End while
-
-			for (int64_t i = 0; i < count; ++i)
-			{
-				tpa::bit_manip::set(x_as_int, (((sizeof(double)*CHAR_BIT)-1) - i));
-			}//End for
+			x_as_int = (x_as_int | ~m);
 
 			x = *reinterpret_cast<double*>(&x_as_int);
 		}//End if
@@ -511,13 +493,39 @@ namespace tpa::bit_manip
 	{
 		if constexpr (std::is_integral<T>())
 		{
-			x = -x & x;
+			constexpr T one = static_cast<T>(1);
+
+			T count = 0;
+			T copy = ~x;
+
+			while (!(copy & (~std::numeric_limits<T>::max())))
+			{
+				count++;
+				copy <<= one;
+			}//End while
+
+			for (T i = 0; i < count; ++i)
+			{
+				x = ~(one << (((sizeof(T) * CHAR_BIT) - one) - i)) & x;
+			}//End for
 		}//End if
 		else if constexpr (std::is_same<T, float>())
 		{
 			int32_t x_as_int = *reinterpret_cast<int32_t*>(&x);
 
-			x_as_int = -x_as_int & (x_as_int);
+			int32_t count = 0;
+			int32_t copy = ~x_as_int;
+
+			while (!(copy & (~std::numeric_limits<int32_t>::max())))
+			{
+				count++;
+				copy <<= 1;
+			}//End while
+
+			for (int32_t i = 0; i < count; ++i)
+			{
+				x_as_int = ~(1 << (((sizeof(T) * CHAR_BIT) - 1) - i)) & x_as_int;
+			}//End for
 
 			x = *reinterpret_cast<float*>(&x_as_int);
 		}//End if
@@ -525,7 +533,19 @@ namespace tpa::bit_manip
 		{
 			int64_t x_as_int = *reinterpret_cast<int64_t*>(&x);
 
-			x_as_int = -x_as_int & x_as_int;
+			int64_t count = 0;
+			int64_t copy = ~x_as_int;
+
+			while (!(copy & (~std::numeric_limits<int64_t>::max())))
+			{
+				count++;
+				copy <<= 1;
+			}//End while
+
+			for (int64_t i = 0; i < count; ++i)
+			{
+				x_as_int = ~(1 << (((sizeof(T) * CHAR_BIT) - 1) - i)) & x_as_int;
+			}//End for
 
 			x = *reinterpret_cast<double*>(&x_as_int);
 		}//End if
@@ -1665,6 +1685,178 @@ namespace tpa::bit_manip
 	}//End of bit_scan_forward
 
 	/// <summary>
+	/// <para>Sets all the even-numbered bits in a primitive type to 1</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <param name="not_set"></param>
+	/// <returns></returns>
+	template<typename T>
+	[[nodiscard]] inline constexpr void set_even(T& x)
+	{
+		if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
+		{
+			x = x | static_cast<T>(0b1010'10101);
+		}//End if
+		else if constexpr (std::is_same<T, int16_t>() || std::is_same<T, uint16_t>())
+		{
+			x = x | static_cast<T>(0b0101'0101'0101'0101);
+		}//End if
+		else if constexpr (std::is_same<T, int32_t>() || std::is_same<T, uint32_t>())
+		{
+			x = x | static_cast<T>(0b0101'0101'0101'0101'0101'0101'0101'0101);
+		}//End if
+		else if constexpr (std::is_same<T, int64_t>() || std::is_same<T, uint64_t>())
+		{
+			x = x | static_cast<T>(0b0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101);
+		}//End if
+		else if constexpr (std::is_same<T, float>())
+		{
+			x = *reinterpret_cast<float*>(*reinterpret_cast<int32_t*>(&x)) | static_cast<int32_t>(0b0101'0101'0101'0101'0101'0101'0101'0101);
+		}//End if
+		else if constexpr (std::is_same<T, double>())
+		{
+			x = *reinterpret_cast<double*>(*reinterpret_cast<int64_t*>(&x)) | static_cast<int64_t>(0b0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101);
+		}//End if
+		else
+		{
+			[] <bool flag = false>()
+			{
+				static_assert(flag, " You have passed a non-standard type in tpa::bitmanip::set_even() This is not supported.");
+			}();
+		}//End else
+	}//End of set_even
+
+	/// <summary>
+	/// <para>Clears all the even-numbered bits in a primitive type to 0</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <param name="not_set"></param>
+	/// <returns></returns>
+	template<typename T>
+	[[nodiscard]] inline constexpr void clear_even(T& x)
+	{
+		if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
+		{
+			x = x & static_cast<T>(0b1010'10101);
+		}//End if
+		else if constexpr (std::is_same<T, int16_t>() || std::is_same<T, uint16_t>())
+		{
+			x = x & static_cast<T>(0b0101'0101'0101'0101);
+		}//End if
+		else if constexpr (std::is_same<T, int32_t>() || std::is_same<T, uint32_t>())
+		{
+			x = x & static_cast<T>(0b0101'0101'0101'0101'0101'0101'0101'0101);
+		}//End if
+		else if constexpr (std::is_same<T, int64_t>() || std::is_same<T, uint64_t>())
+		{
+			x = x & static_cast<T>(0b0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101);
+		}//End if
+		else if constexpr (std::is_same<T, float>())
+		{
+			x = *reinterpret_cast<float*>(*reinterpret_cast<int32_t*>(&x)) & static_cast<int32_t>(0b0101'0101'0101'0101'0101'0101'0101'0101);
+		}//End if
+		else if constexpr (std::is_same<T, double>())
+		{
+			x = *reinterpret_cast<double*>(*reinterpret_cast<int64_t*>(&x)) & static_cast<int64_t>(0b0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101);
+		}//End if
+		else
+		{
+			[] <bool flag = false>()
+			{
+				static_assert(flag, " You have passed a non-standard type in tpa::bitmanip::set_even() This is not supported.");
+			}();
+		}//End else
+	}//End of clear_even
+
+	/// <summary>
+	/// <para>Sets all the odd-numbered bits in a primitive type to 1</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <param name="not_set"></param>
+	/// <returns></returns>
+	template<typename T>
+	[[nodiscard]] inline constexpr void set_odd(T& x)
+	{
+		if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
+		{
+			x = x | static_cast<T>(0b1010'1010);
+		}//End if
+		else if constexpr (std::is_same<T, int16_t>() || std::is_same<T, uint16_t>())
+		{
+			x = x | static_cast<T>(0b1010'1010'1010'1010);
+		}//End if
+		else if constexpr (std::is_same<T, int32_t>() || std::is_same<T, uint32_t>())
+		{
+			x = x | static_cast<T>(0b1010'1010'1010'1010'1010'1010'1010'1010);
+		}//End if
+		else if constexpr (std::is_same<T, int64_t>() || std::is_same<T, uint64_t>())
+		{
+			x = x | static_cast<T>(0b1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010);
+		}//End if
+		else if constexpr (std::is_same<T, float>())
+		{
+			x = *reinterpret_cast<float*>(*reinterpret_cast<int32_t*>(&x)) | static_cast<int32_t>(0b1010'1010'1010'1010'1010'1010'1010'1010);
+		}//End if
+		else if constexpr (std::is_same<T, double>())
+		{
+			x = *reinterpret_cast<double*>(*reinterpret_cast<int64_t*>(&x)) | static_cast<int64_t>(0b1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010);
+		}//End if
+		else
+		{
+			[] <bool flag = false>()
+			{
+				static_assert(flag, " You have passed a non-standard type in tpa::bitmanip::set_even() This is not supported.");
+			}();
+		}//End else
+	}//End of set_odd
+
+	/// <summary>
+	/// <para>Clears all the odd-numbered bits in a primitive type to 0</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <param name="not_set"></param>
+	/// <returns></returns>
+	template<typename T>
+	[[nodiscard]] inline constexpr void clear_odd(T& x)
+	{
+		if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
+		{
+			x = x & static_cast<T>(0b1010'1010);
+		}//End if
+		else if constexpr (std::is_same<T, int16_t>() || std::is_same<T, uint16_t>())
+		{
+			x = x & static_cast<T>(0b1010'1010'1010'1010);
+		}//End if
+		else if constexpr (std::is_same<T, int32_t>() || std::is_same<T, uint32_t>())
+		{
+			x = x & static_cast<T>(0b1010'1010'1010'1010'1010'1010'1010'1010);
+		}//End if
+		else if constexpr (std::is_same<T, int64_t>() || std::is_same<T, uint64_t>())
+		{
+			x = x & static_cast<T>(0b1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010);
+		}//End if
+		else if constexpr (std::is_same<T, float>())
+		{
+			x = *reinterpret_cast<float*>(*reinterpret_cast<int32_t*>(&x)) & static_cast<int32_t>(0b1010'1010'1010'1010'1010'1010'1010'1010);
+		}//End if
+		else if constexpr (std::is_same<T, double>())
+		{
+			x = *reinterpret_cast<double*>(*reinterpret_cast<int64_t*>(&x)) & static_cast<int64_t>(0b1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010);
+		}//End if
+		else
+		{
+			[] <bool flag = false>()
+			{
+				static_assert(flag, " You have passed a non-standard type in tpa::bitmanip::set_even() This is not supported.");
+			}();
+		}//End else
+	}//End of clear_odd
+
+	/// <summary>
 	/// <para>Returns the index of the highest set one (1) bit in 'x'</para>
 	/// <para>If no bits in 'x' are set the return of this function will be zero '0'</para>
 	/// <para>In the case that the bit at index zero could be set you can 
@@ -1793,7 +1985,6 @@ namespace tpa::bit_manip
 	template<typename T>
 	[[nodiscard]] inline constexpr T next_lexicographic_permutation(T x) noexcept
 	{
-#ifdef TPA_X86_64
 		if constexpr (std::is_integral<T>())
 		{
 			T temp = x | (x - 1);
@@ -1826,38 +2017,6 @@ namespace tpa::bit_manip
 				static_assert(flag, " You have passed a non-standard type in tpa::bitmanip::next_lexicographic_permutation() This is not supported.");
 			}();
 		}//End else
-#else
-		if constexpr (std::is_integral<T>())
-		{
-			T temp = (x | (x - 1)) + 1;
-			return temp | (((temp & -temp) / (x & -x) >> 1) - 1);
-		}//End if
-		else if constexpr (std::is_same<T, float>())
-		{
-			int32_t x_as_f = *reinterpret_cast<int32_t*>(&x);
-
-			int32_t temp = (x_as_f | (x_as_f - 1)) + 1;
-			temp = temp | (((temp & -temp) / (x_as_f & -x_as_f) >> 1) - 1);
-
-			return *reinterpret_cast<float*>(&temp);
-		}//End if
-		else if constexpr (std::is_same<T, double>())
-		{
-			int64_t x_as_f = *reinterpret_cast<int64_t*> (&x);
-
-			int64_t temp = (x_as_f | (x_as_f - 1)) + 1;
-			temp = temp | (((temp & -temp) / (x_as_f & -x_as_f) >> 1) - 1);
-
-			return *reinterpret_cast<double*>(&temp);
-		}//End if
-		else
-		{
-			[] <bool flag = false>()
-			{
-				static_assert(flag, " You have passed a non-standard type in tpa::bitmanip::next_lexicographic_permutation() This is not supported.");
-			}();
-		}//End else
-#endif
 	}//End of next_lexicographic_permutation
 
 	/// <summary>
@@ -2364,7 +2523,8 @@ namespace tpa::bit_manip
 /// </summary>
 namespace tpa{
 
-namespace bit_manip {
+namespace bit_manip 
+{
 	/// <summary>
 	/// <para>Modifies the bits in a numeric type according to the specified instruction at the specified position.</para>
 	/// <para>The position must be with in the bounds of a type. EX: Bounds of int32_t = Bit 0 to Bit 31.</para>
@@ -2400,7 +2560,7 @@ namespace bit_manip {
 			{
 				//Launch lambda from multiple threads
 				temp = tpa::tp->addTask([&source, &pos, &sec]()
-				{
+				{				
 					const size_t beg = sec.first;
 					const size_t end = sec.second;
 					size_t i = beg;					
@@ -2414,7 +2574,8 @@ namespace bit_manip {
 							const uint32_t p = static_cast<uint32_t>(pos);
 
 							__m512i _source = _mm512_setzero_si512(); 
-							__m512i _DESTi = _mm512_setzero_si512();
+							__m512i _DESTi = _mm512_setzero_si512();		
+							__m512i _temp = _mm512_setzero_si512();
 							const __m512i _zero = _mm512_setzero_si512();
 							const __m512i _one = _mm512_set1_epi16(static_cast<int16_t>(1));
 							const __m512i _max = _mm512_set1_epi16(std::numeric_limits<uint16_t>::max());
@@ -2461,6 +2622,59 @@ namespace bit_manip {
 										bits -= 1uz;
 									}//End for
 								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_TRAILING_ZEROS)
+								{
+									_DESTi = _mm512_or_si512(_mm512_sub_epi16(_source, _one), _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_TRAILING_ONES)
+								{
+									_DESTi = _mm512_and_si512(_mm512_add_epi16(_source, _one), _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_LEADING_ZEROS)
+								{
+									_DESTi = tpa::simd::_mm512_lzset_epi16(_source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LEADING_ONES)
+								{
+									_DESTi = tpa::simd::_mm512_not_si512(tpa::simd::_mm512_lzset_epi16(tpa::simd::_mm512_not_si512(_source)));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::NEXT_LEXOGRAPHIC_PERMUTATION)
+								{
+									/*
+									T temp = x | (x - 1);
+									x = (temp + 1) | ((~temp & -(~temp)) - 1) >> (tpa::bit_manip::bit_scan_forward(x) + 1);
+
+									return x;
+									*/
+									
+									//_temp = _mm512_or_si512(_mm512_sub_epi16(_source, _one));
+									//_temp = _mm512_or_si512(_mm512_add_epi16(_temp, _one), _mm512_sub_epi16(tpa::simd::_mm512_not_si512(_temp)));
+									break;
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_EVEN)
+								{
+									const __m512i _EVEN = _mm512_set1_epi16(static_cast<T>(0b0101'0101'0101'0101));
+
+									_DESTi = _mm512_or_si512(_source, _EVEN);
+								}//End else
+								else if constexpr (INSTR == tpa::bit_mod::SET_ODD)
+								{
+									const __m512i _ODD = _mm512_set1_epi16(static_cast<T>(0b1010'1010'1010'1010));
+
+									_DESTi = _mm512_or_si512(_source, _ODD);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_EVEN)
+								{
+									const __m512i _EVEN = _mm512_set1_epi16(static_cast<T>(0b0101'0101'0101'0101));
+
+									_DESTi = _mm512_and_si512(_source, _EVEN);
+								}//End else
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_ODD)
+								{
+									const __m512i _ODD = _mm512_set1_epi16(static_cast<T>(0b1010'1010'1010'1010));
+
+									_DESTi = _mm512_and_si512(_source, _ODD);
+								}//End if
 								else
 								{
 									[] <bool flag = false>()
@@ -2479,6 +2693,7 @@ namespace bit_manip {
 
 							__m256i _source = _mm256_setzero_si256();
 							__m256i _DESTi = _mm256_setzero_si256();
+							__m256i _temp = _mm256_setzero_si256();
 							const __m256i _zero = _mm256_setzero_si256();
 							const __m256i _one = _mm256_set1_epi16(static_cast<int16_t>(1));
 							const __m256i _max = _mm256_set1_epi16(std::numeric_limits<uint16_t>::max());
@@ -2518,12 +2733,56 @@ namespace bit_manip {
 								else if constexpr (INSTR == tpa::bit_mod::REVERSE)
 								{
 									size_t bits = sizeof(T) * CHAR_BIT;
-									while(bits > 0uz)
+									while (bits > 0uz)
 									{
 										_DESTi = _mm256_or_si256(_mm256_slli_epi16(_DESTi, 1), _mm256_and_si256(_source, _one));
 										_source = _mm256_srli_epi16(_source, 1);
 										bits -= 1uz;
 									}//End while
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_TRAILING_ZEROS)
+								{
+									_DESTi = _mm256_or_si256(_mm256_sub_epi16(_source, _one), _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_TRAILING_ONES)
+								{
+									_DESTi = _mm256_and_si256(_mm256_add_epi16(_source, _one), _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_LEADING_ZEROS)
+								{
+									_DESTi = tpa::simd::_mm256_lzset_epi16(_source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LEADING_ONES)
+								{
+									_DESTi = tpa::simd::_mm256_not_si256(tpa::simd::_mm256_lzset_epi16(tpa::simd::_mm256_not_si256(_source)));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::NEXT_LEXOGRAPHIC_PERMUTATION)
+								{
+									break;
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_EVEN)
+								{
+									const __m256i _EVEN = _mm256_set1_epi16(static_cast<T>(0b0101'0101'0101'0101));
+
+									_DESTi = _mm256_or_si256(_source, _EVEN);
+								}//End else
+								else if constexpr (INSTR == tpa::bit_mod::SET_ODD)
+								{
+									const __m256i _ODD = _mm256_set1_epi16(static_cast<T>(0b1010'1010'1010'1010));
+
+									_DESTi = _mm256_or_si256(_source, _ODD);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_EVEN)
+								{
+									const __m256i _EVEN = _mm256_set1_epi16(static_cast<T>(0b0101'0101'0101'0101));
+
+									_DESTi = _mm256_and_si256(_source, _EVEN);
+								}//End else
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_ODD)
+								{
+									const __m256i _ODD = _mm256_set1_epi16(static_cast<T>(0b1010'1010'1010'1010));
+
+									_DESTi = _mm256_and_si256(_source, _ODD);
 								}//End if
 								else
 								{
@@ -2543,6 +2802,7 @@ namespace bit_manip {
 
 							__m128i _source = _mm_setzero_si128();
 							__m128i _DESTi = _mm_setzero_si128();
+							__m128i _temp = _mm_setzero_si128();
 							const __m128i _zero = _mm_setzero_si128();
 							const __m128i _one = _mm_set1_epi16(static_cast<int16_t>(1));
 							const __m128i _max = _mm_set1_epi16(std::numeric_limits<uint16_t>::max());
@@ -2588,6 +2848,50 @@ namespace bit_manip {
 										_source = _mm_srli_epi16(_source, 1);
 										bits -= 1;
 									}//End for
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_TRAILING_ZEROS)
+								{
+									_DESTi = _mm_or_si128(_mm_sub_epi16(_source, _one), _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_TRAILING_ONES)
+								{
+									_DESTi = _mm_and_si128(_mm_add_epi16(_source, _one), _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_LEADING_ZEROS)
+								{
+									_DESTi = tpa::simd::_mm_lzset_epi16(_source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LEADING_ONES)
+								{
+									_DESTi = tpa::simd::_mm_not_si128(tpa::simd::_mm_lzset_epi16(tpa::simd::_mm_not_si128(_source)));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::NEXT_LEXOGRAPHIC_PERMUTATION)
+								{
+									break;
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_EVEN)
+								{
+									const __m128i _EVEN = _mm_set1_epi16(static_cast<T>(0b0101'0101'0101'0101));
+
+									_DESTi = _mm_or_si128(_source, _EVEN);
+								}//End else
+								else if constexpr (INSTR == tpa::bit_mod::SET_ODD)
+								{
+									const __m128i _ODD = _mm_set1_epi16(static_cast<T>(0b1010'1010'1010'1010));
+
+									_DESTi = _mm_or_si128(_source, _ODD);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_EVEN)
+								{
+									const __m128i _EVEN = _mm_set1_epi16(static_cast<T>(0b0101'0101'0101'0101));
+
+									_DESTi = _mm_and_si128(_source, _EVEN);
+								}//End else
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_ODD)
+								{
+									const __m128i _ODD = _mm_set1_epi16(static_cast<T>(0b1010'1010'1010'1010));
+
+									_DESTi = _mm_and_si128(_source, _ODD);
 								}//End if
 								else
 								{
@@ -3632,6 +3936,359 @@ namespace bit_manip {
 								}();
 							}//End else
 						}//End if
+						else if constexpr (INSTR == tpa::bit_mod::SET_TRAILING_ZEROS)
+						{
+							constexpr T one = static_cast<T>(1);
+
+							if constexpr (std::is_integral<T>())
+							{
+								source[i] = (source[i] - one) | source[i];
+							}//End if
+							else if constexpr (std::is_same<T, float>())
+							{
+								int32_t x_as_int = *reinterpret_cast<int32_t*>(&source[i]);
+
+								x_as_int = (x_as_int - 1) | x_as_int;
+
+								source[i] = *reinterpret_cast<float*>(&x_as_int);
+							}//End if
+							else if constexpr (std::is_same<T, double>())
+							{
+								int64_t x_as_int = *reinterpret_cast<int64_t*>(&source[i]);
+
+								x_as_int = (x_as_int - 1ll) | x_as_int;
+
+								source[i] = *reinterpret_cast<double*>(&x_as_int);
+							}//End if
+							else
+							{
+								[] <bool flag = false>()
+								{
+									static_assert(flag, "Non-standard types are not supported.");
+								}();
+							}//End else
+						}//End if
+						else if constexpr (INSTR == tpa::bit_mod::CLEAR_TRAILING_ONES)
+						{
+							constexpr T one = static_cast<T>(1);
+
+							if constexpr (std::is_integral<T>())
+							{
+								source[i] = (source[i] + one) & source[i];
+							}//End if
+							else if constexpr (std::is_same<T, float>())
+							{
+								int32_t x_as_int = *reinterpret_cast<int32_t*>(&source[i]);
+
+								x_as_int = (x_as_int + 1) & x_as_int;
+
+								source[i] = *reinterpret_cast<float*>(&x_as_int);
+							}//End if
+							else if constexpr (std::is_same<T, double>())
+							{
+								int64_t x_as_int = *reinterpret_cast<int64_t*>(&source[i]);
+
+								x_as_int = (x_as_int + 1ll) & x_as_int;
+
+								source[i] = *reinterpret_cast<double*>(&x_as_int);
+							}//End if
+							else
+							{
+								[] <bool flag = false>()
+								{
+									static_assert(flag, "Non-standard types are not supported.");
+								}();
+							}//End else
+						}//End if
+						else if constexpr (INSTR == tpa::bit_mod::SET_LEADING_ZEROS)
+						{							
+							if constexpr (std::is_integral<T>())
+							{
+								T m = source[i] | (source[i] >> 1);
+								m |= m >> 2;
+								m |= m >> 4;
+								m |= m >> 8;
+								m |= m >> 16;
+								m |= m >> 32;
+
+								source[i] = (source[i] | ~m);
+							}//End if
+							else if constexpr (std::is_same<T, float>())
+							{
+								int32_t x_as_int = *reinterpret_cast<int32_t*>(&source[i]);
+
+								int32_t m = x_as_int | (x_as_int >> 1);
+								m |= m >> 2;
+								m |= m >> 4;
+								m |= m >> 8;
+								m |= m >> 16;
+
+								x_as_int = (x_as_int | ~m);
+
+								source[i] = *reinterpret_cast<float*>(&x_as_int);
+							}//End if
+							else if constexpr (std::is_same<T, double>())
+							{
+								int64_t x_as_int = *reinterpret_cast<int32_t*>(&source[i]);
+
+								int64_t m = x_as_int | (x_as_int >> 1ll);
+								m |= m >> 2ll;
+								m |= m >> 4ll;
+								m |= m >> 8ll;
+								m |= m >> 16ll;
+								m |= m >> 32ll;
+
+								x_as_int = (x_as_int | ~m);
+
+								source[i] = *reinterpret_cast<double*>(&x_as_int);
+							}//End if
+							else
+							{
+								[] <bool flag = false>()
+								{
+									static_assert(flag, "Non-standard types are not supported.");
+								}();
+							}//End else		
+							
+						}//End if
+						else if constexpr (INSTR == tpa::bit_mod::CLEAR_LEADING_ONES)
+						{
+							if constexpr (std::is_integral<T>())
+							{
+								constexpr T one = static_cast<T>(1);
+
+								T count = 0;
+								T copy = ~source[i];
+
+								while (!(copy & (~std::numeric_limits<T>::max())))
+								{
+									count++;
+									copy <<= one;
+								}//End while
+
+								for (T i = 0; i < count; ++i)
+								{
+									source[i] = ~(one << (((sizeof(T) * CHAR_BIT) - one) - i)) & source[i];
+								}//End for
+							}//End if
+							else if constexpr (std::is_same<T, float>())
+							{
+								int32_t x_as_int = *reinterpret_cast<int32_t*>(&source[i]);
+
+								int32_t count = 0;
+								int32_t copy = ~x_as_int;
+
+								while (!(copy & (~std::numeric_limits<int32_t>::max())))
+								{
+									count++;
+									copy <<= 1;
+								}//End while
+
+								for (int32_t i = 0; i < count; ++i)
+								{
+									x_as_int = ~(1 << (((sizeof(T) * CHAR_BIT) - 1) - i)) & x_as_int;
+								}//End for
+
+								source[i] = *reinterpret_cast<float*>(&x_as_int);
+							}//End if
+							else if constexpr (std::is_same<T, double>())
+							{
+								int64_t x_as_int = *reinterpret_cast<int64_t*>(&source[i]);
+
+								int64_t count = 0;
+								int64_t copy = ~x_as_int;
+
+								while (!(copy & (~std::numeric_limits<int64_t>::max())))
+								{
+									count++;
+									copy <<= 1;
+								}//End while
+
+								for (int64_t i = 0; i < count; ++i)
+								{
+									x_as_int = ~(1 << (((sizeof(T) * CHAR_BIT) - 1) - i)) & x_as_int;
+								}//End for
+
+								source[i] = *reinterpret_cast<double*>(&x_as_int);
+							}//End if
+							else
+							{
+								[] <bool flag = false>()
+								{
+									static_assert(flag, "Non-standard types are not supported.");
+								}();
+							}//End else	
+						}//End if
+						else if constexpr (INSTR == tpa::bit_mod::NEXT_LEXOGRAPHIC_PERMUTATION)
+						{
+							if constexpr (std::is_integral<T>())
+							{
+								T temp = source[i] | (source[i] - 1);
+								source[i] = (temp + 1) | ((~temp & -(~temp)) - 1) >> (tpa::bit_manip::bit_scan_forward(source[i]) + 1);
+
+							}//End if
+							else if constexpr (std::is_same<T, float>())
+							{
+								int32_t x_as_int = *reinterpret_cast<int32_t*>(&source[i]);
+
+								int32_t temp = x_as_int | (x_as_int - 1);
+								x_as_int = (temp + 1) | ((~temp & -(~temp)) - 1) >> (tpa::bit_manip::bit_scan_forward(x_as_int) + 1);
+
+								source[i] = *reinterpret_cast<float*>(&x_as_int);
+							}//End if
+							else if constexpr (std::is_same<T, double>())
+							{
+								int64_t x_as_int = *reinterpret_cast<int64_t*>(&source[i]);
+
+								int64_t temp = x_as_int | (x_as_int - 1);
+								x_as_int = (temp + 1) | ((~temp & -(~temp)) - 1) >> (tpa::bit_manip::bit_scan_forward(x_as_int) + 1);
+
+								source[i] = *reinterpret_cast<double*>(&x_as_int);
+							}//End if
+							else
+							{
+								[] <bool flag = false>()
+								{
+									static_assert(flag, " You have passed a non-standard type in tpa::bitmanip::next_lexicographic_permutation() This is not supported.");
+								}();
+							}//End else
+						}//End Next Lexographic permutation
+						else if constexpr (INSTR == tpa::bit_mod::SET_EVEN)
+						{
+							if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
+							{
+								source[i] = source[i] | static_cast<T>(0b1010'10101);
+							}//End if
+							else if constexpr (std::is_same<T, int16_t>() || std::is_same<T, uint16_t>())
+							{
+								source[i] = source[i] | static_cast<T>(0b0101'0101'0101'0101);
+							}//End if
+							else if constexpr (std::is_same<T, int32_t>() || std::is_same<T, uint32_t>())
+							{
+								source[i] = source[i] | static_cast<T>(0b0101'0101'0101'0101'0101'0101'0101'0101);
+							}//End if
+							else if constexpr (std::is_same<T, int64_t>() || std::is_same<T, uint64_t>())
+							{
+								source[i] = source[i] | static_cast<T>(0b0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101);
+							}//End if
+							else if constexpr (std::is_same<T, float>())
+							{
+								source[i] = *reinterpret_cast<float*>(*reinterpret_cast<int32_t*>(&source[i])) | static_cast<int32_t>(0b0101'0101'0101'0101'0101'0101'0101'0101);
+							}//End if
+							else if constexpr (std::is_same<T, double>())
+							{
+								source[i] = *reinterpret_cast<double*>(*reinterpret_cast<int64_t*>(&source[i])) | static_cast<int64_t>(0b0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101);
+							}//End if
+							else
+							{
+								[] <bool flag = false>()
+								{
+									static_assert(flag, " You have passed a non-standard type in tpa::bitmanip::set_even() This is not supported.");
+								}();
+							}//End else
+						}//End Set Even
+						else if constexpr (INSTR == tpa::bit_mod::SET_ODD)
+						{
+							if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
+							{
+								source[i] = source[i] | static_cast<T>(0b1010'1010);
+							}//End if
+							else if constexpr (std::is_same<T, int16_t>() || std::is_same<T, uint16_t>())
+							{
+								source[i] = source[i] | static_cast<T>(0b1010'1010'1010'1010);
+							}//End if
+							else if constexpr (std::is_same<T, int32_t>() || std::is_same<T, uint32_t>())
+							{
+								source[i] = source[i] | static_cast<T>(0b1010'1010'1010'1010'1010'1010'1010'1010);
+							}//End if
+							else if constexpr (std::is_same<T, int64_t>() || std::is_same<T, uint64_t>())
+							{
+								source[i] = source[i] | static_cast<T>(0b1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010);
+							}//End if
+							else if constexpr (std::is_same<T, float>())
+							{
+								source[i] = *reinterpret_cast<float*>(*reinterpret_cast<int32_t*>(&source[i])) | static_cast<int32_t>(0b1010'1010'1010'1010'1010'1010'1010'1010);
+							}//End if
+							else if constexpr (std::is_same<T, double>())
+							{
+								source[i] = *reinterpret_cast<double*>(*reinterpret_cast<int64_t*>(&source[i])) | static_cast<int64_t>(0b1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010);
+							}//End if
+							else
+							{
+								[] <bool flag = false>()
+								{
+									static_assert(flag, " You have passed a non-standard type in tpa::bitmanip::set_odd() This is not supported.");
+								}();
+							}//End else
+						}//End of Set Odd
+						else if constexpr (INSTR == tpa::bit_mod::CLEAR_EVEN)
+						{
+							if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
+							{
+								source[i] = source[i] & static_cast<T>(0b1010'10101);
+							}//End if
+							else if constexpr (std::is_same<T, int16_t>() || std::is_same<T, uint16_t>())
+							{
+								source[i] = source[i] & static_cast<T>(0b0101'0101'0101'0101);
+							}//End if
+							else if constexpr (std::is_same<T, int32_t>() || std::is_same<T, uint32_t>())
+							{
+								source[i] = source[i] & static_cast<T>(0b0101'0101'0101'0101'0101'0101'0101'0101);
+							}//End if
+							else if constexpr (std::is_same<T, int64_t>() || std::is_same<T, uint64_t>())
+							{
+								source[i] = source[i] & static_cast<T>(0b0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101);
+							}//End if
+							else if constexpr (std::is_same<T, float>())
+							{
+								source[i] = *reinterpret_cast<float*>(*reinterpret_cast<int32_t*>(&source[i])) & static_cast<int32_t>(0b0101'0101'0101'0101'0101'0101'0101'0101);
+							}//End if
+							else if constexpr (std::is_same<T, double>())
+							{
+								source[i] = *reinterpret_cast<double*>(*reinterpret_cast<int64_t*>(&source[i])) & static_cast<int64_t>(0b0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101);
+							}//End if
+							else
+							{
+								[] <bool flag = false>()
+								{
+									static_assert(flag, " You have passed a non-standard type in tpa::bitmanip::set_even() This is not supported.");
+								}();
+							}//End else
+						}//Clear Even
+						else if constexpr (INSTR == tpa::bit_mod::CLEAR_ODD)
+						{
+							if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
+							{
+								source[i] = source[i] & static_cast<T>(0b1010'1010);
+							}//End if
+							else if constexpr (std::is_same<T, int16_t>() || std::is_same<T, uint16_t>())
+							{
+								source[i] = source[i] & static_cast<T>(0b1010'1010'1010'1010);
+							}//End if
+							else if constexpr (std::is_same<T, int32_t>() || std::is_same<T, uint32_t>())
+							{
+								source[i] = source[i] & static_cast<T>(0b1010'1010'1010'1010'1010'1010'1010'1010);
+							}//End if
+							else if constexpr (std::is_same<T, int64_t>() || std::is_same<T, uint64_t>())
+							{
+								source[i] = source[i] & static_cast<T>(0b1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010);
+							}//End if
+							else if constexpr (std::is_same<T, float>())
+							{
+								source[i] = *reinterpret_cast<float*>(*reinterpret_cast<int32_t*>(&source[i])) & static_cast<int32_t>(0b1010'1010'1010'1010'1010'1010'1010'1010);
+							}//End if
+							else if constexpr (std::is_same<T, double>())
+							{
+								source[i] = *reinterpret_cast<double*>(*reinterpret_cast<int64_t*>(&source[i])) & static_cast<int64_t>(0b1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010);
+							}//End if
+							else
+							{
+								[] <bool flag = false>()
+								{
+									static_assert(flag, " You have passed a non-standard type in tpa::bitmanip::set_even() This is not supported.");
+								}();
+							}//End else
+						}//Clear Odd
 						else
 						{
 							[] <bool flag = false>()
@@ -3643,6 +4300,7 @@ namespace bit_manip {
 #pragma endregion
 
 					return static_cast<uint32_t>(1);
+				
 				});//End of lambda
 
 				results.emplace_back(std::move(temp));
@@ -3658,7 +4316,6 @@ namespace bit_manip {
 			{
 				throw tpa::exceptions::NotAllThreadsCompleted(complete);
 			}//End if
-
 			
 		}//End of try
 		catch (const std::exception& ex)
@@ -3671,8 +4328,9 @@ namespace bit_manip {
 			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
 			std::cerr << "Exception thrown in tpa::bit_manip::bit_modify: unknown!\n";
 		}//End catch
-	}//End of set
-};
+	
+	}//End of bit_modify
+};//End of bit_manip
 
 #pragma region generic
 	/// <summary>
