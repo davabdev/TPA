@@ -27,8 +27,8 @@ namespace tpa
 		MULTIPLY,
 		DIVIDE,
 		MODULO,
-		MIN, //Functionally identical to tpa::simd::compare<tpa::op::MIN>(...)
-		MAX, //Functionally identical to tpa::simd::compare<tpa::op::MAX>(...)
+		MIN, //Functionally identical to tpa::compare<tpa::op::MIN>(...)
+		MAX, //Functionally identical to tpa::compare<tpa::op::MAX>(...)
 		AVERAGE,
 		POWER
 	};//End of op
@@ -57,7 +57,20 @@ namespace tpa
 		SET_TRAILING_ZEROS,		//Sets all the trailing 0s to 1s
 		CLEAR_TRAILING_ONES,	//Clears all the trailing 1s to 0s
 		SET_LEADING_ZEROS,		//Sets all the leading 0s to 1s
-		CLEAR_LEADING_ONES		//Clears all the leading 1s to 0s
+		CLEAR_LEADING_ONES,		//Clears all the leading 1s to 0s
+		NEXT_LEXOGRAPHIC_PERMUTATION, //Sets the bits in a given type to the next representable number with the same number of set bits.
+		SET_EVEN,				//Set the even-number bits to 1
+		SET_ODD,				//Set the odd-number bits to 1
+		CLEAR_EVEN,				//Clear the even-number bits to 0
+		CLEAR_ODD,				//Clear the odd-number bits to 0
+		TOGGLE_EVEN,			//Toggle the even-number bits
+		TOGGLE_ODD,				//Toggle the odd-number bits
+		ROTATE_LEFT,			//Rotates bits left eg. 1110 -> 1101
+		ROTATE_RIGHT,			//Rotates bits right eg. 0011 -> 1001
+		MERGE_LEFT,				//Moves all the 1 bits to the right eg. 01010110 -> 00001111
+		MERGE_RIGHT,			//Moves all the 1 bits to the left eg. 01010110 -> 11110000
+		CLEAR_MSB,				//Clears the most significant bit
+		CLEAR_LSB				//Clears the least significant bit
 	};//End of bit_mod
 
 	/// <summary>
@@ -71,7 +84,9 @@ namespace tpa
 		TRAILING_ZERO_COUNT,
 		LEADING_ONE_COUNT,
 		TRAILING_ONE_COUNT,
-		BIT_ISLAND_COUNT,
+		BIT_ISLAND_COUNT,	//Counts the number of bit groupings, eg. 11011101 = 3.
+		BIT_SCAN_FORWARD,	//Returns the index of the lowest set (1) bit (LSB).
+		BIT_SCAN_REVERSE	//Returns the index of the highest set (1) bit (MSB).
 	};//End of bit
 
 	/// <summary>
