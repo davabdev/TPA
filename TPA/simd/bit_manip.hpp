@@ -752,16 +752,26 @@ namespace tpa::bit_manip
 			{
 				if constexpr (std::is_same<T, uint64_t>() || std::is_same<T, int64_t>())
 				{
-					return _mm_popcnt_u64(x);
+					return static_cast<uint64_t>(_mm_popcnt_u64(x));
 				}//End if
-				else
+				else if constexpr (std::is_same<T, uint32_t>() || std::is_same<T, int32_t>())
 				{
 					return static_cast<uint64_t>(_mm_popcnt_u32(x));
+				}//End else
+				else
+				{
+					uint64_t c = 0ull;
+					for (; x != 0; ++c)
+					{
+						x = x & (x - 1);
+					}//End for
+
+					return c;
 				}//End else
 			}//End if
 			else
 			{
-				uint64_t c = 0;
+				uint64_t c = 0ull;
 				for (; x != 0; ++c)
 				{
 					x = x & (x - 1);
@@ -769,7 +779,7 @@ namespace tpa::bit_manip
 
 				return c;
 #else
-			uint64_t c = 0;
+			uint64_t c = 0ull;
 			for (; x != 0; ++c)
 			{
 				x = x & (x - 1);
@@ -791,7 +801,7 @@ namespace tpa::bit_manip
 		}//End if
 		else
 		{
-			uint32_t c = 0;
+			uint32_t c = 0u;
 			for (; temp != 0; ++c)
 			{
 				temp = temp & (temp - 1);
@@ -800,7 +810,7 @@ namespace tpa::bit_manip
 			return static_cast<uint64_t>(c);
 		}//End else
 #else
-		uint64_t c = 0;
+		uint64_t c = 0ull;
 		for (; temp != 0; ++c)
 		{
 			temp = temp & (temp - 1);
@@ -822,7 +832,7 @@ namespace tpa::bit_manip
 			}//End if
 			else
 			{
-				uint64_t c = 0;
+				uint64_t c = 0ull;
 				for (; temp != 0; ++c)
 				{
 					temp = temp & (temp - 1);
@@ -830,7 +840,7 @@ namespace tpa::bit_manip
 
 				return c;
 #else
-			uint64_t c = 0;
+			uint64_t c = 0ull;
 			for (; temp != 0; ++c)
 			{
 				temp = temp & (temp - 1);
@@ -1449,6 +1459,18 @@ namespace tpa::bit_manip
 		}//End else
 	}//End of bit_island_count
 
+	/*
+	* Hold the error results for bit_scan_forward if a char pointer is not passed.
+	* 1 = no error, 0 = no bits were set
+	*/
+	unsigned char bsf_not_set = static_cast<unsigned char>(1);
+
+	/*
+	* Hold the error results for bit_scan_reverse if a char pointer is not passed.
+	* 1 = no error, 0 = no bits were set
+	*/
+	unsigned char bsr_not_set = static_cast<unsigned char>(1);
+
 	/// <summary>
 	/// <para>Returns the index of the lowest set one (1) bit in 'x'</para>
 	/// <para>If no bits in 'x' are set the return of this function will be zero '0'</para>
@@ -1461,9 +1483,9 @@ namespace tpa::bit_manip
 	/// <param name="not_set"></param>
 	/// <returns></returns>
 	template<typename T>
-	[[nodiscard]] inline constexpr unsigned long bit_scan_forward(T x, unsigned char* not_set = nullptr) noexcept
+	[[nodiscard]] inline constexpr unsigned long bit_scan_forward(T x, unsigned char* not_set = &bsf_not_set) noexcept
 	{
-		unsigned long index = {};
+		unsigned long index = 0;
 
 #if defined(TPA_X86_64)
 		if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
@@ -1868,7 +1890,7 @@ namespace tpa::bit_manip
 	/// <param name="not_set"></param>
 	/// <returns></returns>
 	template<typename T>
-	[[nodiscard]] inline constexpr unsigned long bit_scan_reverse(T x, unsigned char* not_set = nullptr) noexcept
+	[[nodiscard]] inline constexpr unsigned long bit_scan_reverse(T x, unsigned char* not_set = &bsr_not_set) noexcept
 	{
 		unsigned long index = {};
 
@@ -1987,8 +2009,10 @@ namespace tpa::bit_manip
 	{
 		if constexpr (std::is_integral<T>())
 		{
-			T temp = x | (x - 1);
-			x = (temp + 1) | ((~temp & -(~temp)) - 1) >> (tpa::bit_manip::bit_scan_forward(x) + 1);
+			T one = static_cast<T>(1);
+
+			T temp = x | (x - one);
+			x = (temp + one) | (((~temp & -(~temp)) - one) >> (tpa::bit_manip::bit_scan_forward(x) + one));
 
 			return x;
 		}//End if
@@ -2005,8 +2029,8 @@ namespace tpa::bit_manip
 		{
 			int64_t x_as_int = *reinterpret_cast<int64_t*>(&x);
 
-			int64_t temp = x_as_int | (x_as_int - 1);
-			x_as_int = (temp + 1) | ((~temp & -(~temp)) - 1) >> (tpa::bit_manip::bit_scan_forward(x_as_int) + 1);
+			int64_t temp = x_as_int | (x_as_int - 1ll);
+			x_as_int = (temp + 1ll) | ((~temp & -(~temp)) - 1ll) >> (tpa::bit_manip::bit_scan_forward(x_as_int) + 1ll);
 
 			return *reinterpret_cast<double*>(&x_as_int);
 		}//End if
@@ -2640,16 +2664,16 @@ namespace bit_manip
 								}//End if
 								else if constexpr (INSTR == tpa::bit_mod::NEXT_LEXOGRAPHIC_PERMUTATION)
 								{
-									/*
-									T temp = x | (x - 1);
-									x = (temp + 1) | ((~temp & -(~temp)) - 1) >> (tpa::bit_manip::bit_scan_forward(x) + 1);
+									_temp = _mm512_or_si512(_source, _mm512_sub_epi16(_source, _one));
 
-									return x;
-									*/
-									
-									//_temp = _mm512_or_si512(_mm512_sub_epi16(_source, _one));
-									//_temp = _mm512_or_si512(_mm512_add_epi16(_temp, _one), _mm512_sub_epi16(tpa::simd::_mm512_not_si512(_temp)));
-									break;
+									__m512i _rhs = _mm512_add_epi16(tpa::simd::_mm512_bsf_epi16(_source), _one);
+									   
+									__m512i _added = _mm512_add_epi16(_temp, _one);
+									__m512i _not_temp = tpa::simd::_mm512_not_si512(_temp);
+									__m512i _lhs = _mm512_sub_epi16(_mm512_and_si512(_not_temp, _mm512_sub_epi16(_zero, _not_temp)), _one);
+									__m512i _lhs_shifted_right = _mm512_srlv_epi16(_lhs, _rhs);
+
+									_DESTi = _mm512_or_si512(_added, _lhs_shifted_right);
 								}//End if
 								else if constexpr (INSTR == tpa::bit_mod::SET_EVEN)
 								{
@@ -2758,7 +2782,16 @@ namespace bit_manip
 								}//End if
 								else if constexpr (INSTR == tpa::bit_mod::NEXT_LEXOGRAPHIC_PERMUTATION)
 								{
-									break;
+									_temp = _mm256_or_si256(_source, _mm256_sub_epi16(_source, _one));
+
+									__m256i _rhs = _mm256_add_epi16(tpa::simd::_mm256_bsf_epi16(_source), _one);
+
+									__m256i _added = _mm256_add_epi16(_temp, _one);									
+									__m256i _not_temp = tpa::simd::_mm256_not_si256(_temp);
+									__m256i _lhs = _mm256_sub_epi16(_mm256_and_si256(_not_temp, _mm256_sub_epi16(_zero, _not_temp)), _one);
+									__m256i _lhs_shifted_right = tpa::simd::_mm256_srlv_epi16(_lhs, _rhs);
+
+									_DESTi = _mm256_or_si256(_added, _lhs_shifted_right);	
 								}//End if
 								else if constexpr (INSTR == tpa::bit_mod::SET_EVEN)
 								{
@@ -2867,7 +2900,16 @@ namespace bit_manip
 								}//End if
 								else if constexpr (INSTR == tpa::bit_mod::NEXT_LEXOGRAPHIC_PERMUTATION)
 								{
-									break;
+									_temp = _mm_or_si128(_source, _mm_sub_epi16(_source, _one));
+
+									__m128i _rhs = _mm_add_epi16(tpa::simd::_mm_bsf_epi16(_source), _one);
+									   
+									__m128i _added = _mm_add_epi16(_temp, _one);
+									__m128i _not_temp = tpa::simd::_mm_not_si128(_temp);
+									__m128i _lhs = _mm_sub_epi16(_mm_and_si128(_not_temp, _mm_sub_epi16(_zero, _not_temp)), _one);
+									__m128i _lhs_shifted_right = tpa::simd::_mm_srlv_epi16(_lhs, _rhs);
+
+									_DESTi = _mm_or_si128(_added, _lhs_shifted_right);
 								}//End if
 								else if constexpr (INSTR == tpa::bit_mod::SET_EVEN)
 								{
