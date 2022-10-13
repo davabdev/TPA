@@ -42,6 +42,7 @@ std::vector<numtype> vec2;
 std::vector<returnType> vec3;
 //std::vector<numtype> vec4;
 
+
 int main()
 {
 #ifdef _DEBUG
@@ -60,7 +61,7 @@ int main()
 		std::ios::sync_with_stdio(false);
 
 		vec.resize(1'000'000'000);
-	    //vec2.resize(1'000'000'000);
+	    vec2.resize(1'000'000'000);
 	    //vec3.resize(1'000'000'000);
 
 		tpa::runtime_instruction_set.output_CPU_info();	
@@ -78,13 +79,13 @@ int main()
 			tpa::util::Timer t;
 			std::generate(std::execution::par_unseq, vec.begin(), vec.end(), true_random<numtype>);
 		}		
-		*/
+		*/		
 
 		std::cout << "TPA iota Multi-Threaded SIMD: ";
 		{
 			tpa::util::Timer t;
-			tpa::fill(vec, static_cast<numtype>(1419));
-			//tpa::generate<tpa::gen::UNIFORM>(vec2, 0, 1'000);
+			tpa::generate<tpa::gen::UNIFORM>(vec, std::numeric_limits<numtype>::min(), std::numeric_limits<numtype>::max());
+			tpa::fill(vec2, static_cast<numtype>(0));
 		}
 
 		std::cout << "vec1 \t+\t vec2 \t=\t vec3\n";
@@ -97,19 +98,19 @@ int main()
 
 			std::cout << std::left <<
 				std::setw(5) << i <<
-				std::setw(35) << tpa::util::as_bits(vec[i]) <<
-				//std::setw(35) << static_cast<double>(2) <<
+				std::setw(35) << vec[i] << std::setw(35) << tpa::util::as_bits(vec[i]) <<
+				std::setw(35) << vec2[i] << std::setw(35) << tpa::util::as_bits(vec2[i]) <<
 				//std::setw(35) << static_cast<double>(vec3[i]) <<
 				"\n";
 		}//End for
 
-		std::cout << "STD Toggle Bits: ";
+		std::cout << "STD Next Lexicographic: ";
 		{
 			tpa::util::Timer t;
 			
 			for (size_t i = 0uz; i < vec.size(); ++i)
 			{
-				tpa::bit_manip::reverse(vec[i]);
+				vec2[i] = tpa::bit_manip::next_lexicographic_permutation(vec[i]);
 			}//End for
 		}
 
@@ -123,18 +124,43 @@ int main()
 
 			std::cout << std::left <<
 				std::setw(5) << i <<
-				std::setw(35) << tpa::util::as_bits(vec[i]) <<
-				//std::setw(35) << static_cast<double>(2) <<
+				std::setw(17) << vec[i] << std::setw(17) << tpa::util::as_bits(vec[i]) <<
+				std::setw(17) << vec2[i] << std::setw(17) << tpa::util::as_bits(vec2[i]) <<
+				//std::setw(35) << static_cast<double>(vec3[i]) <<
+				"\n";
+		}//End for
+		
+		std::cout << "STD Next Lexicographic Multi-Threaded: ";
+		{
+			tpa::util::Timer t;
+
+			std::transform(std::execution::par_unseq, vec.cbegin(), vec.cend(), vec2.begin(),
+				tpa::bit_manip::next_lexicographic_permutation<numtype>);
+		}
+		
+
+		std::cout << "vec1 \t+\t vec2 \t=\t vec3\n";
+		for (size_t i = 0; i != vec.size(); ++i)
+		{
+			if (i > 101)
+			{
+				break;
+			}
+
+			std::cout << std::left <<
+				std::setw(5) << i <<
+				std::setw(17) << vec[i] << std::setw(17) << tpa::util::as_bits(vec[i]) <<
+				std::setw(17) << vec2[i] << std::setw(17) << tpa::util::as_bits(vec2[i]) <<
 				//std::setw(35) << static_cast<double>(vec3[i]) <<
 				"\n";
 		}//End for
 
-		std::cout << "STD Set Single Bit Multi-Threaded: ";
+		tpa::copy(vec, vec2);
+
+		std::cout << "TPA Next Lexicographic SIMD: ";
 		{
 			tpa::util::Timer t;
-
-			std::for_each(std::execution::par_unseq, vec.begin(), vec.end(),
-				[](numtype& x) { tpa::bit_manip::reverse(x); });
+			tpa::bit_manip::bit_modify<tpa::bit_mod::NEXT_LEXOGRAPHIC_PERMUTATION>(vec2);
 		}
 
 		std::cout << "vec1 \t+\t vec2 \t=\t vec3\n";
@@ -147,30 +173,8 @@ int main()
 
 			std::cout << std::left <<
 				std::setw(5) << i <<
-				std::setw(35) << tpa::util::as_bits(vec[i]) <<
-				//std::setw(35) << static_cast<double>(2) <<
-				//std::setw(35) << static_cast<double>(vec3[i]) <<
-				"\n";
-		}//End for
-						
-		std::cout << "TPA Set Single Bit Multi-Threaded SIMD: ";
-		{
-			tpa::util::Timer t;
-			tpa::bit_manip::bit_modify<tpa::bit_mod::REVERSE>(vec);
-		}
-
-		std::cout << "vec1 \t+\t vec2 \t=\t vec3\n";
-		for (size_t i = 0; i != vec.size(); ++i)
-		{
-			if (i > 101)
-			{
-				break;
-			}
-
-			std::cout << std::left <<
-				std::setw(5) << i <<
-				std::setw(35) << tpa::util::as_bits(vec[i]) <<
-				//std::setw(35) << static_cast<double>(2) <<
+				std::setw(17) << vec[i] << std::setw(17) << tpa::util::as_bits(vec[i]) <<
+				std::setw(17) << vec2[i] << std::setw(17) << tpa::util::as_bits(vec2[i]) <<
 				//std::setw(35) << static_cast<double>(vec3[i]) <<
 				"\n";
 		}//End for
@@ -198,3 +202,5 @@ int main()
 		return EXIT_FAILURE;
 	}//End catch
 }//End of main method
+
+
