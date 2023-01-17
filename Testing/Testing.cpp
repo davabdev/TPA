@@ -88,7 +88,7 @@ int main()
 			tpa::fill(vec2, static_cast<numtype>(0));
 		}
 
-		std::cout << "vec1 \t+\t vec2 \t=\t vec3\n";
+		std::cout << "index\t vec1\t| vec2 \t| vec3\n";
 		for (size_t i = 0; i != vec.size(); ++i)
 		{
 			if (i > 101)
@@ -98,72 +98,25 @@ int main()
 
 			std::cout << std::left <<
 				std::setw(5) << i <<
-				std::setw(35) << vec[i] << std::setw(35) << tpa::util::as_bits(vec[i]) <<
-				std::setw(35) << vec2[i] << std::setw(35) << tpa::util::as_bits(vec2[i]) <<
-				//std::setw(35) << static_cast<double>(vec3[i]) <<
-				"\n";
-		}//End for
-
-		std::cout << "STD Next Lexicographic: ";
-		{
-			tpa::util::Timer t;
-			
-			for (size_t i = 0uz; i < vec.size(); ++i)
-			{
-				vec2[i] = tpa::bit_manip::next_lexicographic_permutation(vec[i]);
-			}//End for
-		}
-
-		std::cout << "vec1 \t+\t vec2 \t=\t vec3\n";
-		for (size_t i = 0; i != vec.size(); ++i)
-		{
-			if (i > 101)
-			{
-				break;
-			}
-
-			std::cout << std::left <<
-				std::setw(5) << i <<
-				std::setw(17) << vec[i] << std::setw(17) << tpa::util::as_bits(vec[i]) <<
-				std::setw(17) << vec2[i] << std::setw(17) << tpa::util::as_bits(vec2[i]) <<
-				//std::setw(35) << static_cast<double>(vec3[i]) <<
-				"\n";
-		}//End for
-		
-		std::cout << "STD Next Lexicographic Multi-Threaded: ";
-		{
-			tpa::util::Timer t;
-
-			std::transform(std::execution::par_unseq, vec.cbegin(), vec.cend(), vec2.begin(),
-				tpa::bit_manip::next_lexicographic_permutation<numtype>);
-		}
-		
-
-		std::cout << "vec1 \t+\t vec2 \t=\t vec3\n";
-		for (size_t i = 0; i != vec.size(); ++i)
-		{
-			if (i > 101)
-			{
-				break;
-			}
-
-			std::cout << std::left <<
-				std::setw(5) << i <<
-				std::setw(17) << vec[i] << std::setw(17) << tpa::util::as_bits(vec[i]) <<
-				std::setw(17) << vec2[i] << std::setw(17) << tpa::util::as_bits(vec2[i]) <<
-				//std::setw(35) << static_cast<double>(vec3[i]) <<
+				std::setw(17) << std::setw(17) << tpa::util::as_bits(vec[i]) <<
+				std::setw(17) << std::setw(17) << tpa::util::as_bits(vec2[i]) <<
+				//std::setw(10) << static_cast<double>(vec3[i]) <<
 				"\n";
 		}//End for
 
 		tpa::copy(vec, vec2);
 
-		std::cout << "TPA Next Lexicographic SIMD: ";
+		std::cout << "STD Clear Highest Set: ";
 		{
 			tpa::util::Timer t;
-			tpa::bit_manip::bit_modify<tpa::bit_mod::NEXT_LEXOGRAPHIC_PERMUTATION>(vec2);
+			
+			for (size_t i = 0uz; i < vec.size(); ++i)
+			{
+				tpa::bit_manip::clear_highest_set(vec2[i]);
+			}//End for
 		}
 
-		std::cout << "vec1 \t+\t vec2 \t=\t vec3\n";
+		std::cout << "index\t vec1\t| vec2 \t| vec3\n";
 		for (size_t i = 0; i != vec.size(); ++i)
 		{
 			if (i > 101)
@@ -173,9 +126,60 @@ int main()
 
 			std::cout << std::left <<
 				std::setw(5) << i <<
-				std::setw(17) << vec[i] << std::setw(17) << tpa::util::as_bits(vec[i]) <<
-				std::setw(17) << vec2[i] << std::setw(17) << tpa::util::as_bits(vec2[i]) <<
-				//std::setw(35) << static_cast<double>(vec3[i]) <<
+				std::setw(17) << std::setw(17) << tpa::util::as_bits(vec[i]) <<
+				std::setw(17) << std::setw(17) << tpa::util::as_bits(vec2[i]) <<
+				//std::setw(10) << static_cast<double>(vec3[i]) <<
+				"\n";
+		}//End for
+
+		tpa::copy(vec, vec2);
+		
+		std::cout << "STD Clear Highest Set Multi-Threaded: ";
+		{
+			tpa::util::Timer t;
+
+			std::for_each(std::execution::par_unseq, vec2.begin(), vec2.end(),
+				tpa::bit_manip::clear_highest_set<numtype>);
+		}
+		
+
+		std::cout << "index\t vec1\t| vec2 \t| vec3\n";
+		for (size_t i = 0; i != vec.size(); ++i)
+		{
+			if (i > 101)
+			{
+				break;
+			}
+
+			std::cout << std::left <<
+				std::setw(5) << i <<
+				std::setw(17) << std::setw(17) << tpa::util::as_bits(vec[i]) <<
+				std::setw(17) << std::setw(17) << tpa::util::as_bits(vec2[i]) <<
+				//std::setw(10) << static_cast<double>(vec3[i]) <<
+				"\n";
+		}//End for
+
+		tpa::copy(vec, vec2);
+
+		std::cout << "TPA Clear Highest Set SIMD: ";
+		{
+			tpa::util::Timer t;
+			tpa::bit_manip::bit_modify<tpa::bit_mod::CLEAR_HIGHEST_SET>(vec2);
+		}
+
+		std::cout << "index\t vec1\t| vec2 \t| vec3\n";
+		for (size_t i = 0; i != vec.size(); ++i)
+		{
+			if (i > 101)
+			{
+				break;
+			}
+
+			std::cout << std::left <<
+				std::setw(5) << i <<
+				std::setw(17) << std::setw(17) << tpa::util::as_bits(vec[i]) <<
+				std::setw(17) << std::setw(17) << tpa::util::as_bits(vec2[i]) <<
+				//std::setw(10) << static_cast<double>(vec3[i]) <<
 				"\n";
 		}//End for
 
