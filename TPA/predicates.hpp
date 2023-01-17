@@ -65,13 +65,35 @@ namespace tpa
 		CLEAR_ODD,				//Clear the odd-number bits to 0
 		TOGGLE_EVEN,			//Toggle the even-number bits
 		TOGGLE_ODD,				//Toggle the odd-number bits
+		CLEAR_MSB,				//Clears the most significant (leftmost) bit
+		CLEAR_LSB,				//Clears the least significant (rightmost) bit
+		SET_MSB,				//Sets the most significant (leftmost) bit
+		SET_LSB,				//Sets the least significant (rightmost) bit
+		CLEAR_HIGHEST_SET,		//Clears the highest set 1 bit
+		CLEAR_LOWEST_SET,		//Clears the lowest set 1 bit
+		SET_HIGHEST_CLEAR,		//Sets the bit after the current highest set to 1
+		SET_LOWEST_CLEAR		//Sets the bit before the current lowest set to 1
+	};//End of bit_mod
+
+	const enum class bit_ext {
+		LOWEST_SET,		//Extracts the lowest set 1 bit
+		HIGHEST_SET,	//Extracts the highest set 1 bit
+		SPECIFIED,		//Extract the specified bit
+		SPECIFIED_RANGE,//Extracts a specified range of bits
+		MASKED_COPY		//Copies bits speficied with a mask
+	};
+
+	/// <summary>
+	/// Provides a list of valid SIMD bit shift and rotation operation predicates.
+	/// </summary>
+	const enum class bit_move {
 		ROTATE_LEFT,			//Rotates bits left eg. 1110 -> 1101
 		ROTATE_RIGHT,			//Rotates bits right eg. 0011 -> 1001
-		MERGE_LEFT,				//Moves all the 1 bits to the right eg. 01010110 -> 00001111
-		MERGE_RIGHT,			//Moves all the 1 bits to the left eg. 01010110 -> 11110000
-		CLEAR_MSB,				//Clears the most significant bit
-		CLEAR_LSB				//Clears the least significant bit
-	};//End of bit_mod
+		SHIFT_LEFT,				//Shifts bits left eg. 1110 -> 1100
+		SHIFT_RIGHT,			//Shifts bits right eg. 1110 -> 0111
+		MERGE_RIGHT,			//Moves all the 1 bits to the right eg. 01010110 -> 00001111
+		MERGE_LEFT			    //Moves all the 1 bits to the left eg. 01010110 -> 11110000
+	};//End of bit_move
 
 	/// <summary>
 	/// Provides a list of valid SIMD bit counting operation predicates.
