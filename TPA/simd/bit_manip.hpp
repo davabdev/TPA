@@ -654,6 +654,97 @@ namespace tpa::bit_manip
 	}//End of extract_lsb
 
 	/// <summary>
+	/// <para>Clears the lowest set 1 bit to 0</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <returns></returns>
+	template<typename T>
+	inline constexpr void clear_lowest_set(T& x) noexcept
+	{
+		if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>() ||
+			std::is_same<T, int16_t>() || std::is_same<T, uint16_t>())
+		{
+			x = x ^ (x & -x);
+		}//End if
+		else if constexpr (std::is_same<T, int32_t>() || std::is_same<T, uint32_t>())
+		{
+#ifdef _M_AMD64
+			if (tpa::hasBMI1)
+			{
+				x = x ^ _blsi_u32(x);
+			}//End if
+			else
+			{
+				x = x ^ (x & -x);
+			}//End else
+#else
+			x = x ^ (x & -x);
+#endif
+		}//End if
+		else if constexpr (std::is_same<T, int64_t>() || std::is_same<T, uint64_t>())
+		{
+#ifdef _M_AMD64
+			if (tpa::hasBMI1)
+			{
+				x = x ^ _blsi_u64(x);
+			}//End if
+			else
+			{
+				x = x ^ (x & -x);
+			}//End else
+#else
+			x = x ^ (x & -x);
+#endif
+		}//End if
+		else if constexpr (std::is_same<T, float>())
+		{
+			int32_t x_as_int = *reinterpret_cast<int32_t*>(&x);
+
+#ifdef _M_AMD64
+			if (tpa::hasBMI1)
+			{
+				x_as_int = x_as_int ^ _blsi_u32(x_as_int);
+			}//End if
+			else
+			{
+				x_as_int = x_as_int & -x_as_int;
+			}//End else
+#else
+			x_as_int = x_as_int ^ (x_as_int & -x_as_int);
+#endif
+
+			x = *reinterpret_cast<float*>(&x_as_int);
+		}//End if
+		else if constexpr (std::is_same<T, double>())
+		{
+			int64_t x_as_int = *reinterpret_cast<int64_t*>(&x);
+
+#ifdef _M_AMD64
+			if (tpa::hasBMI1)
+			{
+				x_as_int = x_as_int ^ _blsi_u64(x_as_int);
+			}//End if
+			else
+			{
+				x_as_int = x_as_int ^ (x_as_int & -x_as_int);
+			}//End else
+#else
+			x_as_int = x_as_int ^ (x_as_int & -x_as_int);
+#endif
+
+			x = *reinterpret_cast<double*>(&x_as_int);
+		}//End if
+		else
+		{
+			[] <bool flag = false>()
+			{
+				static_assert(flag, "Non-standard types are not supported.");
+			}();
+		}//End else
+	}//End of clear_lowest_set
+
+	/// <summary>
 	/// <para>Extracts the highest (most significant) set 1 bit</para>
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
@@ -666,48 +757,49 @@ namespace tpa::bit_manip
 
 		if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
 		{
-			x |= (x >> 1);
-			x |= (x >> 2);
-			x |= (x >> 4);
-			ret = x - (x >> 1);
+			ret = x | (x >> 1);
+			ret = ret | (ret >> 2);
+			ret = ret | (ret >> 4);
+			ret = ((ret + 1) >> 1) | (ret & (1 << ((static_cast<T>(sizeof(ret)) * static_cast<T>(CHAR_BIT)) - 1)));
+
 		}//End if
 		else if constexpr (std::is_same<T, int16_t>() || std::is_same<T, uint16_t>())
 		{
-			x |= (x >> 1);
-			x |= (x >> 2);
-			x |= (x >> 4);
-			x |= (x >> 8);
-			ret = x - (x >> 1);
+			ret = x | (x >> 1);
+			ret = ret |(ret >> 2);
+			ret = ret |(ret >> 4);
+			ret = ret |(ret >> 8);
+			ret = ((ret + 1) >> 1) | (ret & (1 << ((static_cast<T>(sizeof(ret)) * static_cast<T>(CHAR_BIT)) - 1)));
 		}//End if
 		else if constexpr (std::is_same<T, int32_t>() || std::is_same<T, uint32_t>())
 		{
-			x |= (x >> 1);
-			x |= (x >> 2);
-			x |= (x >> 4);
-			x |= (x >> 8);
-			x |= (x >> 16);
-			ret = x - (x >> 1);
+			ret = x | (x >> 1);
+			ret = ret | (ret >> 2);
+			ret = ret | (ret >> 4);
+			ret = ret | (ret >> 8);
+			ret = ret | (ret >> 16);
+			ret = ((ret + 1) >> 1) | (ret & (1 << ((static_cast<T>(sizeof(ret)) * static_cast<T>(CHAR_BIT)) - 1)));
 		}//End if
 		else if constexpr (std::is_same<T, int64_t>() || std::is_same<T, uint64_t>())
 		{
-			x |= (x >> 1);
-			x |= (x >> 2);
-			x |= (x >> 4);
-			x |= (x >> 8);
-			x |= (x >> 16);
-			x |= (x >> 32);
-			ret = x - (x >> 1);
+			ret = x | (x >> 1);
+			ret = ret | (ret >> 2);
+			ret = ret | (ret >> 4);
+			ret = ret | (ret >> 8);
+			ret = ret | (ret >> 16);
+			ret = ret | (ret >> 32);
+			ret = ((ret + 1) >> 1) | (ret & (1 << ((static_cast<T>(sizeof(ret)) * static_cast<T>(CHAR_BIT)) - 1)));
 		}//End if
 		else if constexpr (std::is_same<T, float>())
 		{
 			uint32_t x_as_int = *reinterpret_cast<uint32_t*>(&x);
 			
-			x_as_int |= (x_as_int >> 1);
-			x_as_int |= (x_as_int >> 2);
-			x_as_int |= (x_as_int >> 4);
-			x_as_int |= (x_as_int >> 8);
-			x_as_int |= (x_as_int >> 16);
-			x_as_int = x_as_int - (x_as_int >> 1);
+			x_as_int = x_as_int | (x_as_int >> 1);
+			x_as_int = x_as_int | (x_as_int >> 2);
+			x_as_int = x_as_int | (x_as_int >> 4);
+			x_as_int = x_as_int | (x_as_int >> 8);
+			x_as_int = x_as_int | (x_as_int >> 16);
+			x_as_int = ((x_as_int + 1) >> 1) | (x_as_int & (1 << ((static_cast<T>(sizeof(x_as_int)) * static_cast<T>(CHAR_BIT)) - 1)));
 
 			ret = *reinterpret_cast<float*>(&x_as_int);
 		}//End if
@@ -715,13 +807,13 @@ namespace tpa::bit_manip
 		{
 			int64_t x_as_int = *reinterpret_cast<int64_t*>(&x);
 
-			x_as_int |= (x_as_int >> 1);
-			x_as_int |= (x_as_int >> 2);
-			x_as_int |= (x_as_int >> 4);
-			x_as_int |= (x_as_int >> 8);
-			x_as_int |= (x_as_int >> 16);
-			x_as_int |= (x_as_int >> 32);
-			x_as_int = x_as_int - (x_as_int >> 1);
+			x_as_int = x_as_int | (x_as_int >> 1);
+			x_as_int = x_as_int | x_as_int | (x_as_int >> 2);
+			x_as_int = x_as_int | x_as_int | (x_as_int >> 4);
+			x_as_int = x_as_int | x_as_int | (x_as_int >> 8);
+			x_as_int = x_as_int | x_as_int | (x_as_int >> 16);
+			x_as_int = x_as_int | (x_as_int >> 32);
+			x_as_int = ((x_as_int + 1) >> 1) | (x_as_int & (1 << ((static_cast<T>(sizeof(x_as_int)) * static_cast<T>(CHAR_BIT)) - 1)));
 
 			ret = *reinterpret_cast<double*>(&x_as_int);
 		}//End if
@@ -735,6 +827,112 @@ namespace tpa::bit_manip
 
 		return ret;
 	}//End of extract_msb
+
+	/// <summary>
+	/// <para>Clears the highest set 1 bit to 0</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <returns></returns>
+	template<typename T>
+	inline constexpr void clear_highest_set(T& x) noexcept
+	{
+		T orignal = x;
+
+		if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
+		{
+			x |= (x >> 1);
+			x |= (x >> 2);
+			x |= (x >> 4);
+
+			//Prevent overflow
+			x = ((x + 1) >> 1) | (x & (1 << ((static_cast<T>(sizeof(x)) * static_cast<T>(CHAR_BIT)) - 1)));
+
+			x = orignal ^ x;
+		}//End if
+		else if constexpr (std::is_same<T, int16_t>() || std::is_same<T, uint16_t>())
+		{
+			x |= (x >> 1);
+			x |= (x >> 2);
+			x |= (x >> 4);
+			x |= (x >> 8);
+
+			//Prevent overflow
+			x = ((x + 1) >> 1) | (x & (1 << ((static_cast<T>(sizeof(x)) * static_cast<T>(CHAR_BIT)) - 1)));
+
+			x = orignal ^ x;
+		}//End if
+		else if constexpr (std::is_same<T, int32_t>() || std::is_same<T, uint32_t>())
+		{
+			x |= (x >> 1);
+			x |= (x >> 2);
+			x |= (x >> 4);
+			x |= (x >> 8);
+			x |= (x >> 16);
+			
+			//Prevent overflow
+			x = ((x + 1) >> 1) | (x & (1 << ((static_cast<T>(sizeof(x)) * static_cast<T>(CHAR_BIT)) - 1)));
+
+			x = orignal ^ x;
+		}//End if
+		else if constexpr (std::is_same<T, int64_t>() || std::is_same<T, uint64_t>())
+		{
+			x |= (x >> 1);
+			x |= (x >> 2);
+			x |= (x >> 4);
+			x |= (x >> 8);
+			x |= (x >> 16);
+			x |= (x >> 32);
+			
+			//Prevent overflow
+			x = ((x + 1) >> 1) | (x & (1 << ((static_cast<T>(sizeof(x)) * static_cast<T>(CHAR_BIT)) - 1)));
+
+			x = orignal ^ x;
+		}//End if
+		else if constexpr (std::is_same<T, float>())
+		{
+			uint32_t x_as_int = *reinterpret_cast<uint32_t*>(&x);
+			uint32_t orignal_as_int = *reinterpret_cast<uint32_t*>(&orignal);
+
+			x_as_int |= (x_as_int >> 1);
+			x_as_int |= (x_as_int >> 2);
+			x_as_int |= (x_as_int >> 4);
+			x_as_int |= (x_as_int >> 8);
+			x_as_int |= (x_as_int >> 16);
+			
+			//Prevent overflow
+			x_as_int = ((x_as_int + 1) >> 1) | (x_as_int & (1 << ((static_cast<T>(sizeof(x)) * static_cast<T>(CHAR_BIT)) - 1)));
+
+			x_as_int = orignal_as_int ^ x_as_int;
+
+			x = *reinterpret_cast<float*>(&x_as_int);
+		}//End if
+		else if constexpr (std::is_same<T, double>())
+		{
+			int64_t x_as_int = *reinterpret_cast<int64_t*>(&x);
+			int64_t orignal_as_int = *reinterpret_cast<int64_t*>(&orignal);
+
+			x_as_int |= (x_as_int >> 1);
+			x_as_int |= (x_as_int >> 2);
+			x_as_int |= (x_as_int >> 4);
+			x_as_int |= (x_as_int >> 8);
+			x_as_int |= (x_as_int >> 16);
+			x_as_int |= (x_as_int >> 32);
+			//Prevent overflow
+			x_as_int = ((x_as_int + 1) >> 1) | (x_as_int & (1 << ((static_cast<T>(sizeof(x)) * static_cast<T>(CHAR_BIT)) - 1)));
+
+			x_as_int = orignal_as_int ^ x_as_int;
+
+			x = *reinterpret_cast<float*>(&x_as_int);
+		}//End if
+		else
+		{
+			[] <bool flag = false>()
+			{
+				static_assert(flag, "Non-standard types are not supported.");
+			}();
+		}//End else
+	}//End of clear_highest_set
 
 	/// <summary>
 	/// <para>Returns the number of set one (1) bits in 'x'</para>
@@ -1711,14 +1909,13 @@ namespace tpa::bit_manip
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
 	/// <param name="x"></param>
-	/// <param name="not_set"></param>
 	/// <returns></returns>
 	template<typename T>
-	[[nodiscard]] inline constexpr void set_even(T& x)
+	inline constexpr void set_even(T& x)
 	{
 		if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
 		{
-			x = x | static_cast<T>(0b1010'10101);
+			x = x | static_cast<T>(0b0101'0101);
 		}//End if
 		else if constexpr (std::is_same<T, int16_t>() || std::is_same<T, uint16_t>())
 		{
@@ -1754,14 +1951,13 @@ namespace tpa::bit_manip
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
 	/// <param name="x"></param>
-	/// <param name="not_set"></param>
 	/// <returns></returns>
 	template<typename T>
-	[[nodiscard]] inline constexpr void clear_even(T& x)
+	inline constexpr void clear_even(T& x)
 	{
 		if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
 		{
-			x = x & static_cast<T>(0b1010'10101);
+			x = x & static_cast<T>(0b0101'0101);
 		}//End if
 		else if constexpr (std::is_same<T, int16_t>() || std::is_same<T, uint16_t>())
 		{
@@ -1793,6 +1989,150 @@ namespace tpa::bit_manip
 	}//End of clear_even
 
 	/// <summary>
+	/// <para>Toggles all the even-numbered bits in a primitive type</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <returns></returns>
+	template<typename T>
+	inline constexpr void toggle_even(T& x)
+	{
+		if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
+		{
+			constexpr int8_t one = static_cast<int8_t>(1);
+
+			for (int8_t i = static_cast<int8_t>(0); i != static_cast<int8_t>(8); i+=static_cast<int8_t>(2))
+			{
+				x = x ^ (one << i);
+			}//End for
+		}//End if
+		else if constexpr (std::is_same<T, int16_t>() || std::is_same<T, uint16_t>())
+		{
+			int16_t one = static_cast<int16_t>(1);
+
+			for (int16_t i = static_cast<int16_t>(0); i != static_cast<int16_t>(16); i += static_cast<int16_t>(2))
+			{
+				x = x ^ (one << i);
+			}//End for
+		}//End if
+		else if constexpr (std::is_same<T, int32_t>() || std::is_same<T, uint32_t>())
+		{
+			for (int32_t i = 0; i != 32; i += 2)
+			{
+				x = x ^ (1 << i);
+			}//End for
+		}//End if
+		else if constexpr (std::is_same<T, int64_t>() || std::is_same<T, uint64_t>())
+		{
+			for (int64_t i = 0ll; i != 64ll; i += 2ll)
+			{
+				x = x ^ (1ll << i);
+			}//End for
+		}//End if
+		else if constexpr (std::is_same<T, float>())
+		{
+			int32_t x_as_int = *reinterpret_cast<int32_t*>(&x);
+
+			for (int32_t i = 0; i != 32; i += 2)
+			{
+				x_as_int = x_as_int ^ (1 << i);
+			}//End for
+
+			x = *reinterpret_cast<float*>(&x_as_int);
+		}//End if
+		else if constexpr (std::is_same<T, double>())
+		{
+			int64_t x_as_int = *reinterpret_cast<int64_t*>(&x);
+
+			for (int64_t i = 0ll; i != 64ll; i += 2ll)
+			{
+				x_as_int = x_as_int ^ (1ll << i);
+			}//End for
+
+			x = *reinterpret_cast<double*>(&x_as_int);
+		}//End if
+		else
+		{
+			[] <bool flag = false>()
+			{
+				static_assert(flag, " You have passed a non-standard type in tpa::bitmanip::toggle_even() This is not supported.");
+			}();
+		}//End else
+	}//End of set_even
+
+	/// <summary>
+	/// <para>Toggles all the odd-numbered bits in a primitive type</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <returns></returns>
+	template<typename T>
+	inline constexpr void toggle_odd(T& x)
+	{
+		if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
+		{
+			constexpr int8_t one = static_cast<int8_t>(1);
+
+			for (int8_t i = static_cast<int8_t>(1); i != static_cast<int8_t>(9); i += static_cast<int8_t>(2))
+			{
+				x = x ^ (one << i);
+			}//End for
+		}//End if
+		else if constexpr (std::is_same<T, int16_t>() || std::is_same<T, uint16_t>())
+		{
+			int16_t one = static_cast<int16_t>(1);
+
+			for (int16_t i = static_cast<int16_t>(1); i != static_cast<int16_t>(17); i += static_cast<int16_t>(2))
+			{
+				x = x ^ (one << i);
+			}//End for
+		}//End if
+		else if constexpr (std::is_same<T, int32_t>() || std::is_same<T, uint32_t>())
+		{
+			for (int32_t i = 1; i != 33; i += 2)
+			{
+				x = x ^ (1 << i);
+			}//End for
+		}//End if
+		else if constexpr (std::is_same<T, int64_t>() || std::is_same<T, uint64_t>())
+		{
+			for (int64_t i = 1ll; i != 65ll; i += 2ll)
+			{
+				x = x ^ (1ll << i);
+			}//End for
+		}//End if
+		else if constexpr (std::is_same<T, float>())
+		{
+			int32_t x_as_int = *reinterpret_cast<int32_t*>(&x);
+
+			for (int32_t i = 1; i != 33; i += 2)
+			{
+				x_as_int = x_as_int ^ (1 << i);
+			}//End for
+
+			x = *reinterpret_cast<float*>(&x_as_int);
+		}//End if
+		else if constexpr (std::is_same<T, double>())
+		{
+			int64_t x_as_int = *reinterpret_cast<int64_t*>(&x);
+
+			for (int64_t i = 1ll; i != 65ll; i += 2ll)
+			{
+				x_as_int = x_as_int ^ (1ll << i);
+			}//End for
+
+			x = *reinterpret_cast<double*>(&x_as_int);
+		}//End if
+		else
+		{
+			[] <bool flag = false>()
+			{
+				static_assert(flag, " You have passed a non-standard type in tpa::bitmanip::toggle_odd() This is not supported.");
+			}();
+		}//End else
+	}//End of toggle_odd
+
+	/// <summary>
 	/// <para>Sets all the odd-numbered bits in a primitive type to 1</para>
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
@@ -1800,7 +2140,7 @@ namespace tpa::bit_manip
 	/// <param name="not_set"></param>
 	/// <returns></returns>
 	template<typename T>
-	[[nodiscard]] inline constexpr void set_odd(T& x)
+	inline constexpr void set_odd(T& x)
 	{
 		if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
 		{
@@ -1843,7 +2183,7 @@ namespace tpa::bit_manip
 	/// <param name="not_set"></param>
 	/// <returns></returns>
 	template<typename T>
-	[[nodiscard]] inline constexpr void clear_odd(T& x)
+	inline constexpr void clear_odd(T& x)
 	{
 		if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
 		{
@@ -1877,6 +2217,174 @@ namespace tpa::bit_manip
 			}();
 		}//End else
 	}//End of clear_odd
+
+	/// <summary>
+	/// <para>Clears the most significant bit (leftmost bit) to 0</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <returns></returns>
+	template<typename T>
+	inline constexpr void clear_msb(T& x)
+	{
+		if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
+		{
+			x = static_cast<T>(0b0111'1111) & x;
+		}//End if
+		else if constexpr (std::is_same<T, int16_t>() || std::is_same<T, uint16_t>())
+		{
+			x = static_cast<T>(0b0111'1111'1111'1111) & x;
+		}//End if
+		else if constexpr (std::is_same<T, int32_t>() || std::is_same<T, uint32_t>())
+		{
+			x = static_cast<T>(0b0111'1111'1111'1111'1111'1111'1111'1111) & x;
+		}//End if
+		else if constexpr (std::is_same<T, int64_t>() || std::is_same<T, uint64_t>())
+		{
+			x = static_cast<T>(0b0111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111) & x;
+		}//End if
+		else if constexpr (std::is_same<T, float>())
+		{
+			x = *reinterpret_cast<float*>(*reinterpret_cast<int32_t*>(&x)) & static_cast<int32_t>(0b0111'1111'1111'1111'1111'1111'1111'1111);
+		}//End if
+		else if constexpr (std::is_same<T, double>())
+		{
+			x = *reinterpret_cast<double*>(*reinterpret_cast<int64_t*>(&x)) & static_cast<T>(0b0111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111);
+		}//End if
+		else
+		{
+			[] <bool flag = false>()
+			{
+				static_assert(flag, " You have passed a non-standard type in tpa::bitmanip::clear_msb() This is not supported.");
+			}();
+		}//End else
+	}//End of clear_msb
+
+	/// <summary>
+	/// <para>Clears the least significant bit (rightmost bit) to 0</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <returns></returns>
+	template<typename T>
+	inline constexpr void clear_lsb(T& x)
+	{
+		if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
+		{
+			x = static_cast<T>(0b1111'1110) & x;
+		}//End if
+		else if constexpr (std::is_same<T, int16_t>() || std::is_same<T, uint16_t>())
+		{
+			x = static_cast<T>(0b1111'1111'1111'1110) & x;
+		}//End if
+		else if constexpr (std::is_same<T, int32_t>() || std::is_same<T, uint32_t>())
+		{
+			x = static_cast<T>(0b1111'1111'1111'1111'1111'1111'1111'1110) & x;
+		}//End if
+		else if constexpr (std::is_same<T, int64_t>() || std::is_same<T, uint64_t>())
+		{
+			x = static_cast<T>(0b1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1110) & x;
+		}//End if
+		else if constexpr (std::is_same<T, float>())
+		{
+			x = *reinterpret_cast<float*>(*reinterpret_cast<int32_t*>(&x)) & static_cast<int32_t>(0b1111'1111'1111'1111'1111'1111'1111'1110);
+		}//End if
+		else if constexpr (std::is_same<T, double>())
+		{
+			x = *reinterpret_cast<double*>(*reinterpret_cast<int64_t*>(&x)) & static_cast<T>(0b1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1110);
+		}//End if
+		else
+		{
+			[] <bool flag = false>()
+			{
+				static_assert(flag, " You have passed a non-standard type in tpa::bitmanip::clear_lsb() This is not supported.");
+			}();
+		}//End else
+	}//End of clear_lsb
+
+	/// <summary>
+	/// <para>Sets the most significant bit (leftmost bit) to 1</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <returns></returns>
+	template<typename T>
+	inline constexpr void set_msb(T& x)
+	{
+		if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
+		{
+			x = x | static_cast<T>(0b1000'0000);
+		}//End if
+		else if constexpr (std::is_same<T, int16_t>() || std::is_same<T, uint16_t>())
+		{
+			x = x | static_cast<T>(0b1000'0000'0000'0000);
+		}//End if
+		else if constexpr (std::is_same<T, int32_t>() || std::is_same<T, uint32_t>())
+		{
+			x = x | static_cast<T>(0b1000'0000'0000'0000'0000'0000'0000'0000);
+		}//End if
+		else if constexpr (std::is_same<T, int64_t>() || std::is_same<T, uint64_t>())
+		{
+			x = x | static_cast<T>(0b1000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000);
+		}//End if
+		else if constexpr (std::is_same<T, float>())
+		{
+			x = *reinterpret_cast<float*>(*reinterpret_cast<int32_t*>(&x)) | static_cast<T>(0b1000'0000'0000'0000'0000'0000'0000'0000);
+		}//End if
+		else if constexpr (std::is_same<T, double>())
+		{
+			x = *reinterpret_cast<double*>(*reinterpret_cast<int64_t*>(&x)) | static_cast<T>(0b1000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000);
+		}//End if
+		else
+		{
+			[] <bool flag = false>()
+			{
+				static_assert(flag, " You have passed a non-standard type in tpa::bitmanip::set_msb() This is not supported.");
+			}();
+		}//End else
+	}//End of set_msb
+
+	/// <summary>
+	/// <para>Sets the least significant bit (rightmost bit) to 1</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <returns></returns>
+	template<typename T>
+	inline constexpr void set_lsb(T& x)
+	{
+		if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
+		{
+			x = x | static_cast<T>(0b0000'0001);
+		}//End if
+		else if constexpr (std::is_same<T, int16_t>() || std::is_same<T, uint16_t>())
+		{
+			x = x | static_cast<T>(0b0000'0000'0000'0001);
+		}//End if
+		else if constexpr (std::is_same<T, int32_t>() || std::is_same<T, uint32_t>())
+		{
+			x = x | static_cast<T>(0b0000'0000'0000'0000'0000'0000'0000'0001);
+		}//End if
+		else if constexpr (std::is_same<T, int64_t>() || std::is_same<T, uint64_t>())
+		{
+			x = x | static_cast<T>(0b0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0001);
+		}//End if
+		else if constexpr (std::is_same<T, float>())
+		{
+			x = *reinterpret_cast<float*>(*reinterpret_cast<int32_t*>(&x)) | static_cast<T>(0b0000'0000'0000'0000'0000'0000'0000'0001);
+		}//End if
+		else if constexpr (std::is_same<T, double>())
+		{
+			x = *reinterpret_cast<double*>(*reinterpret_cast<int64_t*>(&x)) | static_cast<T>(0b0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0001);
+		}//End if
+		else
+		{
+			[] <bool flag = false>()
+			{
+				static_assert(flag, " You have passed a non-standard type in tpa::bitmanip::set_lsb() This is not supported.");
+			}();
+		}//End else
+	}//End of set_lsb
 
 	/// <summary>
 	/// <para>Returns the index of the highest set one (1) bit in 'x'</para>
@@ -2605,7 +3113,7 @@ namespace bit_manip
 							const __m512i _max = _mm512_set1_epi16(std::numeric_limits<uint16_t>::max());
 							const __m512i _shifted_left = _mm512_slli_epi16(_one, p);
 							const __m512i _not_shifted_left = tpa::simd::_mm512_not_si512(_shifted_left);
-
+							
 							for (; (i + 32uz) < end; i += 32uz)
 							{
 								//Set Values
@@ -2644,7 +3152,7 @@ namespace bit_manip
 										_DESTi = _mm512_or_si512(_mm512_slli_epi16(_DESTi, 1u), _mm512_and_si512(_source, _one));
 										_source = _mm512_srli_epi16(_source, 1u);
 										bits -= 1uz;
-									}//End for
+									}//End while
 								}//End if
 								else if constexpr (INSTR == tpa::bit_mod::SET_TRAILING_ZEROS)
 								{
@@ -2698,6 +3206,52 @@ namespace bit_manip
 									const __m512i _ODD = _mm512_set1_epi16(static_cast<T>(0b1010'1010'1010'1010));
 
 									_DESTi = _mm512_and_si512(_source, _ODD);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_EVEN)
+								{
+									_DESTi = _source;
+
+									for (int16_t x = static_cast<int16_t>(0); x != static_cast<int16_t>(16); x += static_cast<int16_t>(2))
+									{
+										_DESTi = _mm512_xor_si512(_DESTi, _mm512_slli_epi16(_one, x));
+									}//End for
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ODD)
+								{
+									_DESTi = _source;
+
+									for (int16_t x = static_cast<int16_t>(1); x != static_cast<int16_t>(17); x += static_cast<int16_t>(2))
+									{
+										_DESTi = _mm512_xor_si512(_DESTi, _mm512_slli_epi16(_one, x));
+									}//End for
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_MSB)
+								{
+									const __m512i _set_msb = _mm512_set1_epi16(static_cast<int16_t>(0b1000'0000'0000'0000));
+									_DESTi = _mm512_or_si512(_source, _set_msb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_MSB)
+								{
+									const __m512i _clear_msb = _mm512_set1_epi16(static_cast<int16_t>(0b0111'1111'1111'1111));
+									_DESTi = _mm512_and_si512(_source, _clear_msb);                         
+								}//End if                                                                   
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LSB)
+								{
+									const __m512i _clear_lsb = _mm512_set1_epi16(static_cast<int16_t>(0b1111'1111'1111'1110));
+									_DESTi = _mm512_and_si512(_source, _clear_lsb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_LSB)
+								{
+									const __m512i _clear_lsb = _mm512_set1_epi16(static_cast<int16_t>(0b0000'0000'0000'0001));
+									_DESTi = _mm512_or_si512(_source, _clear_lsb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LOWEST_SET)
+								{
+									_DESTi = _mm512_xor_si512(_source, _mm512_and_si512(_source, _mm512_sub_epi16(_zero, _source)));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_HIGHEST_SET)
+								{
+									_DESTi = _mm512_xor_si512(_source, tpa::simd::_mm512_exthsb_epi16(_source));
 								}//End if
 								else
 								{
@@ -2817,6 +3371,52 @@ namespace bit_manip
 
 									_DESTi = _mm256_and_si256(_source, _ODD);
 								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_EVEN)
+								{
+									_DESTi = _source;
+
+									for (int16_t x = static_cast<int16_t>(0); x != static_cast<int16_t>(16); x += static_cast<int16_t>(2))
+									{
+										_DESTi = _mm256_xor_si256(_DESTi, _mm256_slli_epi16(_one, x));
+									}//End for
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ODD)
+								{
+									_DESTi = _source;
+
+									for (int16_t x = static_cast<int16_t>(1); x != static_cast<int16_t>(17); x += static_cast<int16_t>(2))
+									{
+										_DESTi = _mm256_xor_si256(_DESTi, _mm256_slli_epi16(_one, x));
+									}//End for
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_MSB)
+								{
+									const __m256i _set_msb = _mm256_set1_epi16(static_cast<int16_t>(0b1000'0000'0000'0000));
+									_DESTi = _mm256_or_si256(_source, _set_msb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_MSB)
+								{
+									const __m256i _clear_msb = _mm256_set1_epi16(static_cast<int16_t>(0b0111'1111'1111'1111));
+									_DESTi = _mm256_and_si256(_source, _clear_msb);
+								}//End if                                                                   
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LSB)
+								{
+									const __m256i _clear_lsb = _mm256_set1_epi16(static_cast<int16_t>(0b1111'1111'1111'1110));
+									_DESTi = _mm256_and_si256(_source, _clear_lsb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_LSB)
+								{
+									const __m256i _clear_lsb = _mm256_set1_epi16(static_cast<int16_t>(0b0000'0000'0000'0001));
+									_DESTi = _mm256_or_si256(_source, _clear_lsb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LOWEST_SET)
+								{
+									_DESTi = _mm256_xor_si256(_source, _mm256_and_si256(_source, _mm256_sub_epi16(_zero, _source)));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_HIGHEST_SET)
+								{
+									_DESTi = _mm256_xor_si256(_source, tpa::simd::_mm256_exthsb_epi16(_source));
+								}//End if
 								else
 								{
 									[] <bool flag = false>()
@@ -2934,6 +3534,52 @@ namespace bit_manip
 									const __m128i _ODD = _mm_set1_epi16(static_cast<T>(0b1010'1010'1010'1010));
 
 									_DESTi = _mm_and_si128(_source, _ODD);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_EVEN)
+								{
+									_DESTi = _source;
+
+									for (int16_t x = static_cast<int16_t>(0); x != static_cast<int16_t>(16); x += static_cast<int16_t>(2))
+									{
+										_DESTi = _mm_xor_si128(_DESTi, _mm_slli_epi16(_one, x));
+									}//End for
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ODD)
+								{
+									_DESTi = _source;
+
+									for (int16_t x = static_cast<int16_t>(1); x != static_cast<int16_t>(17); x += static_cast<int16_t>(2))
+									{
+										_DESTi = _mm_xor_si128(_DESTi, _mm_slli_epi16(_one, x));
+									}//End for
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_MSB)
+								{
+									const __m128i _set_msb = _mm_set1_epi16(static_cast<int16_t>(0b1000'0000'0000'0000));
+									_DESTi = _mm_or_si128(_source, _set_msb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_MSB)
+								{
+									const __m128i _clear_msb = _mm_set1_epi16(static_cast<int16_t>(0b0111'1111'1111'1111));
+									_DESTi = _mm_and_si128(_source, _clear_msb);
+								}//End if                                                                   
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LSB)
+								{
+									const __m128i _clear_lsb = _mm_set1_epi16(static_cast<int16_t>(0b1111'1111'1111'1110));
+									_DESTi = _mm_and_si128(_source, _clear_lsb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_LSB)
+								{
+									const __m128i _clear_lsb = _mm_set1_epi16(static_cast<int16_t>(0b0000'0000'0000'0001));
+									_DESTi = _mm_or_si128(_source, _clear_lsb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LOWEST_SET)
+								{
+									_DESTi = _mm_xor_si128(_source, _mm_and_si128(_source, _mm_sub_epi16(_zero, _source)));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_HIGHEST_SET)
+								{
+									_DESTi = _mm_xor_si128(_source, tpa::simd::_mm_exthsb_epi16(_source));
 								}//End if
 								else
 								{
@@ -4331,6 +4977,38 @@ namespace bit_manip
 								}();
 							}//End else
 						}//Clear Odd
+						else if constexpr (INSTR == tpa::bit_mod::TOGGLE_EVEN)
+						{
+							tpa::bit_manip::toggle_even(source[i]);
+						}//End of Toggle Even
+						else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ODD)
+						{
+							tpa::bit_manip::toggle_odd(source[i]);
+						}//End of Toggle Odd
+						else if constexpr (INSTR == tpa::bit_mod::CLEAR_MSB)
+						{
+							tpa::bit_manip::clear_msb(source[i]);
+						}//End of Clear MSB
+						else if constexpr (INSTR == tpa::bit_mod::SET_MSB)
+						{
+							tpa::bit_manip::set_msb(source[i]);
+						}//End of Set MSB
+						else if constexpr (INSTR == tpa::bit_mod::CLEAR_LSB)
+						{
+							tpa::bit_manip::clear_lsb(source[i]);
+						}//End of Clear LSB
+						else if constexpr (INSTR == tpa::bit_mod::SET_LSB)
+						{
+							tpa::bit_manip::set_lsb(source[i]);
+						}//End of Set LSB
+						else if constexpr (INSTR == tpa::bit_mod::CLEAR_LOWEST_SET)
+						{
+							tpa::bit_manip::clear_lowest_set(source[i]);
+						}//End of clear lowest set bit
+						else if constexpr (INSTR == tpa::bit_mod::CLEAR_HIGHEST_SET)
+						{
+							tpa::bit_manip::clear_highest_set(source[i]);
+						}//End of clear highest set bit
 						else
 						{
 							[] <bool flag = false>()

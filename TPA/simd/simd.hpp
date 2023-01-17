@@ -544,6 +544,302 @@ namespace tpa::simd {
 	}//End of _mm512_not_si512
 
 	///<summary>
+	///<para>Extract highest set 1 bits of 16 bit ints in an __m128i</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without SSE2.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m128i</returns>
+	[[nodiscard]] inline __m128i _mm_exthsb_epi16(const __m128i& x) noexcept
+	{
+		const __m128i _one = _mm_set1_epi16(static_cast<int16_t>(1));
+
+		__m128i _ret = _mm_setzero_si128();
+		__m128i _temp = _mm_setzero_si128();
+		__m128i _temp2 = _mm_setzero_si128();
+
+		_ret = _mm_or_si128(x, _mm_srli_epi16(x, 1));
+		_ret = _mm_or_si128(_ret, _mm_srli_epi16(_ret, 2));
+		_ret = _mm_or_si128(_ret, _mm_srli_epi16(_ret, 4));
+		_ret = _mm_or_si128(_ret, _mm_srli_epi16(_ret, 8));
+
+		_temp = _mm_add_epi16(_ret, _one);
+		_temp = _mm_srli_epi16(_temp, 1);
+
+		_temp2 = _mm_slli_epi16(_one, 15);
+		_temp2 = _mm_and_si128(_ret, _temp2);
+
+		_ret = _mm_or_si128(_temp, _temp2);
+
+		return _ret;
+	}//End of _mm_exthsb_epi16
+
+	///<summary>
+	///<para>Extract highest set 1 bits of 16 bit ints in an __m256i</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without AVX2.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m256i</returns>
+	[[nodiscard]] inline __m256i _mm256_exthsb_epi16(const __m256i& x) noexcept
+	{		
+		const __m256i _one = _mm256_set1_epi16(static_cast<int16_t>(1));
+
+		__m256i _ret = _mm256_setzero_si256();
+		__m256i _temp = _mm256_setzero_si256();
+		__m256i _temp2 = _mm256_setzero_si256();
+		
+		_ret = _mm256_or_si256(x, _mm256_srli_epi16(x, 1));
+		_ret = _mm256_or_si256(_ret, _mm256_srli_epi16(_ret, 2));
+		_ret = _mm256_or_si256(_ret, _mm256_srli_epi16(_ret, 4));
+		_ret = _mm256_or_si256(_ret, _mm256_srli_epi16(_ret, 8));
+
+		_temp = _mm256_add_epi16(_ret, _one);
+		_temp = _mm256_srli_epi16(_temp, 1);
+
+		_temp2 = _mm256_slli_epi16(_one, 15);
+		_temp2 = _mm256_and_si256(_ret, _temp2);
+
+		_ret = _mm256_or_si256(_temp, _temp2);
+
+		return _ret;
+	}//End of _mm256_exthsb_epi16
+
+	///<summary>
+	///<para>Extract highest set 1 bits of 16 bit ints in an __m512i</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without AVX512F and AVX512BW.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m512i</returns>
+	[[nodiscard]] inline __m512i _mm512_exthsb_epi16(const __m512i& x) noexcept
+	{
+		const __m512i _one = _mm512_set1_epi16(static_cast<int16_t>(1));
+
+		__m512i _ret = _mm512_setzero_si512();
+		__m512i _temp = _mm512_setzero_si512();
+		__m512i _temp2 = _mm512_setzero_si512();
+
+		_ret = _mm512_or_si512(x, _mm512_srli_epi16(x, 1));
+		_ret = _mm512_or_si512(_ret, _mm512_srli_epi16(_ret, 2));
+		_ret = _mm512_or_si512(_ret, _mm512_srli_epi16(_ret, 4));
+		_ret = _mm512_or_si512(_ret, _mm512_srli_epi16(_ret, 8));
+
+		_temp = _mm512_add_epi16(_ret, _one);
+		_temp = _mm512_srli_epi16(_temp, 1);
+
+		_temp2 = _mm512_slli_epi16(_one, 15);
+		_temp2 = _mm512_and_si512(_ret, _temp2);
+
+		_ret = _mm512_or_si512(_temp, _temp2);
+
+		return _ret;
+	}//End of _mm512_exthsb_epi16
+
+	///<summary>
+	///<para>Extract highest set 1 bits of 32 bit ints in an __m128i</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without SSE2.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m128i</returns>
+	[[nodiscard]] inline __m128i _mm_exthsb_epi32(const __m128i& x) noexcept
+	{
+		const __m128i _one = _mm_set1_epi32(1);
+
+		__m128i _ret = _mm_setzero_si128();
+		__m128i _temp = _mm_setzero_si128();
+		__m128i _temp2 = _mm_setzero_si128();
+
+		_ret = _mm_or_si128(x, _mm_srli_epi32(x, 1));
+		_ret = _mm_or_si128(_ret, _mm_srli_epi32(_ret, 2));
+		_ret = _mm_or_si128(_ret, _mm_srli_epi32(_ret, 4));
+		_ret = _mm_or_si128(_ret, _mm_srli_epi32(_ret, 8));
+		_ret = _mm_or_si128(_ret, _mm_srli_epi32(_ret, 16));
+
+		_temp = _mm_add_epi32(_ret, _one);
+		_temp = _mm_srli_epi32(_temp, 1);
+
+		_temp2 = _mm_slli_epi32(_one, 15);
+		_temp2 = _mm_and_si128(_ret, _temp2);
+
+		_ret = _mm_or_si128(_temp, _temp2);
+
+		return _ret;
+	}//End of _mm_exthsb_epi32
+
+	///<summary>
+	///<para>Extract highest set 1 bits of 32 bit ints in an __m256i</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without AVX2.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m256i</returns>
+	[[nodiscard]] inline __m256i _mm256_exthsb_epi32(const __m256i& x) noexcept
+	{
+		const __m256i _one = _mm256_set1_epi16(1);
+
+		__m256i _ret = _mm256_setzero_si256();
+		__m256i _temp = _mm256_setzero_si256();
+		__m256i _temp2 = _mm256_setzero_si256();
+
+		_ret = _mm256_or_si256(x, _mm256_srli_epi32(x, 1));
+		_ret = _mm256_or_si256(_ret, _mm256_srli_epi32(_ret, 2));
+		_ret = _mm256_or_si256(_ret, _mm256_srli_epi32(_ret, 4));
+		_ret = _mm256_or_si256(_ret, _mm256_srli_epi32(_ret, 8));
+		_ret = _mm256_or_si256(_ret, _mm256_srli_epi32(_ret, 16));
+
+		_temp = _mm256_add_epi32(_ret, _one);
+		_temp = _mm256_srli_epi32(_temp, 1);
+
+		_temp2 = _mm256_slli_epi32(_one, 15);
+		_temp2 = _mm256_and_si256(_ret, _temp2);
+
+		_ret = _mm256_or_si256(_temp, _temp2);
+
+		return _ret;
+	}//End of _mm256_exthsb_epi32
+
+	///<summary>
+	///<para>Extract highest set 1 bits of 32 bit ints in an __m512i</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without AVX512F.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m512i</returns>
+	[[nodiscard]] inline __m512i _mm512_exthsb_epi32(const __m512i& x) noexcept
+	{
+		const __m512i _one = _mm512_set1_epi32(1);
+
+		__m512i _ret = _mm512_setzero_si512();
+		__m512i _temp = _mm512_setzero_si512();
+		__m512i _temp2 = _mm512_setzero_si512();
+
+		_ret = _mm512_or_si512(x, _mm512_srli_epi32(x, 1));
+		_ret = _mm512_or_si512(_ret, _mm512_srli_epi32(_ret, 2));
+		_ret = _mm512_or_si512(_ret, _mm512_srli_epi32(_ret, 4));
+		_ret = _mm512_or_si512(_ret, _mm512_srli_epi32(_ret, 8));
+		_ret = _mm512_or_si512(_ret, _mm512_srli_epi32(_ret, 16));
+
+		_temp = _mm512_add_epi32(_ret, _one);
+		_temp = _mm512_srli_epi32(_temp, 1);
+
+		_temp2 = _mm512_slli_epi32(_one, 15);
+		_temp2 = _mm512_and_si512(_ret, _temp2);
+
+		_ret = _mm512_or_si512(_temp, _temp2);
+
+		return _ret;
+	}//End of _mm512_exthsb_epi32
+
+	///<summary>
+	///<para>Extract highest set 1 bits of 64 bit ints in an __m128i</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without SSE2.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m128i</returns>
+	[[nodiscard]] inline __m128i _mm_exthsb_epi64(const __m128i& x) noexcept
+	{
+		const __m128i _one = _mm_set1_epi64x(1ll);
+
+		__m128i _ret = _mm_setzero_si128();
+		__m128i _temp = _mm_setzero_si128();
+		__m128i _temp2 = _mm_setzero_si128();
+
+		_ret = _mm_or_si128(x, _mm_srli_epi64(x, 1));
+		_ret = _mm_or_si128(_ret, _mm_srli_epi64(_ret, 2));
+		_ret = _mm_or_si128(_ret, _mm_srli_epi64(_ret, 4));
+		_ret = _mm_or_si128(_ret, _mm_srli_epi64(_ret, 8));
+		_ret = _mm_or_si128(_ret, _mm_srli_epi64(_ret, 16));
+		_ret = _mm_or_si128(_ret, _mm_srli_epi64(_ret, 32));
+
+		_temp = _mm_add_epi64(_ret, _one);
+		_temp = _mm_srli_epi64(_temp, 1);
+
+		_temp2 = _mm_slli_epi64(_one, 15);
+		_temp2 = _mm_and_si128(_ret, _temp2);
+
+		_ret = _mm_or_si128(_temp, _temp2);
+
+		return _ret;
+	}//End of _mm_exthsb_epi64
+
+	///<summary>
+	///<para>Extract highest set 1 bits of 64 bit ints in an __m256i</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without AVX2.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m256i</returns>
+	[[nodiscard]] inline __m256i _mm256_exthsb_epi64(const __m256i& x) noexcept
+	{
+		const __m256i _one = _mm256_set1_epi64x(1ll);
+
+		__m256i _ret = _mm256_setzero_si256();
+		__m256i _temp = _mm256_setzero_si256();
+		__m256i _temp2 = _mm256_setzero_si256();
+
+		_ret = _mm256_or_si256(x, _mm256_srli_epi64(x, 1));
+		_ret = _mm256_or_si256(_ret, _mm256_srli_epi64(_ret, 2));
+		_ret = _mm256_or_si256(_ret, _mm256_srli_epi64(_ret, 4));
+		_ret = _mm256_or_si256(_ret, _mm256_srli_epi64(_ret, 8));
+		_ret = _mm256_or_si256(_ret, _mm256_srli_epi64(_ret, 16));
+		_ret = _mm256_or_si256(_ret, _mm256_srli_epi64(_ret, 32));
+
+		_temp = _mm256_add_epi64(_ret, _one);
+		_temp = _mm256_srli_epi64(_temp, 1);
+
+		_temp2 = _mm256_slli_epi64(_one, 15);
+		_temp2 = _mm256_and_si256(_ret, _temp2);
+
+		_ret = _mm256_or_si256(_temp, _temp2);
+
+		return _ret;
+	}//End of _mm256_exthsb_epi64
+
+	///<summary>
+	///<para>Extract highest set 1 bits of 32 bit ints in an __m512i</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without AVX512F.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m512i</returns>
+	[[nodiscard]] inline __m512i _mm512_exthsb_epi64(const __m512i& x) noexcept
+	{
+		const __m512i _one = _mm512_set1_epi64(1ll);
+
+		__m512i _ret = _mm512_setzero_si512();
+		__m512i _temp = _mm512_setzero_si512();
+		__m512i _temp2 = _mm512_setzero_si512();
+
+		_ret = _mm512_or_si512(x, _mm512_srli_epi64(x, 1u));
+		_ret = _mm512_or_si512(_ret, _mm512_srli_epi64(_ret, 2u));
+		_ret = _mm512_or_si512(_ret, _mm512_srli_epi64(_ret, 4u));
+		_ret = _mm512_or_si512(_ret, _mm512_srli_epi64(_ret, 8u));
+		_ret = _mm512_or_si512(_ret, _mm512_srli_epi64(_ret, 16u));
+
+		_temp = _mm512_add_epi64(_ret, _one);
+		_temp = _mm512_srli_epi64(_temp, 1u);
+
+		_temp2 = _mm512_slli_epi64(_one, 15u);
+		_temp2 = _mm512_and_si512(_ret, _temp2);
+
+		_ret = _mm512_or_si512(_temp, _temp2);
+
+		return _ret;
+	}//End of _mm512_exthsb_epi64 
+
+	///<summary>
 	///<para> Set leading zeros of 16-bit integers in an __m128i.</para>
 	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
 	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
