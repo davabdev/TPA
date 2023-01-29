@@ -58,7 +58,7 @@ namespace tpa
 		CLEAR_TRAILING_ONES,	//Clears all the trailing 1s to 0s
 		SET_LEADING_ZEROS,		//Sets all the leading 0s to 1s
 		CLEAR_LEADING_ONES,		//Clears all the leading 1s to 0s
-		NEXT_LEXOGRAPHIC_PERMUTATION, //Sets the bits in a given type to the next representable number with the same number of set bits.
+		NEXT_LEXICOGRAPHIC_PERMUTATION, //Sets the bits in a given type to the next representable number with the same number of set bits.
 		SET_EVEN,				//Set the even-number bits to 1
 		SET_ODD,				//Set the odd-number bits to 1
 		CLEAR_EVEN,				//Clear the even-number bits to 0
@@ -80,7 +80,7 @@ namespace tpa
 		HIGHEST_SET,	//Extracts the highest set 1 bit
 		SPECIFIED,		//Extract the specified bit
 		SPECIFIED_RANGE,//Extracts a specified range of bits
-		MASKED_COPY		//Copies bits speficied with a mask
+		MASKED_COPY		//Copies bits specified with a mask
 	};
 
 	/// <summary>
