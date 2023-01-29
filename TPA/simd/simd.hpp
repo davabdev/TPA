@@ -807,7 +807,7 @@ namespace tpa::simd {
 	}//End of _mm256_exthsb_epi64
 
 	///<summary>
-	///<para>Extract highest set 1 bits of 32 bit ints in an __m512i</para>
+	///<para>Extract highest set 1 bits of 64 bit ints in an __m512i</para>
 	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
 	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
 	/// <para>Warning: This function is unsafe if called on a platform without AVX512F.</para>
@@ -1320,34 +1320,6 @@ namespace tpa::simd {
 	/// <returns>__m128i</returns>
 	[[nodiscard]] inline __m128i _mm_bsf_epi16(__m128i x) noexcept
 	{
-		/* Old slow version
-		__m128i _lsb = _mm_setzero_si128();
-		__m128i _temp1 = _mm_setzero_si128();
-		__m128i _temp2 = _mm_setzero_si128();
-		__m128i _result = _mm_setzero_si128();
-
-		const __m128i _zero = _mm_setzero_si128();
-		const __m128i _two = _mm_set1_epi16(static_cast<uint16_t>(2));
-		const __m128i _hex2 = _mm_set1_epi16(static_cast<uint16_t>(0xf0f0));
-		const __m128i _hex3 = _mm_set1_epi16(static_cast<uint16_t>(0xcccc));
-		const __m128i _hex4 = _mm_set1_epi16(static_cast<uint16_t>(0xaaaa));
-
-		x = _mm_and_si128(x, _mm_sub_epi16(_zero, x));
-		_lsb = _mm_or_si128(x, _mm_srli_epi16(x, 8));
-		_temp1 = _mm_mullo_epi16(_mm_abs_epi16(tpa::simd::_mm_cmpneq_epi16(_mm_srli_epi16(x, 8), _zero)), _two);
-
-		_temp2 = _mm_mullo_epi16(_mm_abs_epi16(tpa::simd::_mm_cmpneq_epi16(_mm_and_si128(_lsb, _hex2), _zero)), _two);
-
-		_result = _mm_add_epi16(_temp1, _temp2);
-
-		_temp1 = _mm_mullo_epi16(_mm_abs_epi16(tpa::simd::_mm_cmpneq_epi16(_mm_and_si128(_lsb, _hex3), _zero)), _two);
-		_temp2 = _mm_abs_epi16(tpa::simd::_mm_cmpneq_epi16(_mm_and_si128(_lsb, _hex4), _zero));
-
-		_result = _mm_add_epi16(_result, _temp1);
-		_result = _mm_add_epi16(_result, _temp2);
-
-		return _result;
-		*/
 		const __m128i x0000 = _mm_setzero_si128();
 		const __m128i x5555 = _mm_set1_epi16(0x5555);
 		const __m128i x3333 = _mm_set1_epi16(0x3333);
@@ -1375,34 +1347,6 @@ namespace tpa::simd {
 	/// <returns>__m256i</returns>
 	[[nodiscard]] inline __m256i _mm256_bsf_epi16(__m256i x) noexcept
 	{
-		/* Old slow version
-		__m256i _lsb = _mm256_setzero_si256();
-		__m256i _temp1 = _mm256_setzero_si256();
-		__m256i _temp2 = _mm256_setzero_si256();
-		__m256i _result = _mm256_setzero_si256();
-
-		const __m256i _zero = _mm256_setzero_si256();
-		const __m256i _two = _mm256_set1_epi16(static_cast<uint16_t>(2));
-		const __m256i _hex2 = _mm256_set1_epi16(static_cast<uint16_t>(0xf0f0));
-		const __m256i _hex3 = _mm256_set1_epi16(static_cast<uint16_t>(0xcccc));
-		const __m256i _hex4 = _mm256_set1_epi16(static_cast<uint16_t>(0xaaaa));
-
-		x = _mm256_and_si256(x, _mm256_sub_epi16(_zero, x));
-		_lsb = _mm256_or_si256(x, _mm256_srli_epi16(x, 8));
-		_temp1 = _mm256_mullo_epi16(_mm256_abs_epi16(tpa::simd::_mm256_cmpneq_epi16(_mm256_srli_epi16(x, 8), _zero)), _two);
-
-		_temp2 = _mm256_mullo_epi16(_mm256_abs_epi16(tpa::simd::_mm256_cmpneq_epi16(_mm256_and_si256(_lsb, _hex2), _zero)), _two);
-
-		_result = _mm256_add_epi16(_temp1, _temp2);
-
-		_temp1 = _mm256_mullo_epi16(_mm256_abs_epi16(tpa::simd::_mm256_cmpneq_epi16(_mm256_and_si256(_lsb, _hex3), _zero)), _two);
-		_temp2 = _mm256_abs_epi16(tpa::simd::_mm256_cmpneq_epi16(_mm256_and_si256(_lsb, _hex4), _zero));
-
-		_result = _mm256_add_epi16(_result, _temp1);
-		_result = _mm256_add_epi16(_result, _temp2);
-
-		return _result;
-		*/
 		const __m256i x0000 = _mm256_setzero_si256();
 		const __m256i x5555 = _mm256_set1_epi16(0x5555);
 		const __m256i x3333 = _mm256_set1_epi16(0x3333);
@@ -1434,6 +1378,123 @@ namespace tpa::simd {
 
 		return _mm512_add_epi16(_mm512_popcnt_epi16(_mm512_and_si512(_mm512_not_si512(x), _mm512_sub_epi16(x, _one))), _one);
 	}//End of _mm512_bsf_epi16
+
+	///<summary>
+	///<para> Returns the indexes of the lowest set bits of 32-bit integers in an __m128i.</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without SSE2.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m128i</returns>
+	[[nodiscard]] inline __m128i _mm_bsf_epi32(const __m128i& x) noexcept
+	{
+		const __m128i xFFFF = _mm_set1_epi32(0xffff0000);
+		const __m128i xFF00 = _mm_set1_epi32(0xff00ff00);
+		const __m128i xF0F0 = _mm_set1_epi32(0xf0f0f0f0);
+		const __m128i xCCCC = _mm_set1_epi32(0xcccccccc);
+		const __m128i xAAAA = _mm_set1_epi32(0xaaaaaaaa);
+
+		const __m128i _zero = _mm_set1_epi32(0);
+		const __m128i _16 = _mm_set1_epi32(16);
+		const __m128i _8 = _mm_set1_epi32(8);
+		const __m128i _4 = _mm_set1_epi32(4);
+		const __m128i _2 = _mm_set1_epi32(2);
+		const __m128i _1 = _mm_set1_epi32(1);
+
+		__m128i _index = _mm_setzero_si128();
+		__m128i _mask = _mm_setzero_si128();
+
+		_mask = _mm_and_si128(x, _mm_sub_epi32(_zero, x));
+
+		_mask = _mm_and_si128(_mask, xFFFF);
+		_mask = tpa::simd::_mm_cmpneq_epi32(_mask, _zero);
+		_index = _mm_and_si128(_mask, _mm_add_epi32(_index, _16));
+
+		_mask = _mm_and_si128(_mask, xFFFF);
+		_mask = tpa::simd::_mm_cmpneq_epi32(_mask, _zero);
+		_index = _mm_and_si128(_mask, _mm_add_epi32(_index, _8));
+
+		_mask = _mm_and_si128(_mask, xFFFF);
+		_mask = tpa::simd::_mm_cmpneq_epi32(_mask, _zero);
+		_index = _mm_and_si128(_mask, _mm_add_epi32(_index, _4));
+
+		_mask = _mm_and_si128(_mask, xFFFF);
+		_mask = tpa::simd::_mm_cmpneq_epi32(_mask, _zero);
+		_index = _mm_and_si128(_mask, _mm_add_epi32(_index, _2));
+
+		_mask = _mm_and_si128(_mask, xFFFF);
+		_mask = tpa::simd::_mm_cmpneq_epi32(_mask, _zero);
+		_index = _mm_and_si128(_mask, _mm_add_epi32(_index, _1));
+
+		return _index;
+	}//End of _mm_bsf_epi32
+
+	///<summary>
+	///<para> Returns the indexes of the lowest set bits of 32-bit integers in an __m256i.</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without AVX2.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m256i</returns>
+	[[nodiscard]] inline __m256i _mm256_bsf_epi32(const __m256i& x) noexcept
+	{
+		const __m256i xFFFF = _mm256_set1_epi32(0xffff0000);
+		const __m256i xFF00 = _mm256_set1_epi32(0xff00ff00);
+		const __m256i xF0F0 = _mm256_set1_epi32(0xf0f0f0f0);
+		const __m256i xCCCC = _mm256_set1_epi32(0xcccccccc);
+		const __m256i xAAAA = _mm256_set1_epi32(0xaaaaaaaa);
+				 
+		const __m256i _zero = _mm256_set1_epi32(0);
+		const __m256i _16 = _mm256_set1_epi32(16);
+		const __m256i _8 = _mm256_set1_epi32(8);
+		const __m256i _4 = _mm256_set1_epi32(4);
+		const __m256i _2 = _mm256_set1_epi32(2);
+		const __m256i _1 = _mm256_set1_epi32(1);
+
+		__m256i _index = _mm256_setzero_si256();
+		__m256i _mask = _mm256_setzero_si256();
+
+		_mask = _mm256_and_si256(x, _mm256_sub_epi32(_zero, x));
+
+		_mask = _mm256_and_si256(_mask, xFFFF);
+		_mask = tpa::simd::_mm256_cmpneq_epi32(_mask, _zero);
+		_index = _mm256_and_si256(_mask, _mm256_add_epi32(_index, _16));
+
+		_mask = _mm256_and_si256(_mask, xFFFF);
+		_mask = tpa::simd::_mm256_cmpneq_epi32(_mask, _zero);
+		_index = _mm256_and_si256(_mask, _mm256_add_epi32(_index, _8));
+
+		_mask = _mm256_and_si256(_mask, xFFFF);
+		_mask = tpa::simd::_mm256_cmpneq_epi32(_mask, _zero);
+		_index = _mm256_and_si256(_mask, _mm256_add_epi32(_index, _4));
+
+		_mask = _mm256_and_si256(_mask, xFFFF);
+		_mask = tpa::simd::_mm256_cmpneq_epi32(_mask, _zero);
+		_index = _mm256_and_si256(_mask, _mm256_add_epi32(_index, _2));
+
+		_mask = _mm256_and_si256(_mask, xFFFF);
+		_mask = tpa::simd::_mm256_cmpneq_epi32(_mask, _zero);
+		_index = _mm256_and_si256(_mask, _mm256_add_epi32(_index, _1));
+
+		return _index;
+	}//End of _mm256_bsf_epi32
+
+	///<summary>
+	///<para> Returns the indexes of the lowest set bits of 32-bit integers in an __m512i.</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without AVX-512, AVX-512 BW and AVX-512 Bit Algorithms (BITALG).</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m512i</returns>
+	[[nodiscard]] inline __m512i _mm512_bsf_epi32(__m512i x) noexcept
+	{
+		const __m512i _one = _mm512_set1_epi32(static_cast<int16_t>(1));
+
+		return _mm512_add_epi32(_mm512_popcnt_epi32(_mm512_and_si512(_mm512_not_si512(x), _mm512_sub_epi32(x, _one))), _one);
+	}//End of _mm512_bsf_epi32
 
 	///<summary>
 	///<para> Multiply Packed 64-Bit Integers (Signed and Unsigned) in 'a' by 'b' and returns 'product' using AVX2</para>
