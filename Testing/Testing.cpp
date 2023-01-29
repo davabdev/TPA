@@ -34,8 +34,8 @@
 
 #include "../TPA/tpa_main.hpp"
 
-using numtype = int16_t;//boost::multiprecision::cpp_bin_float_oct;
-using returnType = int16_t;//boost::multiprecision::cpp_bin_float_oct; 
+using numtype = int32_t;//boost::multiprecision::cpp_bin_float_oct;
+using returnType = int32_t;//boost::multiprecision::cpp_bin_float_oct; 
 
 std::vector<numtype> vec;
 std::vector<numtype> vec2;
@@ -98,21 +98,21 @@ int main()
 
 			std::cout << std::left <<
 				std::setw(5) << i <<
-				std::setw(17) << std::setw(17) << tpa::util::as_bits(vec[i]) <<
-				std::setw(17) << std::setw(17) << tpa::util::as_bits(vec2[i]) <<
+				std::setw(33) << std::setw(33) << tpa::util::as_bits(vec[i]) <<
+				std::setw(33) << std::setw(33) << tpa::util::as_bits(vec2[i]) <<
 				//std::setw(10) << static_cast<double>(vec3[i]) <<
 				"\n";
 		}//End for
 
 		tpa::copy(vec, vec2);
 
-		std::cout << "STD Clear Highest Set: ";
+		std::cout << "STD Set Lowest Clear: ";
 		{
 			tpa::util::Timer t;
 			
 			for (size_t i = 0uz; i < vec.size(); ++i)
 			{
-				tpa::bit_manip::clear_highest_set(vec2[i]);
+				tpa::bit_manip::set_lowest_clear(vec2[i]);
 			}//End for
 		}
 
@@ -126,20 +126,20 @@ int main()
 
 			std::cout << std::left <<
 				std::setw(5) << i <<
-				std::setw(17) << std::setw(17) << tpa::util::as_bits(vec[i]) <<
-				std::setw(17) << std::setw(17) << tpa::util::as_bits(vec2[i]) <<
+				std::setw(33) << std::setw(33) << tpa::util::as_bits(vec[i]) <<
+				std::setw(33) << std::setw(33) << tpa::util::as_bits(vec2[i]) <<
 				//std::setw(10) << static_cast<double>(vec3[i]) <<
 				"\n";
 		}//End for
 
 		tpa::copy(vec, vec2);
 		
-		std::cout << "STD Clear Highest Set Multi-Threaded: ";
+		std::cout << "STD Set Lowest Clear Multi-Threaded: ";
 		{
 			tpa::util::Timer t;
 
 			std::for_each(std::execution::par_unseq, vec2.begin(), vec2.end(),
-				tpa::bit_manip::clear_highest_set<numtype>);
+				tpa::bit_manip::set_lowest_clear<numtype>);
 		}
 		
 
@@ -153,18 +153,18 @@ int main()
 
 			std::cout << std::left <<
 				std::setw(5) << i <<
-				std::setw(17) << std::setw(17) << tpa::util::as_bits(vec[i]) <<
-				std::setw(17) << std::setw(17) << tpa::util::as_bits(vec2[i]) <<
+				std::setw(33) << std::setw(33) << tpa::util::as_bits(vec[i]) <<
+				std::setw(33) << std::setw(33) << tpa::util::as_bits(vec2[i]) <<
 				//std::setw(10) << static_cast<double>(vec3[i]) <<
 				"\n";
 		}//End for
 
 		tpa::copy(vec, vec2);
 
-		std::cout << "TPA Clear Highest Set SIMD: ";
+		std::cout << "TPA Set Lowest Clear SIMD: ";
 		{
 			tpa::util::Timer t;
-			tpa::bit_manip::bit_modify<tpa::bit_mod::CLEAR_HIGHEST_SET>(vec2);
+			tpa::bit_manip::bit_modify<tpa::bit_mod::SET_LOWEST_CLEAR>(vec2);
 		}
 
 		std::cout << "index\t vec1\t| vec2 \t| vec3\n";
@@ -177,8 +177,8 @@ int main()
 
 			std::cout << std::left <<
 				std::setw(5) << i <<
-				std::setw(17) << std::setw(17) << tpa::util::as_bits(vec[i]) <<
-				std::setw(17) << std::setw(17) << tpa::util::as_bits(vec2[i]) <<
+				std::setw(33) << std::setw(33) << tpa::util::as_bits(vec[i]) <<
+				std::setw(33) << std::setw(33) << tpa::util::as_bits(vec2[i]) <<
 				//std::setw(10) << static_cast<double>(vec3[i]) <<
 				"\n";
 		}//End for
