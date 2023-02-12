@@ -35,21 +35,21 @@ ISA Support (including runtime detection and dispatch) as of 2021-11-15 (this li
 |MMX         |Yes               |No*                   |
 |3DNow!      |Yes               |No**                  |
 |3DNow! EXT  |Yes               |No**                  |
-|SSE         |Yes               |Yes,                  |
-|SSE2        |Yes               |Yes,                  |
-|SSE3        |Yes               |Yes,                  |
-|SSSE3       |Yes               |Yes,                  |
+|SSE         |Yes               |Yes                   |
+|SSE2        |Yes               |Yes                   |
+|SSE3        |Yes               |Yes                   |
+|SSSE3       |Yes               |Yes                   |
 |SSE4a       |Yes               |No                    |
 |XOP         |Yes               |No                    |
-|SSE4.1      |Yes               |Yes,                  |
-|SSE4.2      |Yes               |Yes,                  |
-|AVX         |Yes               |Yes,                  |
-|AVX-2       |Yes               |Yes,                  |
-|FMA         |Yes               |Yes,                  |
+|SSE4.1      |Yes               |Yes                   |
+|SSE4.2      |Yes               |Yes                   |
+|AVX         |Yes               |Yes                   |
+|AVX-2       |Yes               |Yes                   |
+|FMA         |Yes               |Yes                   |
 |AVX-VNNI    |Yes               |Coming later          |
-|AVX-512F    |Yes               |Yes,                  |
-|AVX-512BW   |Yes               |Yes,                  |
-|AVX-512DQ   |Yes               |Yes,                  |
+|AVX-512F    |Yes               |Yes                   |
+|AVX-512BW   |Yes               |Yes                   |
+|AVX-512DQ   |Yes               |Yes                   |
 |AVX-512PF   |Yes               |No                    |
 |AVX-512ER   |Yes               |No                    |
 |AVX-512CD   |Yes               |No                    |
