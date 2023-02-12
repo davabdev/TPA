@@ -8,7 +8,7 @@ Pre-Alpha Release.
 |Runtime ISA extension detection                                                             |complete                                       |
 |Runtime Detection of Hybrid Architecture                                                    |complete                                       |
 |Cross-platform thread affinty and thread dispatch                                           |not yet implemented                            |
-|An Optimized Thread Pool                                                                    |complete,                                      |
+|An Optimized Thread Pool                                                                    |complete                                       |
 |Functions to utilize intrinics directly on std::array-like and std::vector-like structures  |incomplete, subject to change                  |
 |Paralellized & vectorized basic math                                                        |complete, subject to change                    |
 |Paralellized & vectorized comparisions                                                      |complete, subject to change                    |
@@ -17,8 +17,8 @@ Pre-Alpha Release.
 |Paralellized & vectorized implementation of std::algorithims                                |very, very incomplete!, subject to change      |
 |Paralellized & vectorized implementation of std::numeric                                    |very, very incomplete!, subject to change      |
 |Paralellized & vectorized string functions                                                  |not yet implemented                            |
-|Paralellized & vectorized random number generators                                          |complete,                                      |
-|Paralellized & vectorized bitwise operations                                                |complete,                                      |
+|Paralellized & vectorized random number generators                                          |complete                                       |
+|Paralellized & vectorized bitwise operations                                                |complete                                       |
 |Bit Twiddling                                                                               |complete                                       |
 |Paralellized & vectorized Vectorized Bit Twidding                                           |complete                                       |        
 |Paralellized & vectorized advanced bit manipulation                                         |complete                                       |
