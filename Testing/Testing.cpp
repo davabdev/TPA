@@ -34,8 +34,8 @@
 
 #include "../TPA/tpa_main.hpp"
 
-using numtype = int32_t;//boost::multiprecision::cpp_bin_float_oct;
-using returnType = int32_t;//boost::multiprecision::cpp_bin_float_oct; 
+using numtype = int64_t;//boost::multiprecision::cpp_bin_float_oct;
+using returnType = int64_t;//boost::multiprecision::cpp_bin_float_oct; 
 
 std::vector<numtype> vec;
 std::vector<numtype> vec2;
@@ -98,8 +98,8 @@ int main()
 
 			std::cout << std::left <<
 				std::setw(5) << i <<
-				std::setw(33) << std::setw(33) << tpa::util::as_bits(vec[i]) <<
-				std::setw(33) << std::setw(33) << tpa::util::as_bits(vec2[i]) <<
+				std::setw(65) << std::setw(65) << tpa::util::as_bits(vec[i]) <<
+				std::setw(65) << std::setw(65) << tpa::util::as_bits(vec2[i]) <<
 				//std::setw(10) << static_cast<double>(vec3[i]) <<
 				"\n";
 		}//End for
@@ -126,8 +126,8 @@ int main()
 
 			std::cout << std::left <<
 				std::setw(5) << i <<
-				std::setw(33) << std::setw(33) << tpa::util::as_bits(vec[i]) <<
-				std::setw(33) << std::setw(33) << tpa::util::as_bits(vec2[i]) <<
+				std::setw(65) << std::setw(65) << tpa::util::as_bits(vec[i]) <<
+				std::setw(65) << std::setw(65) << tpa::util::as_bits(vec2[i]) <<
 				//std::setw(10) << static_cast<double>(vec3[i]) <<
 				"\n";
 		}//End for
@@ -153,8 +153,8 @@ int main()
 
 			std::cout << std::left <<
 				std::setw(5) << i <<
-				std::setw(33) << std::setw(33) << tpa::util::as_bits(vec[i]) <<
-				std::setw(33) << std::setw(33) << tpa::util::as_bits(vec2[i]) <<
+				std::setw(65) << std::setw(65) << tpa::util::as_bits(vec[i]) <<
+				std::setw(65) << std::setw(65) << tpa::util::as_bits(vec2[i]) <<
 				//std::setw(10) << static_cast<double>(vec3[i]) <<
 				"\n";
 		}//End for
@@ -177,8 +177,8 @@ int main()
 
 			std::cout << std::left <<
 				std::setw(5) << i <<
-				std::setw(33) << std::setw(33) << tpa::util::as_bits(vec[i]) <<
-				std::setw(33) << std::setw(33) << tpa::util::as_bits(vec2[i]) <<
+				std::setw(65) << std::setw(65) << tpa::util::as_bits(vec[i]) <<
+				std::setw(65) << std::setw(65) << tpa::util::as_bits(vec2[i]) <<
 				//std::setw(10) << static_cast<double>(vec3[i]) <<
 				"\n";
 		}//End for
