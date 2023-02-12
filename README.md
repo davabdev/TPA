@@ -8,19 +8,20 @@ Pre-Alpha Release.
 |Runtime ISA extension detection                                                             |complete                                       |
 |Runtime Detection of Hybrid Architecture                                                    |complete                                       |
 |Cross-platform thread affinty and thread dispatch                                           |not yet implemented                            |
-|An Optimized Thread Pool                                                                    |complete, subject to change                    |
+|An Optimized Thread Pool                                                                    |complete,                                      |
 |Functions to utilize intrinics directly on std::array-like and std::vector-like structures  |incomplete, subject to change                  |
 |Paralellized & vectorized basic math                                                        |complete, subject to change                    |
 |Paralellized & vectorized comparisions                                                      |complete, subject to change                    |
-|Paralellized & vectorized cmath functions                                                   |incomplete, subject to change                    |
-|Paralellized & vectorized type converstion (static_cast)                                    |incomplete                                     |
+|Paralellized & vectorized cmath functions                                                   |incomplete, subject to change                  |
+|Paralellized & vectorized type converstion (static_cast)                                    |complete                                       |
 |Paralellized & vectorized implementation of std::algorithims                                |very, very incomplete!, subject to change      |
 |Paralellized & vectorized implementation of std::numeric                                    |very, very incomplete!, subject to change      |
 |Paralellized & vectorized string functions                                                  |not yet implemented                            |
-|Paralellized & vectorized random number generators                                          |complete, subject to change                    |
-|Paralellized & vectorized bitwise operations                                                |complete, subject to change                    |
+|Paralellized & vectorized random number generators                                          |complete,                                      |
+|Paralellized & vectorized bitwise operations                                                |complete,                                      |
 |Bit Twiddling                                                                               |complete                                       |
-|Paralellized & vectorized advanced bit manipulation                                         |incomplete, subject to change                  |
+|Paralellized & vectorized Vectorized Bit Twidding                                           |complete                                       |        
+|Paralellized & vectorized advanced bit manipulation                                         |complete                                       |
 |Paralellized & vectorized statistical functions                                             |incomplete, subject to change                  |
 |Paralellized & vectorized finance functions                                                 |not yet implemented                            |  
 
