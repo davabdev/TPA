@@ -304,48 +304,35 @@ namespace tpa::bit_manip
 	/// <param name="x"></param>
 	/// <returns></returns>
 	template<typename T>
-	inline constexpr void toggle_all(T& x)
+	inline constexpr void toggle_all(T& x) noexcept
 	{
-		try
+		if constexpr (std::is_integral<T>())
 		{
-			if constexpr (std::is_integral<T>())
-			{
-				x = ~x;
-			}//End if
-			else if constexpr (std::is_same<T, float>())
-			{
-				int32_t x_as_int = *reinterpret_cast<int32_t*>(&x);
-
-				x_as_int = ~x_as_int;
-
-				x = *reinterpret_cast<float*>(&x_as_int);
-			}//End if
-			else if constexpr (std::is_same<T, double>())
-			{
-				int64_t x_as_int = *reinterpret_cast<int64_t*>(&x);
-
-				x_as_int = ~x_as_int;
-
-				x = *reinterpret_cast<double*>(&x_as_int);
-			}//End if
-			else
-			{
-				[] <bool flag = false>()
-				{
-					static_assert(flag, "Non-standard types are not supported.");
-				}();
-			}//End else
-		}//End of try
-		catch (const std::exception& ex)
+			x = ~x;
+		}//End if
+		else if constexpr (std::is_same<T, float>())
 		{
-			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
-			std::cerr << "Exception thrown in tpa::bit_manip::toggle_all: " << ex.what() << "\n";
-		}//End catch
-		catch (...)
+			int32_t x_as_int = *reinterpret_cast<int32_t*>(&x);
+
+			x_as_int = ~x_as_int;
+
+			x = *reinterpret_cast<float*>(&x_as_int);
+		}//End if
+		else if constexpr (std::is_same<T, double>())
 		{
-			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
-			std::cerr << "Exception thrown in tpa::bit_manip::toggle_all: unknown!\n";
-		}//End catch
+			int64_t x_as_int = *reinterpret_cast<int64_t*>(&x);
+
+			x_as_int = ~x_as_int;
+
+			x = *reinterpret_cast<double*>(&x_as_int);
+		}//End if
+		else
+		{
+			[] <bool flag = false>()
+			{
+				static_assert(flag, "Non-standard types are not supported.");
+			}();
+		}//End else
 	}//End of toggle_all
 
 	/// <summary>
@@ -2095,12 +2082,12 @@ namespace tpa::bit_manip
 
 			x = x & -x;
 
-			if ((x & 0xffffffff) != 0) index += 32;
-			if ((x & 0xffff0000) != 0) index += 16;
-			if ((x & 0xff00ff00) != 0) index += 8;
-			if ((x & 0xf0f0f0f0) != 0) index += 4;
-			if ((x & 0xcccccccc) != 0) index += 2;
-			if ((x & 0xaaaaaaaa) != 0) index += 1;
+			if ((x & 0xffffffffll) != 0ll) index += 32ll;
+			if ((x & 0xffff0000ll) != 0ll) index += 16ll;
+			if ((x & 0xff00ff00ll) != 0ll) index += 8ll;
+			if ((x & 0xf0f0f0f0ll) != 0ll) index += 4ll;
+			if ((x & 0xccccccccll) != 0ll) index += 2ll;
+			if ((x & 0xaaaaaaaall) != 0ll) index += 1ll;
 
 			return index;
 		}//End if
@@ -2136,12 +2123,12 @@ namespace tpa::bit_manip
 
 			temp = temp & -temp;
 
-			if ((temp & 0xffffffff) != 0) index += 32;
-			if ((temp & 0xffff0000) != 0) index += 16;
-			if ((temp & 0xff00ff00) != 0) index += 8;
-			if ((temp & 0xf0f0f0f0) != 0) index += 4;
-			if ((temp & 0xcccccccc) != 0) index += 2;
-			if ((temp & 0xaaaaaaaa) != 0) index += 1;
+			if ((temp & 0xffffffffll) != 0ll) index += 32ll;
+			if ((temp & 0xffff0000ll) != 0ll) index += 1ll6;
+			if ((temp & 0xff00ff00ll) != 0ll) index += 8ll;
+			if ((temp & 0xf0f0f0f0ll) != 0ll) index += 4ll;
+			if ((temp & 0xccccccccll) != 0ll) index += 2ll;
+			if ((temp & 0xaaaaaaaall) != 0ll) index += 1ll;
 
 			return index;
 		}//End if
@@ -2162,7 +2149,7 @@ namespace tpa::bit_manip
 	/// <param name="x"></param>
 	/// <returns></returns>
 	template<typename T>
-	inline constexpr void set_even(T& x)
+	inline constexpr void set_even(T& x) noexcept
 	{
 		if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
 		{
@@ -2204,7 +2191,7 @@ namespace tpa::bit_manip
 	/// <param name="x"></param>
 	/// <returns></returns>
 	template<typename T>
-	inline constexpr void clear_even(T& x)
+	inline constexpr void clear_even(T& x) noexcept
 	{
 		if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
 		{
@@ -2246,7 +2233,7 @@ namespace tpa::bit_manip
 	/// <param name="x"></param>
 	/// <returns></returns>
 	template<typename T>
-	inline constexpr void toggle_even(T& x)
+	inline constexpr void toggle_even(T& x) noexcept
 	{
 		if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
 		{
@@ -2318,7 +2305,7 @@ namespace tpa::bit_manip
 	/// <param name="x"></param>
 	/// <returns></returns>
 	template<typename T>
-	inline constexpr void toggle_odd(T& x)
+	inline constexpr void toggle_odd(T& x) noexcept
 	{
 		if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
 		{
@@ -2391,7 +2378,7 @@ namespace tpa::bit_manip
 	/// <param name="not_set"></param>
 	/// <returns></returns>
 	template<typename T>
-	inline constexpr void set_odd(T& x)
+	inline constexpr void set_odd(T& x) noexcept
 	{
 		if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
 		{
@@ -2434,7 +2421,7 @@ namespace tpa::bit_manip
 	/// <param name="not_set"></param>
 	/// <returns></returns>
 	template<typename T>
-	inline constexpr void clear_odd(T& x)
+	inline constexpr void clear_odd(T& x) noexcept
 	{
 		if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
 		{
@@ -2476,7 +2463,7 @@ namespace tpa::bit_manip
 	/// <param name="x"></param>
 	/// <returns></returns>
 	template<typename T>
-	inline constexpr void clear_msb(T& x)
+	inline constexpr void clear_msb(T& x) noexcept
 	{
 		if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
 		{
@@ -2518,7 +2505,7 @@ namespace tpa::bit_manip
 	/// <param name="x"></param>
 	/// <returns></returns>
 	template<typename T>
-	inline constexpr void clear_lsb(T& x)
+	inline constexpr void clear_lsb(T& x) noexcept
 	{
 		if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
 		{
@@ -2560,7 +2547,7 @@ namespace tpa::bit_manip
 	/// <param name="x"></param>
 	/// <returns></returns>
 	template<typename T>
-	inline constexpr void set_msb(T& x)
+	inline constexpr void set_msb(T& x) noexcept
 	{
 		if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
 		{
@@ -2602,7 +2589,7 @@ namespace tpa::bit_manip
 	/// <param name="x"></param>
 	/// <returns></returns>
 	template<typename T>
-	inline constexpr void set_lsb(T& x)
+	inline constexpr void set_lsb(T& x) noexcept
 	{
 		if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
 		{
@@ -3296,6 +3283,170 @@ namespace tpa::bit_manip
 		}//End catch
 	}//End of bit_swap
 
+	/// <summary>
+	/// <para>Rotates bits left in 'x' by 'amount'</para>
+	/// <para>Uses hardware instructions where available.</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <param name="amount"></param>
+	/// <returns></returns>
+	template<typename T>
+	[[nodiscard]] inline constexpr T rotate_left(const T& x, const T& amount) noexcept
+	{
+		if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
+		{
+			return (x << amount) | (x >> (CHAR_BIT - amount));
+		}//End if
+
+		else if constexpr (std::is_same<T, int16_t>() || std::is_same<T, uint16_t>())
+		{
+#if defined(__INTEL_COMPILER) && defined(TPA_X86_64)
+			return static_cast<T>(_rotwl(static_cast<uint16_t>(x), static_cast<int32_t>(amount)));
+#else
+			return (x << amount) | (x >> ((sizeof(int16_t)*CHAR_BIT) - amount));
+#endif
+		}//End if
+		else if constexpr (std::is_same<T, int32_t>() || std::is_same<T, uint32_t>())
+		{
+#if defined(TPA_X86_64)
+			return _rotl(static_cast<uint32_t>(x), static_cast<int32_t>(amount));
+#else
+			return (x << amount) | (x >> ((sizeof(int32_t) * CHAR_BIT) - amount));
+#endif
+		}//End if
+		else if constexpr (std::is_same<T, int64_t>() || std::is_same<T, uint64_t>())
+		{
+#if defined(TPA_X86_64)
+			return _rotl64(static_cast<uint64_t>(x), static_cast<int32_t>(amount));
+#else
+			return (x << amount) | (x >> ((sizeof(int64_t) * CHAR_BIT) - amount));
+#endif
+		}//End if
+		else if constexpr (std::is_same<T, float>())
+		{
+#if defined(TPA_X86_64)
+			int32_t x_as_int = *reinterpret_cast<int32_t*>(&x);
+			int32_t a_as_int = *reinterpret_cast<int32_t*>(&amount);
+			int32_t result = 0;
+
+			result = _rotl(static_cast<uint32_t>(x_as_int), static_cast<int32_t>(a_as_int));
+			return *reinterpret_cast<float*>(&result);
+#else
+			int32_t x_as_int = *reinterpret_cast<int32_t*>(&x);
+			int32_t a_as_int = *reinterpret_cast<int32_t*>(&amount);
+			int32_t result = 0;
+
+			result = (x_as_int << a_as_int) | (x_as_int >> ((sizeof(int32_t) * CHAR_BIT) - a_as_int));
+			return *reinterpret_cast<float*>(&result);
+#endif
+		}//End if
+		else if constexpr (std::is_same<T, double>())
+		{
+#if defined(TPA_X86_64)
+			int64_t x_as_int = *reinterpret_cast<int64_t*>(&x);
+			int64_t a_as_int = *reinterpret_cast<int64_t*>(&amount);
+			int64_t result = 0;
+
+			result = _rotl64(static_cast<uint64_t>(x_as_int), static_cast<int32_t>(a_as_int));
+			return *reinterpret_cast<double*>(&result);
+#else
+			int64_t x_as_int = *reinterpret_cast<int64_t*>(&x);
+			int64_t a_as_int = *reinterpret_cast<int64_t*>(&amount);
+			int64_t result = 0ll;
+
+			result = (x_as_int << a_as_int) | (x_as_int >> ((sizeof(int64_t) * CHAR_BIT) - a_as_int));
+			return *reinterpret_cast<double*>(&result);
+#endif
+		}//End if
+		else
+		{
+			return (x << amount) | (x >> ((sizeof(T) * CHAR_BIT) - amount));
+		}//End else
+	}//End of rotate_left
+
+	/// <summary>
+	/// <para>Rotates bits right in 'x' by 'amount'</para>
+	/// <para>Uses hardware instructions where available.</para>
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="x"></param>
+	/// <param name="amount"></param>
+	/// <returns></returns>
+	template<typename T>
+	[[nodiscard]] inline constexpr T rotate_right(const T& x, const T& amount) noexcept
+	{
+		if constexpr (std::is_same<T, int8_t>() || std::is_same<T, uint8_t>())
+		{
+			return (x >> amount) | (x << (CHAR_BIT - amount));
+		}//End if
+
+		else if constexpr (std::is_same<T, int16_t>() || std::is_same<T, uint16_t>())
+		{
+#if defined(__INTEL_COMPILER) && defined(TPA_X86_64)
+			return static_cast<T>(_rotwr(static_cast<uint16_t>(x), static_cast<int32_t>(amount)));
+#else
+			return (x >> amount) | (x << ((sizeof(int16_t) * CHAR_BIT) - amount));
+#endif
+		}//End if
+		else if constexpr (std::is_same<T, int32_t>() || std::is_same<T, uint32_t>())
+		{
+#if defined(TPA_X86_64)
+			return _rotr(static_cast<uint32_t>(x), static_cast<int32_t>(amount));
+#else
+			return (x >> amount) | (x << ((sizeof(int32_t) * CHAR_BIT) - amount));
+#endif
+		}//End if
+		else if constexpr (std::is_same<T, int64_t>() || std::is_same<T, uint64_t>())
+		{
+#if defined(TPA_X86_64)
+			return _rotr64(static_cast<uint64_t>(x), static_cast<int32_t>(amount));
+#else
+			return (x >> amount) | (x << ((sizeof(int64_t) * CHAR_BIT) - amount));
+#endif
+		}//End if
+		else if constexpr (std::is_same<T, float>())
+		{
+#if defined(TPA_X86_64)
+			int32_t x_as_int = *reinterpret_cast<int32_t*>(&x);
+			int32_t a_as_int = *reinterpret_cast<int32_t*>(&amount);
+			int32_t result = 0;
+
+			result = _rotr(static_cast<uint32_t>(x_as_int), static_cast<int32_t>(a_as_int));
+			return *reinterpret_cast<float*>(&result);
+#else
+			int32_t x_as_int = *reinterpret_cast<int32_t*>(&x);
+			int32_t a_as_int = *reinterpret_cast<int32_t*>(&amount);
+			int32_t result = 0;
+
+			result = (x_as_int >> a_as_int) | (x_as_int << ((sizeof(int32_t) * CHAR_BIT) - a_as_int));
+			return *reinterpret_cast<float*>(&result);
+#endif
+		}//End if
+		else if constexpr (std::is_same<T, double>())
+		{
+#if defined(TPA_X86_64)
+			int64_t x_as_int = *reinterpret_cast<int64_t*>(&x);
+			int64_t a_as_int = *reinterpret_cast<int64_t*>(&amount);
+			int64_t result = 0;
+
+			result = _rotr64(static_cast<uint64_t>(x_as_int), static_cast<int32_t>(a_as_int));
+			return *reinterpret_cast<double*>(&result);
+#else
+			int64_t x_as_int = *reinterpret_cast<int64_t*>(&x);
+			int64_t a_as_int = *reinterpret_cast<int64_t*>(&amount);
+			int64_t result = 0ll;
+
+			result = (x_as_int >> a_as_int) | (x_as_int << ((sizeof(int64_t) * CHAR_BIT) - a_as_int));
+			return *reinterpret_cast<double*>(&result);
+#endif
+		}//End if
+		else
+		{
+			return (x >> amount) | (x << ((sizeof(T) * CHAR_BIT) - amount));
+		}//End else
+	}//End of rotate_right
+
 }//End of namespace
 
 /// <summary>
@@ -3921,7 +4072,7 @@ namespace bit_manip
 							for (; (i + 16uz) < end; i += 16uz)
 							{
 								//Set Values
-								_source = _mm512_loadu_epi32(&source[i]);
+								_source = _mm512_load_epi32(&source[i]);
 
 								if constexpr (INSTR == tpa::bit_mod::SET)
 								{
@@ -4031,22 +4182,22 @@ namespace bit_manip
 								}//End if
 								else if constexpr (INSTR == tpa::bit_mod::SET_MSB)
 								{
-									const __m512i _set_msb = _mm512_set1_epi32(static_cast<int16_t>(0b1000'0000'0000'0000'0000'0000'0000'0000));
+									const __m512i _set_msb = _mm512_set1_epi32(static_cast<int32_t>(0b1000'0000'0000'0000'0000'0000'0000'0000));
 									_DESTi = _mm512_or_si512(_source, _set_msb);
 								}//End if
 								else if constexpr (INSTR == tpa::bit_mod::CLEAR_MSB)
 								{
-									const __m512i _clear_msb = _mm512_set1_epi32(static_cast<int16_t>(0b0111'1111'1111'1111'1111'1111'1111'1111));
+									const __m512i _clear_msb = _mm512_set1_epi32(static_cast<int32_t>(0b0111'1111'1111'1111'1111'1111'1111'1111));
 									_DESTi = _mm512_and_si512(_source, _clear_msb);
 								}//End if                                                                   
 								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LSB)
 								{
-									const __m512i _clear_lsb = _mm512_set1_epi32(static_cast<int16_t>(0b1111'1111'1111'1111'1111'1111'1111'1110));
+									const __m512i _clear_lsb = _mm512_set1_epi32(static_cast<int32_t>(0b1111'1111'1111'1111'1111'1111'1111'1110));
 									_DESTi = _mm512_and_si512(_source, _clear_lsb);
 								}//End if
 								else if constexpr (INSTR == tpa::bit_mod::SET_LSB)
 								{
-									const __m512i _clear_lsb = _mm512_set1_epi32(static_cast<int16_t>(0b0000'0000'0000'0000'0000'0000'0000'0001));
+									const __m512i _clear_lsb = _mm512_set1_epi32(static_cast<int32_t>(0b0000'0000'0000'0000'0000'0000'0000'0001));
 									_DESTi = _mm512_or_si512(_source, _clear_lsb);
 								}//End if
 								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LOWEST_SET)
@@ -4061,7 +4212,7 @@ namespace bit_manip
 								{
 									const __m512i _hsb = tpa::simd::_mm512_exthsb_epi32(_source);
 									const __m512i _sl = _mm512_slli_epi32(_hsb, 1u);
-									const __mmask32 _mask = _mm512_cmplt_epi16_mask(_sl, _max);
+									const __mmask16 _mask = _mm512_cmplt_epi16_mask(_sl, _max);
 
 									_DESTi = _mm512_or_si512(_source, _mm512_mask_slli_epi32(_hsb, _mask, _hsb, 1u));
 								}//End if
@@ -4082,7 +4233,7 @@ namespace bit_manip
 								}//End else
 
 								//Store Result
-								_mm512_storeu_epi32(&source[i], _DESTi);
+								_mm512_store_epi32(&source[i], _DESTi);
 							}//End for
 						}//End if hasAVX512
 						else if (tpa::hasAVX2)
@@ -4158,7 +4309,7 @@ namespace bit_manip
 								{
 									_temp = _mm256_or_si256(_source, _mm256_sub_epi32(_source, _one));
 
-									__m256i _rhs = _mm256_add_epi16(tpa::simd::_mm256_bsf_epi32(_source), _one);
+									__m256i _rhs = _mm256_add_epi32(tpa::simd::_mm256_bsf_epi32(_source), _one);
 
 									__m256i _added = _mm256_add_epi32(_temp, _one);
 									__m256i _not_temp = tpa::simd::_mm256_not_si256(_temp);
@@ -4457,198 +4608,549 @@ namespace bit_manip
 					else if constexpr (std::is_same<T, int64_t>() || std::is_same<T, uint64_t>())
 					{
 #ifdef TPA_X86_64
-					if (tpa::hasAVX512)
-					{
-						const uint32_t p = static_cast<uint32_t>(pos);
-
-						__m512i _source = _mm512_setzero_si512();
-						__m512i _DESTi = _mm512_setzero_si512();
-						const __m512i _zero = _mm512_setzero_si512();
-						const __m512i _one = _mm512_set1_epi64(1ll);
-						const __m512i _max = _mm512_set1_epi64(std::numeric_limits<uint64_t>::max());
-						const __m512i _shifted_left = _mm512_slli_epi64(_one, p);
-						const __m512i _not_shifted_left = tpa::simd::_mm512_not_si512(_shifted_left);
-
-						for (; (i + 8uz) < end; i += 8uz)
+						if (tpa::hasAVX512)
 						{
-							//Set Values
-							_source = _mm512_load_epi64(&source[i]);
+							const uint32_t p = static_cast<uint32_t>(pos);
 
-							if constexpr (INSTR == tpa::bit_mod::SET)
+							__m512i _source = _mm512_setzero_si512();
+							__m512i _DESTi = _mm512_setzero_si512();
+							__m512i _temp = _mm512_setzero_si512();
+							const __m512i _zero = _mm512_setzero_si512();
+							const __m512i _one = _mm512_set1_epi64(1ull);
+							const __m512i _max = _mm512_set1_epi64(std::numeric_limits<uint64_t>::max());
+							const __m512i _shifted_left = _mm512_slli_epi64(_one, p);
+							const __m512i _not_shifted_left = tpa::simd::_mm512_not_si512(_shifted_left);
+
+							for (; (i + 8uz) < end; i += 8uz)
 							{
-								_DESTi = _mm512_or_si512(_shifted_left, _source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
-							{
-								_DESTi = _max;
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::CLEAR)
-							{
-								//~(1ull << pos) & source[i]
-								_DESTi = _mm512_and_si512(_not_shifted_left, _source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
-							{
-								_DESTi = _zero;
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
-							{
-								_DESTi = _mm512_xor_si512(_shifted_left, _source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
-							{
-								_DESTi = tpa::simd::_mm512_not_si512(_source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::REVERSE)
-							{
-								size_t bits = sizeof(T) * CHAR_BIT;
-								while (bits > 0uz)
+								//Set Values
+								_source = _mm512_load_epi64(&source[i]);
+
+								if constexpr (INSTR == tpa::bit_mod::SET)
 								{
-									_DESTi = _mm512_or_si512(_mm512_slli_epi64(_DESTi, 1u), _mm512_and_si512(_source, _one));
-									_source = _mm512_srli_epi64(_source, 1u);
-									bits -= 1uz;
-								}//End for
-							}//End if
-							else
-							{
-								[] <bool flag = false>()
+									_DESTi = _mm512_or_si512(_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
 								{
-									static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int32_t / uint32_t>).");
-								}();
-							}//End else
+									_DESTi = _max;
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR)
+								{
+									_DESTi = _mm512_and_si512(_not_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
+								{
+									_DESTi = _zero;
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
+								{
+									_DESTi = _mm512_xor_si512(_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
+								{
+									_DESTi = tpa::simd::_mm512_not_si512(_source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::REVERSE)
+								{
+									size_t bits = sizeof(T) * CHAR_BIT;
+									while (bits > 0uz)
+									{
+										_DESTi = _mm512_or_si512(_mm512_slli_epi64(_DESTi, 1u), _mm512_and_si512(_source, _one));
+										_source = _mm512_srli_epi64(_source, 1u);
+										bits -= 1uz;
+									}//End while
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_TRAILING_ZEROS)
+								{
+									_DESTi = _mm512_or_si512(_mm512_sub_epi64(_source, _one), _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_TRAILING_ONES)
+								{
+									_DESTi = _mm512_and_si512(_mm512_add_epi64(_source, _one), _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_LEADING_ZEROS)
+								{
+									_DESTi = tpa::simd::_mm512_lzset_epi64(_source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LEADING_ONES)
+								{
+									_DESTi = tpa::simd::_mm512_not_si512(tpa::simd::_mm512_lzset_epi64(tpa::simd::_mm512_not_si512(_source)));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::NEXT_LEXICOGRAPHIC_PERMUTATION)
+								{
+									_temp = _mm512_or_si512(_source, _mm512_sub_epi64(_source, _one));
 
-							//Store Result
-							_mm512_store_epi64(&source[i], _DESTi);
-						}//End for
-					}//End if hasAVX512
-					else if (tpa::hasAVX2)
-					{
-						const int32_t p = static_cast<int32_t>(pos);
+									__m512i _rhs = _mm512_add_epi64(tpa::simd::_mm512_bsf_epi64(_source), _one);
 
-						__m256i _source = _mm256_setzero_si256();
-						__m256i _DESTi = _mm256_setzero_si256();
-						const __m256i _zero = _mm256_setzero_si256();
-						const __m256i _one = _mm256_set1_epi64x(1ll);
-						const __m256i _max = _mm256_set1_epi64x(std::numeric_limits<uint64_t>::max());
-						const __m256i _shifted_left = _mm256_slli_epi64(_one, p);
-						const __m256i _not_shifted_left = tpa::simd::_mm256_not_si256(_shifted_left);
+									__m512i _added = _mm512_add_epi64(_temp, _one);
+									__m512i _not_temp = tpa::simd::_mm512_not_si512(_temp);
+									__m512i _lhs = _mm512_sub_epi64(_mm512_and_si512(_not_temp, _mm512_sub_epi64(_zero, _not_temp)), _one);
+									__m512i _lhs_shifted_right = _mm512_srlv_epi64(_lhs, _rhs);
 
-						for (; (i + 4uz) < end; i += 4uz)
+									_DESTi = _mm512_or_si512(_added, _lhs_shifted_right);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_EVEN)
+								{
+									const __m512i _EVEN = _mm512_set1_epi64(static_cast<T>(0b0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101));
+
+									_DESTi = _mm512_or_si512(_source, _EVEN);
+								}//End else
+								else if constexpr (INSTR == tpa::bit_mod::SET_ODD)
+								{
+									const __m512i _ODD = _mm512_set1_epi64(static_cast<T>(0b1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010));
+
+									_DESTi = _mm512_or_si512(_source, _ODD);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_EVEN)
+								{
+									const __m512i _EVEN = _mm512_set1_epi64(static_cast<T>(0b1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010));
+
+									_DESTi = _mm512_and_si512(_source, _EVEN);
+								}//End else
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_ODD)
+								{
+									const __m512i _ODD = _mm512_set1_epi64(static_cast<T>(0b0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101));
+
+									_DESTi = _mm512_and_si512(_source, _ODD);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_EVEN)
+								{
+									_DESTi = _source;
+
+									for (int64_t x = static_cast<int64_t>(0); x != static_cast<int64_t>(64); x += static_cast<int64_t>(2))
+									{
+										_DESTi = _mm512_xor_si512(_DESTi, _mm512_slli_epi64(_one, x));
+									}//End for
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ODD)
+								{
+									_DESTi = _source;
+
+									for (int64_t x = static_cast<int64_t>(1); x != static_cast<int64_t>(65); x += static_cast<int64_t>(2))
+									{
+										_DESTi = _mm512_xor_si512(_DESTi, _mm512_slli_epi64(_one, x));
+									}//End for
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_MSB)
+								{
+									const __m512i _set_msb = _mm512_set1_epi64(static_cast<int64_t>(0b1000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000));
+									_DESTi = _mm512_or_si512(_source, _set_msb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_MSB)
+								{
+									const __m512i _clear_msb = _mm512_set1_epi64(static_cast<int64_t>(0b0111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111));
+									_DESTi = _mm512_and_si512(_source, _clear_msb);
+								}//End if                                                                   
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LSB)
+								{
+									const __m512i _clear_lsb = _mm512_set1_epi64(static_cast<int64_t>(0b1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1110));
+									_DESTi = _mm512_and_si512(_source, _clear_lsb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_LSB)
+								{
+									const __m512i _clear_lsb = _mm512_set1_epi64(static_cast<int64_t>(0b0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0001));
+									_DESTi = _mm512_or_si512(_source, _clear_lsb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LOWEST_SET)
+								{
+									_DESTi = _mm512_xor_si512(_source, _mm512_and_si512(_source, _mm512_sub_epi64(_zero, _source)));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_HIGHEST_SET)
+								{
+									_DESTi = _mm512_xor_si512(_source, tpa::simd::_mm512_exthsb_epi64(_source));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_HIGHEST_CLEAR)
+								{
+									const __m512i _hsb = tpa::simd::_mm512_exthsb_epi64(_source);
+									const __m512i _sl = _mm512_slli_epi64(_hsb, 1u);
+									const __mmask8 _mask = _mm512_cmplt_epi64_mask(_sl, _max);
+
+									_DESTi = _mm512_or_si512(_source, _mm512_mask_slli_epi64(_hsb, _mask, _hsb, 1u));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_LOWEST_CLEAR)
+								{
+									__m512i _lowest = _mm512_and_si512(_source, _mm512_sub_epi64(_zero, _source));
+									_lowest = _mm512_srli_epi64(_lowest, 1u);
+									const __mmask8 _mask = _mm512_cmpgt_epi64_mask(_lowest, _zero);
+
+									_DESTi = _mm512_or_si512(_source, _mm512_mask_slli_epi64(_lowest, _mask, _lowest, 1u));
+								}//End if
+								else
+								{
+									[] <bool flag = false>()
+									{
+										static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int32_t> / uint32_t).");
+									}();
+								}//End else
+
+								//Store Result
+								_mm512_store_epi64(&source[i], _DESTi);
+							}//End for
+						}//End if hasAVX512
+						else if (tpa::hasAVX2)
 						{
-							//Set Values
-							_source = _mm256_load_si256((__m256i*) & source[i]);
+							const int32_t p = static_cast<int32_t>(pos);
 
-							if constexpr (INSTR == tpa::bit_mod::SET)
+							__m256i _source = _mm256_setzero_si256();
+							__m256i _DESTi = _mm256_setzero_si256();
+							__m256i _temp = _mm256_setzero_si256();
+							const __m256i _zero = _mm256_setzero_si256();
+							const __m256i _one = _mm256_set1_epi64x(1ll);
+							const __m256i _max = _mm256_set1_epi64x(std::numeric_limits<uint64_t>::max());
+							const __m256i _shifted_left = _mm256_slli_epi64(_one, p);
+							const __m256i _not_shifted_left = tpa::simd::_mm256_not_si256(_shifted_left);
+
+							for (; (i + 4uz) < end; i += 4uz)
 							{
-								_DESTi = _mm256_or_si256(_shifted_left, _source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
-							{
-								_DESTi = _max;
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::CLEAR)
-							{
-								//~(1ull << pos) & source[i]
-								_DESTi = _mm256_and_si256(_not_shifted_left, _source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
-							{
-								_DESTi = _zero;
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
-							{
-								_DESTi = _mm256_xor_si256(_shifted_left, _source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
-							{
-								_DESTi = tpa::simd::_mm256_not_si256(_source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::REVERSE)
-							{
-								size_t bits = sizeof(T) * CHAR_BIT;
-								while (bits > 0uz)
+								//Set Values
+								_source = _mm256_load_si256((__m256i*) & source[i]);
+
+								if constexpr (INSTR == tpa::bit_mod::SET)
 								{
-									_DESTi = _mm256_or_si256(_mm256_slli_epi64(_DESTi, 1), _mm256_and_si256(_source, _one));
-									_source = _mm256_srli_epi64(_source,1);
-									bits -= 1uz;
-								}//End for
-							}//End if
-							else
-							{
-								[] <bool flag = false>()
+									_DESTi = _mm256_or_si256(_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
 								{
-									static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int32_t / uint32_t>).");
-								}();
-							}//End else
+									_DESTi = _max;
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR)
+								{
+									_DESTi = _mm256_and_si256(_not_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
+								{
+									_DESTi = _zero;
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
+								{
+									_DESTi = _mm256_xor_si256(_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
+								{
+									_DESTi = tpa::simd::_mm256_not_si256(_source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::REVERSE)
+								{
+									size_t bits = sizeof(T) * CHAR_BIT;
+									while (bits > 0uz)
+									{
+										_DESTi = _mm256_or_si256(_mm256_slli_epi64(_DESTi, 1), _mm256_and_si256(_source, _one));
+										_source = _mm256_srli_epi64(_source, 1);
+										bits -= 1uz;
+									}//End while
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_TRAILING_ZEROS)
+								{
+									_DESTi = _mm256_or_si256(_mm256_sub_epi64(_source, _one), _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_TRAILING_ONES)
+								{
+									_DESTi = _mm256_and_si256(_mm256_add_epi64(_source, _one), _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_LEADING_ZEROS)
+								{
+									_DESTi = tpa::simd::_mm256_lzset_epi64(_source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LEADING_ONES)
+								{
+									_DESTi = tpa::simd::_mm256_not_si256(tpa::simd::_mm256_lzset_epi64(tpa::simd::_mm256_not_si256(_source)));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::NEXT_LEXICOGRAPHIC_PERMUTATION)
+								{
+									_temp = _mm256_or_si256(_source, _mm256_sub_epi64(_source, _one));
 
-							//Store Result
-							_mm256_store_si256((__m256i*) & source[i], _DESTi);
-						}//End for
-					}//End if hasAVX2
-					else if (tpa::has_SSE2)
-					{
-						const int32_t p = static_cast<int32_t>(pos);
+									__m256i _rhs = _mm256_add_epi64(tpa::simd::_mm256_bsf_epi64(_source), _one);
 
-						__m128i _source = _mm_setzero_si128();
-						__m128i _DESTi = _mm_setzero_si128();
-						const __m128i _zero = _mm_setzero_si128();
-						const __m128i _one = _mm_set1_epi64x(1ll);
-						const __m128i _max = _mm_set1_epi64x(std::numeric_limits<uint64_t>::max());
-						const __m128i _shifted_left = _mm_slli_epi32(_one, p);
-						const __m128i _not_shifted_left = tpa::simd::_mm_not_si128(_shifted_left);
+									__m256i _added = _mm256_add_epi64(_temp, _one);
+									__m256i _not_temp = tpa::simd::_mm256_not_si256(_temp);
+									__m256i _lhs = _mm256_sub_epi64(_mm256_and_si256(_not_temp, _mm256_sub_epi64(_zero, _not_temp)), _one);
+									__m256i _lhs_shifted_right = _mm256_srlv_epi64(_lhs, _rhs);
 
-						for (; (i + 2uz) < end; i += 2uz)
+									_DESTi = _mm256_or_si256(_added, _lhs_shifted_right);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_EVEN)
+								{
+									const __m256i _EVEN = _mm256_set1_epi64x(static_cast<T>(0b0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101));
+
+									_DESTi = _mm256_or_si256(_source, _EVEN);
+								}//End else
+								else if constexpr (INSTR == tpa::bit_mod::SET_ODD)
+								{
+									const __m256i _ODD = _mm256_set1_epi64x(static_cast<T>(0b1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010));
+
+									_DESTi = _mm256_or_si256(_source, _ODD);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_EVEN)
+								{
+									const __m256i _EVEN = _mm256_set1_epi64x(static_cast<T>(0b1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010));
+
+									_DESTi = _mm256_and_si256(_source, _EVEN);
+								}//End else
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_ODD)
+								{
+									const __m256i _ODD = _mm256_set1_epi64x(static_cast<T>(0b0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101));
+
+									_DESTi = _mm256_and_si256(_source, _ODD);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_EVEN)
+								{
+									_DESTi = _source;
+
+									for (int64_t x = static_cast<int32_t>(0); x != static_cast<int32_t>(64); x += static_cast<int32_t>(2))
+									{
+										_DESTi = _mm256_xor_si256(_DESTi, _mm256_slli_epi64(_one, x));
+									}//End for
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ODD)
+								{
+									_DESTi = _source;
+
+									for (int32_t x = static_cast<int32_t>(1); x != static_cast<int32_t>(65); x += static_cast<int32_t>(2))
+									{
+										_DESTi = _mm256_xor_si256(_DESTi, _mm256_slli_epi64(_one, x));
+									}//End for
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_MSB)
+								{
+									const __m256i _set_msb = _mm256_set1_epi64x(static_cast<int16_t>(0b1000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000));
+									_DESTi = _mm256_or_si256(_source, _set_msb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_MSB)
+								{
+									const __m256i _clear_msb = _mm256_set1_epi64x(static_cast<int16_t>(0b0111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111));
+									_DESTi = _mm256_and_si256(_source, _clear_msb);
+								}//End if                                                                   
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LSB)
+								{
+									const __m256i _clear_lsb = _mm256_set1_epi64x(static_cast<int16_t>(0b1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1110));
+									_DESTi = _mm256_and_si256(_source, _clear_lsb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_LSB)
+								{
+									const __m256i _clear_lsb = _mm256_set1_epi64x(static_cast<int16_t>(0b0000'0000'0000'0001'0000'0000'0000'0000'0000'0000'0000'0001'0000'0000'0000'0001));
+									_DESTi = _mm256_or_si256(_source, _clear_lsb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LOWEST_SET)
+								{
+									_DESTi = _mm256_xor_si256(_source, _mm256_and_si256(_source, _mm256_sub_epi64(_zero, _source)));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_HIGHEST_SET)
+								{
+									_DESTi = _mm256_xor_si256(_source, tpa::simd::_mm256_exthsb_epi64(_source));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_HIGHEST_CLEAR)
+								{
+									const __m256i _hsb = tpa::simd::_mm256_exthsb_epi64(_source);
+									const __m256i _sl = _mm256_slli_epi64(_hsb, 1);
+									__m256i _mask = _mm256_cmpgt_epi64(_max, _sl);
+									_mask = _mm256_and_si256(_sl, _mask);
+
+									_DESTi = _mm256_or_si256(_source, _mask);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_LOWEST_CLEAR)
+								{
+									__m256i _lowest = _mm256_and_si256(_source, _mm256_sub_epi64(_zero, _source));
+									_lowest = _mm256_srli_epi64(_lowest, 1);
+
+									__m256i _mask = _mm256_cmpgt_epi64(_lowest, _zero);
+									_mask = _mm256_and_si256(_lowest, _mask);
+
+									_DESTi = _mm256_or_si256(_source, _mask);
+								}//End if
+								else
+								{
+									[] <bool flag = false>()
+									{
+										static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int16_t / uint16_t>).");
+									}();
+								}//End else
+
+								//Store Result
+								_mm256_store_si256((__m256i*) & source[i], _DESTi);
+							}//End for
+						}//End if hasAVX2
+						else if (tpa::has_SSE42)
 						{
-							//Set Values
-							_source = _mm_load_si128((__m128i*) & source[i]);
+							const int32_t p = static_cast<int32_t>(pos);
 
-							if constexpr (INSTR == tpa::bit_mod::SET)
-							{
-								_DESTi = _mm_or_si128(_shifted_left, _source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
-							{
-								_DESTi = _max;
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::CLEAR)
-							{
-								//~(1ull << pos) & source[i]
-								_DESTi = _mm_and_si128(_not_shifted_left, _source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
-							{
-								_DESTi = _zero;
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
-							{
-								_DESTi = _mm_xor_si128(_shifted_left, _source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
-							{
-								_DESTi = tpa::simd::_mm_not_si128(_source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::REVERSE)
-							{
-								size_t bits = sizeof(T) * CHAR_BIT;
-								while (bits > 0uz)
-								{
-									_DESTi = _mm_or_si128(_mm_slli_epi64(_DESTi, 1), _mm_and_si128(_source, _one));
-									_source = _mm_srli_epi64(_source, 1);
-									bits -= 1uz;
-								}//End for
-							}//End if
-							else
-							{
-								[] <bool flag = false>()
-								{
-									static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int32_t / uint32_t>).");
-								}();
-							}//End else
+							__m128i _source = _mm_setzero_si128();
+							__m128i _DESTi = _mm_setzero_si128();
+							__m128i _temp = _mm_setzero_si128();
+							const __m128i _zero = _mm_setzero_si128();
+							const __m128i _one = _mm_set1_epi64x(1ll);
+							const __m128i _max = _mm_set1_epi64x(std::numeric_limits<uint64_t>::max());
+							const __m128i _shifted_left = _mm_slli_epi64(_one, p);
+							const __m128i _not_shifted_left = tpa::simd::_mm_not_si128(_shifted_left);
 
-							//Store Result
-							_mm_store_si128((__m128i*) & source[i], _DESTi);
-						}//End for
-					}//End if
+							for (; (i + 2uz) < end; i += 2uz)
+							{
+								//Set Values
+								_source = _mm_load_si128((__m128i*) & source[i]);
+
+								if constexpr (INSTR == tpa::bit_mod::SET)
+								{
+									_DESTi = _mm_or_si128(_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
+								{
+									_DESTi = _max;
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR)
+								{
+									_DESTi = _mm_and_si128(_not_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
+								{
+									_DESTi = _zero;
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
+								{
+									_DESTi = _mm_xor_si128(_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
+								{
+									_DESTi = tpa::simd::_mm_not_si128(_source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::REVERSE)
+								{
+									size_t bits = sizeof(T) * CHAR_BIT;
+									while (bits > 0)
+									{
+										_DESTi = _mm_or_si128(_mm_slli_epi64(_DESTi, 1), _mm_and_si128(_source, _one));
+										_source = _mm_srli_epi64(_source, 1);
+										bits -= 1;
+									}//End for
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_TRAILING_ZEROS)
+								{
+									_DESTi = _mm_or_si128(_mm_sub_epi64(_source, _one), _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_TRAILING_ONES)
+								{
+									_DESTi = _mm_and_si128(_mm_add_epi64(_source, _one), _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_LEADING_ZEROS)
+								{
+									_DESTi = tpa::simd::_mm_lzset_epi64(_source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LEADING_ONES)
+								{
+									_DESTi = tpa::simd::_mm_not_si128(tpa::simd::_mm_lzset_epi64(tpa::simd::_mm_not_si128(_source)));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::NEXT_LEXICOGRAPHIC_PERMUTATION)
+								{
+									_temp = _mm_or_si128(_source, _mm_sub_epi64(_source, _one));
+
+									__m128i _rhs = _mm_add_epi32(tpa::simd::_mm_bsf_epi32(_source), _one);
+
+									__m128i _added = _mm_add_epi64(_temp, _one);
+									__m128i _not_temp = tpa::simd::_mm_not_si128(_temp);
+									__m128i _lhs = _mm_sub_epi64(_mm_and_si128(_not_temp, _mm_sub_epi64(_zero, _not_temp)), _one);
+									__m128i _lhs_shifted_right = _mm_srlv_epi64(_lhs, _rhs);
+
+									_DESTi = _mm_or_si128(_added, _lhs_shifted_right);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_EVEN)
+								{
+									const __m128i _EVEN = _mm_set1_epi64x(static_cast<T>(0b0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101));
+
+									_DESTi = _mm_or_si128(_source, _EVEN);
+								}//End else
+								else if constexpr (INSTR == tpa::bit_mod::SET_ODD)
+								{
+									const __m128i _ODD = _mm_set1_epi64x(static_cast<T>(0b1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010));
+
+									_DESTi = _mm_or_si128(_source, _ODD);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_EVEN)
+								{
+									const __m128i _EVEN = _mm_set1_epi64x(static_cast<T>(0b1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010));
+
+									_DESTi = _mm_and_si128(_source, _EVEN);
+								}//End else
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_ODD)
+								{
+									const __m128i _ODD = _mm_set1_epi64x(static_cast<T>(0b0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101));
+
+									_DESTi = _mm_and_si128(_source, _ODD);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_EVEN)
+								{
+									_DESTi = _source;
+
+									for (int32_t x = static_cast<int32_t>(0); x != static_cast<int32_t>(64); x += static_cast<int32_t>(2))
+									{
+										_DESTi = _mm_xor_si128(_DESTi, _mm_slli_epi64(_one, x));
+									}//End for
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ODD)
+								{
+									_DESTi = _source;
+
+									for (int32_t x = static_cast<int32_t>(1); x != static_cast<int32_t>(65); x += static_cast<int32_t>(2))
+									{
+										_DESTi = _mm_xor_si128(_DESTi, _mm_slli_epi64(_one, x));
+									}//End for
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_MSB)
+								{
+									const __m128i _set_msb = _mm_set1_epi64x(static_cast<int64_t>(0b1000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000));
+									_DESTi = _mm_or_si128(_source, _set_msb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_MSB)
+								{
+									const __m128i _clear_msb = _mm_set1_epi64x(static_cast<int64_t>(0b0111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111));
+									_DESTi = _mm_and_si128(_source, _clear_msb);
+								}//End if                                                                   
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LSB)
+								{
+									const __m128i _clear_lsb = _mm_set1_epi64x(static_cast<int64_t>(0b1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1110));
+									_DESTi = _mm_and_si128(_source, _clear_lsb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_LSB)
+								{
+									const __m128i _clear_lsb = _mm_set1_epi64x(static_cast<int64_t>(0b0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0001));
+									_DESTi = _mm_or_si128(_source, _clear_lsb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LOWEST_SET)
+								{
+									_DESTi = _mm_xor_si128(_source, _mm_and_si128(_source, _mm_sub_epi64(_zero, _source)));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_HIGHEST_SET)
+								{
+									_DESTi = _mm_xor_si128(_source, tpa::simd::_mm_exthsb_epi64(_source));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_HIGHEST_CLEAR)
+								{
+									const __m128i _hsb = tpa::simd::_mm_exthsb_epi64(_source);
+									const __m128i _sl = _mm_slli_epi64(_hsb, 1);
+									__m128i _mask = _mm_cmpgt_epi64(_max, _sl);
+									_mask = _mm_and_si128(_sl, _mask);
+
+									_DESTi = _mm_or_si128(_source, _mask);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_LOWEST_CLEAR)
+								{
+									__m128i _lowest = _mm_and_si128(_source, _mm_sub_epi64(_zero, _source));
+									_lowest = _mm_srli_epi64(_lowest, 1);
+
+									__m128i _mask = _mm_cmpgt_epi64(_lowest, _zero);
+									_mask = _mm_and_si128(_lowest, _mask);
+
+									_DESTi = _mm_or_si128(_source, _mask);
+								}//End if
+								else
+								{
+									[] <bool flag = false>()
+									{
+										static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int16_t / uint16_t>).");
+									}();
+								}//End else
+
+								//Store Result
+								_mm_store_si128((__m128i*) & source[i], _DESTi);
+							}//End for
+						}//End if has SSE2
 #endif
 					}//End if
 #pragma endregion
@@ -4656,198 +5158,557 @@ namespace bit_manip
 					else if constexpr (std::is_same<T, float>())
 					{
 #ifdef TPA_X86_64
-					if (tpa::hasAVX512)
-					{
-						const uint32_t p = static_cast<uint32_t>(pos);
-
-						__m512i _source = _mm512_setzero_si512(); 
-						__m512i _DESTi = _mm512_setzero_si512();
-						const __m512i _zero = _mm512_setzero_si512();
-						const __m512i _one = _mm512_set1_epi32(1);
-						const __m512i _max = _mm512_set1_epi32(std::numeric_limits<uint32_t>::max());
-						const __m512i _shifted_left = _mm512_slli_epi32(_one, p);
-						const __m512i _not_shifted_left = tpa::simd::_mm512_not_si512(_shifted_left);
-
-						for (; (i + 16uz) < end; i += 16uz)
+						if (tpa::hasAVX512)
 						{
-							//Set Values
-							_source = _mm512_castps_si512(_mm512_load_ps(&source[i]));
+							const uint32_t p = static_cast<uint32_t>(pos);
 
-							if constexpr (INSTR == tpa::bit_mod::SET)
+							__m512i _source = _mm512_setzero_si512();
+							__m512 _sourcef = _mm512_setzero_si512();
+							__m512i _DESTi = _mm512_setzero_si512();
+							__m512i _temp = _mm512_setzero_si512();
+							const __m512i _zero = _mm512_setzero_si512();
+							const __m512i _one = _mm512_set1_epi32(1);
+							const __m512i _max = _mm512_set1_epi32(std::numeric_limits<uint32_t>::max());
+							const __m512i _shifted_left = _mm512_slli_epi32(_one, p);
+							const __m512i _not_shifted_left = tpa::simd::_mm512_not_si512(_shifted_left);
+
+							for (; (i + 16uz) < end; i += 16uz)
 							{
-								_DESTi = _mm512_or_si512(_shifted_left, _source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
-							{
-								_DESTi = _max;
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::CLEAR)
-							{
-								//~(1ull << pos) & source[i]
-								_DESTi = _mm512_and_si512(_not_shifted_left, _source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
-							{
-								_DESTi = _zero;
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
-							{
-								_DESTi = _mm512_xor_si512(_shifted_left, _source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
-							{
-								_DESTi = tpa::simd::_mm512_not_si512(_source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::REVERSE)
-							{
-								size_t bits = sizeof(T) * CHAR_BIT;
-								while (bits > 0uz)
+								//Set Values
+								_sourcef = _mm512_load_ps(&source[i]);
+								_source = _mm512_castps_si512(_sourcef);
+
+								if constexpr (INSTR == tpa::bit_mod::SET)
 								{
-									_DESTi = _mm512_or_si512(_mm512_slli_epi32(_DESTi, 1u), _mm512_and_si512(_source, _one));
-									_source = _mm512_srli_epi32(_source, 1u);
-									bits -= 1uz;
-								}//End for
-							}//End if
-							else
-							{
-								[] <bool flag = false>()
+									_DESTi = _mm512_or_si512(_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
 								{
-									static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int32_t / uint32_t>).");
-								}();
-							}//End else
+									_DESTi = _max;
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR)
+								{
+									//~(1ull << pos) & source[i]
+									_DESTi = _mm512_and_si512(_not_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
+								{
+									_DESTi = _zero;
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
+								{
+									_DESTi = _mm512_xor_si512(_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
+								{
+									_DESTi = tpa::simd::_mm512_not_si512(_source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::REVERSE)
+								{
+									size_t bits = sizeof(T) * CHAR_BIT;
+									while (bits > 0uz)
+									{
+										_DESTi = _mm512_or_si512(_mm512_slli_epi32(_DESTi, 1u), _mm512_and_si512(_source, _one));
+										_source = _mm512_srli_epi32(_source, 1u);
+										bits -= 1uz;
+									}//End while
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_TRAILING_ZEROS)
+								{
+									_DESTi = _mm512_or_si512(_mm512_sub_epi32(_source, _one), _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_TRAILING_ONES)
+								{
+									_DESTi = _mm512_and_si512(_mm512_add_epi32(_source, _one), _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_LEADING_ZEROS)
+								{
+									_DESTi = tpa::simd::_mm512_lzset_epi32(_source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LEADING_ONES)
+								{
+									_DESTi = tpa::simd::_mm512_not_si512(tpa::simd::_mm512_lzset_epi32(tpa::simd::_mm512_not_si512(_source)));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::NEXT_LEXICOGRAPHIC_PERMUTATION)
+								{
+									_temp = _mm512_or_si512(_source, _mm512_sub_epi32(_source, _one));
 
-							//Store Result
-							_mm512_store_ps(&source[i], _mm512_castsi512_ps(_DESTi));
-						}//End for
-					}//End if hasAVX512
-					else if (tpa::hasAVX2)
-					{
-						const int32_t p = static_cast<int32_t>(pos);
+									__m512i _rhs = _mm512_add_epi32(tpa::simd::_mm512_bsf_epi32(_source), _one);
 
-						__m256i _source = _mm256_setzero_si256();
-						__m256i _DESTi = _mm256_setzero_si256();
-						const __m256i _zero = _mm256_setzero_si256();
-						const __m256i _one = _mm256_set1_epi32(1);
-						const __m256i _max = _mm256_set1_epi32(std::numeric_limits<uint32_t>::max());
-						const __m256i _shifted_left = _mm256_slli_epi32(_one, p);
-						const __m256i _not_shifted_left = tpa::simd::_mm256_not_si256(_shifted_left);
+									__m512i _added = _mm512_add_epi32(_temp, _one);
+									__m512i _not_temp = tpa::simd::_mm512_not_si512(_temp);
+									__m512i _lhs = _mm512_sub_epi32(_mm512_and_si512(_not_temp, _mm512_sub_epi32(_zero, _not_temp)), _one);
+									__m512i _lhs_shifted_right = _mm512_srlv_epi32(_lhs, _rhs);
 
-						for (; (i + 8uz) < end; i += 8uz)
+									_DESTi = _mm512_or_si512(_added, _lhs_shifted_right);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_EVEN)
+								{
+									const __m512i _EVEN = _mm512_set1_epi32(static_cast<T>(0b0101'0101'0101'0101'0101'0101'0101'0101));
+
+									_DESTi = _mm512_or_si512(_source, _EVEN);
+								}//End else
+								else if constexpr (INSTR == tpa::bit_mod::SET_ODD)
+								{
+									const __m512i _ODD = _mm512_set1_epi32(static_cast<T>(0b0101'0101'0101'0101'0101'0101'0101'0101));
+
+									_DESTi = _mm512_or_si512(_source, _ODD);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_EVEN)
+								{
+									const __m512i _EVEN = _mm512_set1_epi32(static_cast<T>(0b1010'1010'1010'1010'1010'1010'1010'1010));
+
+									_DESTi = _mm512_and_si512(_source, _EVEN);
+								}//End else
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_ODD)
+								{
+									const __m512i _ODD = _mm512_set1_epi32(static_cast<T>(0b0101'0101'0101'0101'0101'0101'0101'0101));
+
+									_DESTi = _mm512_and_si512(_source, _ODD);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_EVEN)
+								{
+									_DESTi = _source;
+
+									for (int32_t x = static_cast<int32_t>(0); x != static_cast<int32_t>(32); x += static_cast<int32_t>(2))
+									{
+										_DESTi = _mm512_xor_si512(_DESTi, _mm512_slli_epi32(_one, x));
+									}//End for
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ODD)
+								{
+									_DESTi = _source;
+
+									for (int32_t x = static_cast<int32_t>(1); x != static_cast<int32_t>(33); x += static_cast<int32_t>(2))
+									{
+										_DESTi = _mm512_xor_si512(_DESTi, _mm512_slli_epi32(_one, x));
+									}//End for
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_MSB)
+								{
+									const __m512i _set_msb = _mm512_set1_epi32(static_cast<int32_t>(0b1000'0000'0000'0000'0000'0000'0000'0000));
+									_DESTi = _mm512_or_si512(_source, _set_msb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_MSB)
+								{
+									const __m512i _clear_msb = _mm512_set1_epi32(static_cast<int32_t>(0b0111'1111'1111'1111'1111'1111'1111'1111));
+									_DESTi = _mm512_and_si512(_source, _clear_msb);
+								}//End if                                                                   
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LSB)
+								{
+									const __m512i _clear_lsb = _mm512_set1_epi32(static_cast<int32_t>(0b1111'1111'1111'1111'1111'1111'1111'1110));
+									_DESTi = _mm512_and_si512(_source, _clear_lsb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_LSB)
+								{
+									const __m512i _clear_lsb = _mm512_set1_epi32(static_cast<int32_t>(0b0000'0000'0000'0000'0000'0000'0000'0001));
+									_DESTi = _mm512_or_si512(_source, _clear_lsb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LOWEST_SET)
+								{
+									_DESTi = _mm512_xor_si512(_source, _mm512_and_si512(_source, _mm512_sub_epi32(_zero, _source)));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_HIGHEST_SET)
+								{
+									_DESTi = _mm512_xor_si512(_source, tpa::simd::_mm512_exthsb_epi32(_source));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_HIGHEST_CLEAR)
+								{
+									const __m512i _hsb = tpa::simd::_mm512_exthsb_epi32(_source);
+									const __m512i _sl = _mm512_slli_epi32(_hsb, 1u);
+									const __mmask16 _mask = _mm512_cmplt_epi16_mask(_sl, _max);
+
+									_DESTi = _mm512_or_si512(_source, _mm512_mask_slli_epi32(_hsb, _mask, _hsb, 1u));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_LOWEST_CLEAR)
+								{
+									__m512i _lowest = _mm512_and_si512(_source, _mm512_sub_epi32(_zero, _source));
+									_lowest = _mm512_srli_epi32(_lowest, 1u);
+									const __mmask16 _mask = _mm512_cmpgt_epi32_mask(_lowest, _zero);
+
+									_DESTi = _mm512_or_si512(_source, _mm512_mask_slli_epi32(_lowest, _mask, _lowest, 1u));
+								}//End if
+								else
+								{
+									[] <bool flag = false>()
+									{
+										static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int32_t> / uint32_t).");
+									}();
+								}//End else
+
+								//Store Result
+								_mm512_store_ps(&source[i], _mm512_castsi512_ps(_DESTi));
+							}//End for
+						}//End if hasAVX512
+						else if (tpa::hasAVX2)
 						{
-							//Set Values
-							_source = _mm256_castps_si256(_mm256_load_ps(&source[i]));
+							const int32_t p = static_cast<int32_t>(pos);
 
-							if constexpr (INSTR == tpa::bit_mod::SET)
+							__m256i _source = _mm256_setzero_si256();
+							__m256 _sourcef = _mm256_setzero_si256();
+							__m256i _DESTi = _mm256_setzero_si256();
+							__m256i _temp = _mm256_setzero_si256();
+							const __m256i _zero = _mm256_setzero_si256();
+							const __m256i _one = _mm256_set1_epi32(1);
+							const __m256i _max = _mm256_set1_epi32(std::numeric_limits<uint32_t>::max());
+							const __m256i _shifted_left = _mm256_slli_epi32(_one, p);
+							const __m256i _not_shifted_left = tpa::simd::_mm256_not_si256(_shifted_left);
+
+							for (; (i + 8uz) < end; i += 8uz)
 							{
-								_DESTi = _mm256_or_si256(_shifted_left, _source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
-							{
-								_DESTi = _max;
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::CLEAR)
-							{
-								//~(1ull << pos) & source[i]
-								_DESTi = _mm256_and_si256(_not_shifted_left, _source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
-							{
-								_DESTi = _zero;
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
-							{
-								_DESTi = _mm256_xor_si256(_shifted_left, _source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
-							{
-								_DESTi = tpa::simd::_mm256_not_si256(_source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::REVERSE)
-							{
-								size_t bits = sizeof(T) * CHAR_BIT;
-								while (bits > 0uz)
+								//Set Values
+								_sourcef = _mm256_load_ps(&source[i]);
+								_source = _mm256_castps_si256(_sourcef);
+
+								if constexpr (INSTR == tpa::bit_mod::SET)
 								{
-									_DESTi = _mm256_or_si256(_mm256_slli_epi32(_DESTi, 1), _mm256_and_si256(_source, _one));
-									_source = _mm256_srli_epi32(_source, 1);
-									bits -= 1uz;
-								}//End for
-							}//End if
-							else
-							{
-								[] <bool flag = false>()
+									_DESTi = _mm256_or_si256(_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
 								{
-									static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int32_t / uint32_t>).");
-								}();
-							}//End else
+									_DESTi = _max;
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR)
+								{
+									//~(1ull << pos) & source[i]
+									_DESTi = _mm256_and_si256(_not_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
+								{
+									_DESTi = _zero;
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
+								{
+									_DESTi = _mm256_xor_si256(_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
+								{
+									_DESTi = tpa::simd::_mm256_not_si256(_source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::REVERSE)
+								{
+									size_t bits = sizeof(T) * CHAR_BIT;
+									while (bits > 0uz)
+									{
+										_DESTi = _mm256_or_si256(_mm256_slli_epi32(_DESTi, 1), _mm256_and_si256(_source, _one));
+										_source = _mm256_srli_epi32(_source, 1);
+										bits -= 1uz;
+									}//End while
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_TRAILING_ZEROS)
+								{
+									_DESTi = _mm256_or_si256(_mm256_sub_epi32(_source, _one), _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_TRAILING_ONES)
+								{
+									_DESTi = _mm256_and_si256(_mm256_add_epi32(_source, _one), _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_LEADING_ZEROS)
+								{
+									_DESTi = tpa::simd::_mm256_lzset_epi32(_source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LEADING_ONES)
+								{
+									_DESTi = tpa::simd::_mm256_not_si256(tpa::simd::_mm256_lzset_epi32(tpa::simd::_mm256_not_si256(_source)));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::NEXT_LEXICOGRAPHIC_PERMUTATION)
+								{
+									_temp = _mm256_or_si256(_source, _mm256_sub_epi32(_source, _one));
 
-							//Store Result
-							_mm256_store_ps(&source[i], _mm256_castsi256_ps(_DESTi));
-						}//End for
-					}//End if hasAVX2
-					else if (tpa::has_SSE2)
-					{
-						const int32_t p = static_cast<int32_t>(pos);
+									__m256i _rhs = _mm256_add_epi32(tpa::simd::_mm256_bsf_epi32(_source), _one);
 
-						__m128i _source = _mm_setzero_si128();
-						__m128i _DESTi = _mm_setzero_si128();
-						const __m128i _zero = _mm_setzero_si128();
-						const __m128i _one = _mm_set1_epi32(1);
-						const __m128i _max = _mm_set1_epi32(std::numeric_limits<uint32_t>::max());
-						const __m128i _shifted_left = _mm_slli_epi32(_one, p);
-						const __m128i _not_shifted_left = tpa::simd::_mm_not_si128(_shifted_left);
+									__m256i _added = _mm256_add_epi32(_temp, _one);
+									__m256i _not_temp = tpa::simd::_mm256_not_si256(_temp);
+									__m256i _lhs = _mm256_sub_epi32(_mm256_and_si256(_not_temp, _mm256_sub_epi32(_zero, _not_temp)), _one);
+									__m256i _lhs_shifted_right = _mm256_srlv_epi32(_lhs, _rhs);
 
-						for (; (i + 4uz) < end; i += 4uz)
+									_DESTi = _mm256_or_si256(_added, _lhs_shifted_right);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_EVEN)
+								{
+									const __m256i _EVEN = _mm256_set1_epi32(static_cast<T>(0b0101'0101'0101'0101'0101'0101'0101'0101));
+
+									_DESTi = _mm256_or_si256(_source, _EVEN);
+								}//End else
+								else if constexpr (INSTR == tpa::bit_mod::SET_ODD)
+								{
+									const __m256i _ODD = _mm256_set1_epi32(static_cast<T>(0b0101'0101'0101'0101'0101'0101'0101'0101));
+
+									_DESTi = _mm256_or_si256(_source, _ODD);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_EVEN)
+								{
+									const __m256i _EVEN = _mm256_set1_epi32(static_cast<T>(0b1010'1010'1010'1010'1010'1010'1010'1010));
+
+									_DESTi = _mm256_and_si256(_source, _EVEN);
+								}//End else
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_ODD)
+								{
+									const __m256i _ODD = _mm256_set1_epi32(static_cast<T>(0b0101'0101'0101'0101'0101'0101'0101'0101));
+
+									_DESTi = _mm256_and_si256(_source, _ODD);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_EVEN)
+								{
+									_DESTi = _source;
+
+									for (int32_t x = static_cast<int32_t>(0); x != static_cast<int32_t>(32); x += static_cast<int16_t>(2))
+									{
+										_DESTi = _mm256_xor_si256(_DESTi, _mm256_slli_epi32(_one, x));
+									}//End for
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ODD)
+								{
+									_DESTi = _source;
+
+									for (int32_t x = static_cast<int32_t>(1); x != static_cast<int32_t>(33); x += static_cast<int32_t>(2))
+									{
+										_DESTi = _mm256_xor_si256(_DESTi, _mm256_slli_epi32(_one, x));
+									}//End for
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_MSB)
+								{
+									const __m256i _set_msb = _mm256_set1_epi32(static_cast<int16_t>(0b1000'0000'0000'0000'0000'0000'0000'0000));
+									_DESTi = _mm256_or_si256(_source, _set_msb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_MSB)
+								{
+									const __m256i _clear_msb = _mm256_set1_epi32(static_cast<int16_t>(0b0111'1111'1111'1111'1111'1111'1111'1111));
+									_DESTi = _mm256_and_si256(_source, _clear_msb);
+								}//End if                                                                   
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LSB)
+								{
+									const __m256i _clear_lsb = _mm256_set1_epi32(static_cast<int16_t>(0b1111'1111'1111'1111'1111'1111'1111'1110));
+									_DESTi = _mm256_and_si256(_source, _clear_lsb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_LSB)
+								{
+									const __m256i _clear_lsb = _mm256_set1_epi32(static_cast<int16_t>(0b0000'0000'0000'0001'0000'0000'0000'0001));
+									_DESTi = _mm256_or_si256(_source, _clear_lsb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LOWEST_SET)
+								{
+									_DESTi = _mm256_xor_si256(_source, _mm256_and_si256(_source, _mm256_sub_epi32(_zero, _source)));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_HIGHEST_SET)
+								{
+									_DESTi = _mm256_xor_si256(_source, tpa::simd::_mm256_exthsb_epi32(_source));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_HIGHEST_CLEAR)
+								{
+									const __m256i _hsb = tpa::simd::_mm256_exthsb_epi32(_source);
+									const __m256i _sl = _mm256_slli_epi32(_hsb, 1);
+									__m256i _mask = _mm256_cmpgt_epi32(_max, _sl);
+									_mask = _mm256_and_si256(_sl, _mask);
+
+									_DESTi = _mm256_or_si256(_source, _mask);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_LOWEST_CLEAR)
+								{
+									__m256i _lowest = _mm256_and_si256(_source, _mm256_sub_epi32(_zero, _source));
+									_lowest = _mm256_srli_epi32(_lowest, 1);
+
+									__m256i _mask = _mm256_cmpgt_epi32(_lowest, _zero);
+									_mask = _mm256_and_si256(_lowest, _mask);
+
+									_DESTi = _mm256_or_si256(_source, _mask);
+								}//End if
+								else
+								{
+									[] <bool flag = false>()
+									{
+										static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int16_t / uint16_t>).");
+									}();
+								}//End else
+
+								//Store Result
+								_mm256_store_ps(&source[i], _mm256_castsi256_ps(_DESTi));
+							}//End for
+						}//End if hasAVX2
+						else if (tpa::has_SSE2)
 						{
-							//Set Values
-							_source = _mm_castps_si128(_mm_load_ps( &source[i]));
+							const int32_t p = static_cast<int32_t>(pos);
 
-							if constexpr (INSTR == tpa::bit_mod::SET)
-							{
-								_DESTi = _mm_or_si128(_shifted_left, _source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
-							{
-								_DESTi = _max;
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::CLEAR)
-							{
-								//~(1ull << pos) & source[i]
-								_DESTi = _mm_and_si128(_not_shifted_left, _source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
-							{
-								_DESTi = _zero;
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
-							{
-								_DESTi = _mm_xor_si128(_shifted_left, _source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
-							{
-								_DESTi = tpa::simd::_mm_not_si128(_source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::REVERSE)
-							{
-								size_t bits = sizeof(T) * CHAR_BIT;
-								while (bits > 0uz)
-								{
-									_DESTi = _mm_or_si128(_mm_slli_epi32(_DESTi, 1), _mm_and_si128(_source, _one));
-									_source = _mm_srli_epi32(_source, 1);
-									bits -= 1uz;
-								}//End for
-							}//End if
-							else
-							{
-								[] <bool flag = false>()
-								{
-									static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int32_t / uint32_t>).");
-								}();
-							}//End else
+							__m128i _source = _mm_setzero_si128();
+							__m128 _sourcef = _mm_setzero_si128();
+							__m128i _DESTi = _mm_setzero_si128();
+							__m128i _temp = _mm_setzero_si128();
+							const __m128i _zero = _mm_setzero_si128();
+							const __m128i _one = _mm_set1_epi32(1);
+							const __m128i _max = _mm_set1_epi32(std::numeric_limits<uint32_t>::max());
+							const __m128i _shifted_left = _mm_slli_epi32(_one, p);
+							const __m128i _not_shifted_left = tpa::simd::_mm_not_si128(_shifted_left);
 
-							//Store Result
-							_mm_store_ps(&source[i], _mm_castsi128_ps(_DESTi));
-						}//End for
-					}//End if
+							for (; (i + 4uz) < end; i += 4uz)
+							{
+								//Set Values
+								_sourcef = _mm_load_ps(&source[i]);
+								_source = _mm_castps_si128(_sourcef);
+
+								if constexpr (INSTR == tpa::bit_mod::SET)
+								{
+									_DESTi = _mm_or_si128(_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
+								{
+									_DESTi = _max;
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR)
+								{
+									_DESTi = _mm_and_si128(_not_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
+								{
+									_DESTi = _zero;
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
+								{
+									_DESTi = _mm_xor_si128(_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
+								{
+									_DESTi = tpa::simd::_mm_not_si128(_source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::REVERSE)
+								{
+									size_t bits = sizeof(T) * CHAR_BIT;
+									while (bits > 0)
+									{
+										_DESTi = _mm_or_si128(_mm_slli_epi32(_DESTi, 1), _mm_and_si128(_source, _one));
+										_source = _mm_srli_epi32(_source, 1);
+										bits -= 1;
+									}//End for
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_TRAILING_ZEROS)
+								{
+									_DESTi = _mm_or_si128(_mm_sub_epi32(_source, _one), _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_TRAILING_ONES)
+								{
+									_DESTi = _mm_and_si128(_mm_add_epi32(_source, _one), _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_LEADING_ZEROS)
+								{
+									_DESTi = tpa::simd::_mm_lzset_epi32(_source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LEADING_ONES)
+								{
+									_DESTi = tpa::simd::_mm_not_si128(tpa::simd::_mm_lzset_epi32(tpa::simd::_mm_not_si128(_source)));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::NEXT_LEXICOGRAPHIC_PERMUTATION)
+								{
+									_temp = _mm_or_si128(_source, _mm_sub_epi32(_source, _one));
+
+									__m128i _rhs = _mm_add_epi32(tpa::simd::_mm_bsf_epi32(_source), _one);
+
+									__m128i _added = _mm_add_epi32(_temp, _one);
+									__m128i _not_temp = tpa::simd::_mm_not_si128(_temp);
+									__m128i _lhs = _mm_sub_epi32(_mm_and_si128(_not_temp, _mm_sub_epi32(_zero, _not_temp)), _one);
+									__m128i _lhs_shifted_right = _mm_srlv_epi32(_lhs, _rhs);
+
+									_DESTi = _mm_or_si128(_added, _lhs_shifted_right);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_EVEN)
+								{
+									const __m128i _EVEN = _mm_set1_epi32(static_cast<T>(0b0101'0101'0101'0101'0101'0101'0101'0101));
+
+									_DESTi = _mm_or_si128(_source, _EVEN);
+								}//End else
+								else if constexpr (INSTR == tpa::bit_mod::SET_ODD)
+								{
+									const __m128i _ODD = _mm_set1_epi32(static_cast<T>(0b1010'1010'1010'1010'1010'1010'1010'1010));
+
+									_DESTi = _mm_or_si128(_source, _ODD);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_EVEN)
+								{
+									const __m128i _EVEN = _mm_set1_epi32(static_cast<T>(0b1010'1010'1010'1010'1010'1010'1010'1010));
+
+									_DESTi = _mm_and_si128(_source, _EVEN);
+								}//End else
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_ODD)
+								{
+									const __m128i _ODD = _mm_set1_epi32(static_cast<T>(0b0101'0101'0101'0101'0101'0101'0101'0101));
+
+									_DESTi = _mm_and_si128(_source, _ODD);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_EVEN)
+								{
+									_DESTi = _source;
+
+									for (int32_t x = static_cast<int32_t>(0); x != static_cast<int32_t>(32); x += static_cast<int32_t>(2))
+									{
+										_DESTi = _mm_xor_si128(_DESTi, _mm_slli_epi32(_one, x));
+									}//End for
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ODD)
+								{
+									_DESTi = _source;
+
+									for (int32_t x = static_cast<int32_t>(1); x != static_cast<int32_t>(33); x += static_cast<int32_t>(2))
+									{
+										_DESTi = _mm_xor_si128(_DESTi, _mm_slli_epi32(_one, x));
+									}//End for
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_MSB)
+								{
+									const __m128i _set_msb = _mm_set1_epi32(static_cast<int32_t>(0b1000'0000'0000'0000'0000'0000'0000'0000));
+									_DESTi = _mm_or_si128(_source, _set_msb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_MSB)
+								{
+									const __m128i _clear_msb = _mm_set1_epi32(static_cast<int32_t>(0b0111'1111'1111'1111'1111'1111'1111'1111));
+									_DESTi = _mm_and_si128(_source, _clear_msb);
+								}//End if                                                                   
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LSB)
+								{
+									const __m128i _clear_lsb = _mm_set1_epi32(static_cast<int32_t>(0b1111'1111'1111'1111'1111'1111'1111'1110));
+									_DESTi = _mm_and_si128(_source, _clear_lsb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_LSB)
+								{
+									const __m128i _clear_lsb = _mm_set1_epi32(static_cast<int32_t>(0b0000'0000'0000'0000'0000'0000'0000'0001));
+									_DESTi = _mm_or_si128(_source, _clear_lsb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LOWEST_SET)
+								{
+									_DESTi = _mm_xor_si128(_source, _mm_and_si128(_source, _mm_sub_epi32(_zero, _source)));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_HIGHEST_SET)
+								{
+									_DESTi = _mm_xor_si128(_source, tpa::simd::_mm_exthsb_epi32(_source));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_HIGHEST_CLEAR)
+								{
+									const __m128i _hsb = tpa::simd::_mm_exthsb_epi32(_source);
+									const __m128i _sl = _mm_slli_epi32(_hsb, 1);
+									__m128i _mask = _mm_cmpgt_epi32(_max, _sl);
+									_mask = _mm_and_si128(_sl, _mask);
+
+									_DESTi = _mm_or_si128(_source, _mask);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_LOWEST_CLEAR)
+								{
+									__m128i _lowest = _mm_and_si128(_source, _mm_sub_epi32(_zero, _source));
+									_lowest = _mm_srli_epi32(_lowest, 1);
+
+									__m128i _mask = _mm_cmpgt_epi32(_lowest, _zero);
+									_mask = _mm_and_si128(_lowest, _mask);
+
+									_DESTi = _mm_or_si128(_source, _mask);
+								}//End if
+								else
+								{
+									[] <bool flag = false>()
+									{
+										static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int16_t / uint16_t>).");
+									}();
+								}//End else
+
+								//Store Result
+								_mm_store_ps(&source[i], _mm_castsi128_ps(_DESTi));
+							}//End for
+						}//End if has SSE2
 #endif
 					}//End if
 #pragma endregion
@@ -4855,198 +5716,555 @@ namespace bit_manip
 					else if constexpr (std::is_same<T, double>())
 					{
 #ifdef TPA_X86_64
-					if (tpa::hasAVX512)
-					{
-						const uint32_t p = static_cast<uint32_t>(pos);
-
-						__m512i _source = _mm512_setzero_si512();
-						__m512i _DESTi = _mm512_setzero_si512();
-						const __m512i _zero = _mm512_setzero_si512();
-						const __m512i _one = _mm512_set1_epi64(1ll);
-						const __m512i _max = _mm512_set1_epi64(std::numeric_limits<uint64_t>::max());
-						const __m512i _shifted_left = _mm512_slli_epi64(_one, p);
-						const __m512i _not_shifted_left = tpa::simd::_mm512_not_si512(_shifted_left);
-
-						for (; (i + 8uz) < end; i += 8uz)
+						if (tpa::hasAVX512)
 						{
-							//Set Values
-							_source = _mm512_castpd_si512(_mm512_load_pd(&source[i]));
+							const uint32_t p = static_cast<uint32_t>(pos);
 
-							if constexpr (INSTR == tpa::bit_mod::SET)
+							__m512i _source = _mm512_setzero_si512();
+							__m512 _sourcef = _mm512_setzero_si512();
+							__m512i _DESTi = _mm512_setzero_si512();
+							__m512i _temp = _mm512_setzero_si512();
+							const __m512i _zero = _mm512_setzero_si512();
+							const __m512i _one = _mm512_set1_epi64(1ull);
+							const __m512i _max = _mm512_set1_epi64(std::numeric_limits<uint64_t>::max());
+							const __m512i _shifted_left = _mm512_slli_epi64(_one, p);
+							const __m512i _not_shifted_left = tpa::simd::_mm512_not_si512(_shifted_left);
+
+							for (; (i + 8uz) < end; i += 8uz)
 							{
-								_DESTi = _mm512_or_si512(_shifted_left, _source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
-							{
-								_DESTi = _max;
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::CLEAR)
-							{
-								//~(1ull << pos) & source[i]
-								_DESTi = _mm512_and_si512(_not_shifted_left, _source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
-							{
-								_DESTi = _zero;
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
-							{
-								_DESTi = _mm512_xor_si512(_shifted_left, _source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
-							{
-								_DESTi = tpa::simd::_mm512_not_si512(_source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::REVERSE)
-							{
-								size_t bits = sizeof(T) * CHAR_BIT;
-								while (bits > 0uz)
+								//Set Values
+								_sourcef = _mm512_load_pd(&source[i]);
+								_source = _mm512_castpd_si512(_sourcef);
+
+								if constexpr (INSTR == tpa::bit_mod::SET)
 								{
-									_DESTi = _mm512_or_si512(_mm512_slli_epi64(_DESTi, 1u), _mm512_and_si512(_source, _one));
-									_source = _mm512_srli_epi64(_source, 1u);
-									bits -= 1uz;
-								}//End for
-							}//End if
-							else
-							{
-								[] <bool flag = false>()
+									_DESTi = _mm512_or_si512(_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
 								{
-									static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int32_t / uint32_t>).");
-								}();
-							}//End else
+									_DESTi = _max;
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR)
+								{
+									_DESTi = _mm512_and_si512(_not_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
+								{
+									_DESTi = _zero;
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
+								{
+									_DESTi = _mm512_xor_si512(_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
+								{
+									_DESTi = tpa::simd::_mm512_not_si512(_source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::REVERSE)
+								{
+									size_t bits = sizeof(T) * CHAR_BIT;
+									while (bits > 0uz)
+									{
+										_DESTi = _mm512_or_si512(_mm512_slli_epi64(_DESTi, 1u), _mm512_and_si512(_source, _one));
+										_source = _mm512_srli_epi64(_source, 1u);
+										bits -= 1uz;
+									}//End while
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_TRAILING_ZEROS)
+								{
+									_DESTi = _mm512_or_si512(_mm512_sub_epi64(_source, _one), _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_TRAILING_ONES)
+								{
+									_DESTi = _mm512_and_si512(_mm512_add_epi64(_source, _one), _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_LEADING_ZEROS)
+								{
+									_DESTi = tpa::simd::_mm512_lzset_epi64(_source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LEADING_ONES)
+								{
+									_DESTi = tpa::simd::_mm512_not_si512(tpa::simd::_mm512_lzset_epi64(tpa::simd::_mm512_not_si512(_source)));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::NEXT_LEXICOGRAPHIC_PERMUTATION)
+								{
+									_temp = _mm512_or_si512(_source, _mm512_sub_epi64(_source, _one));
 
-							//Store Result
-							_mm512_store_pd(&source[i], _mm512_castsi512_pd(_DESTi));
-						}//End for
-					}//End if hasAVX512
-					else if (tpa::hasAVX2)
-					{
-						const int32_t p = static_cast<int32_t>(pos);
+									__m512i _rhs = _mm512_add_epi64(tpa::simd::_mm512_bsf_epi64(_source), _one);
 
-						__m256i _source = _mm256_setzero_si256();
-						__m256i _DESTi = _mm256_setzero_si256();
-						const __m256i _zero = _mm256_setzero_si256();
-						const __m256i _one = _mm256_set1_epi64x(1ll);
-						const __m256i _max = _mm256_set1_epi64x(std::numeric_limits<uint64_t>::max());
-						const __m256i _shifted_left = _mm256_slli_epi64(_one, p);
-						const __m256i _not_shifted_left = tpa::simd::_mm256_not_si256(_shifted_left);
+									__m512i _added = _mm512_add_epi64(_temp, _one);
+									__m512i _not_temp = tpa::simd::_mm512_not_si512(_temp);
+									__m512i _lhs = _mm512_sub_epi64(_mm512_and_si512(_not_temp, _mm512_sub_epi64(_zero, _not_temp)), _one);
+									__m512i _lhs_shifted_right = _mm512_srlv_epi64(_lhs, _rhs);
 
-						for (; (i + 4uz) < end; i += 4uz)
+									_DESTi = _mm512_or_si512(_added, _lhs_shifted_right);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_EVEN)
+								{
+									const __m512i _EVEN = _mm512_set1_epi64(static_cast<T>(0b0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101));
+
+									_DESTi = _mm512_or_si512(_source, _EVEN);
+								}//End else
+								else if constexpr (INSTR == tpa::bit_mod::SET_ODD)
+								{
+									const __m512i _ODD = _mm512_set1_epi64(static_cast<T>(0b1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010));
+
+									_DESTi = _mm512_or_si512(_source, _ODD);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_EVEN)
+								{
+									const __m512i _EVEN = _mm512_set1_epi64(static_cast<T>(0b1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010));
+
+									_DESTi = _mm512_and_si512(_source, _EVEN);
+								}//End else
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_ODD)
+								{
+									const __m512i _ODD = _mm512_set1_epi64(static_cast<T>(0b0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101));
+
+									_DESTi = _mm512_and_si512(_source, _ODD);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_EVEN)
+								{
+									_DESTi = _source;
+
+									for (int64_t x = static_cast<int64_t>(0); x != static_cast<int64_t>(64); x += static_cast<int64_t>(2))
+									{
+										_DESTi = _mm512_xor_si512(_DESTi, _mm512_slli_epi64(_one, x));
+									}//End for
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ODD)
+								{
+									_DESTi = _source;
+
+									for (int64_t x = static_cast<int64_t>(1); x != static_cast<int64_t>(65); x += static_cast<int64_t>(2))
+									{
+										_DESTi = _mm512_xor_si512(_DESTi, _mm512_slli_epi64(_one, x));
+									}//End for
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_MSB)
+								{
+									const __m512i _set_msb = _mm512_set1_epi64(static_cast<int64_t>(0b1000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000));
+									_DESTi = _mm512_or_si512(_source, _set_msb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_MSB)
+								{
+									const __m512i _clear_msb = _mm512_set1_epi64(static_cast<int64_t>(0b0111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111));
+									_DESTi = _mm512_and_si512(_source, _clear_msb);
+								}//End if                                                                   
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LSB)
+								{
+									const __m512i _clear_lsb = _mm512_set1_epi64(static_cast<int64_t>(0b1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1110));
+									_DESTi = _mm512_and_si512(_source, _clear_lsb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_LSB)
+								{
+									const __m512i _clear_lsb = _mm512_set1_epi64(static_cast<int64_t>(0b0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0001));
+									_DESTi = _mm512_or_si512(_source, _clear_lsb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LOWEST_SET)
+								{
+									_DESTi = _mm512_xor_si512(_source, _mm512_and_si512(_source, _mm512_sub_epi64(_zero, _source)));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_HIGHEST_SET)
+								{
+									_DESTi = _mm512_xor_si512(_source, tpa::simd::_mm512_exthsb_epi64(_source));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_HIGHEST_CLEAR)
+								{
+									const __m512i _hsb = tpa::simd::_mm512_exthsb_epi64(_source);
+									const __m512i _sl = _mm512_slli_epi64(_hsb, 1u);
+									const __mmask8 _mask = _mm512_cmplt_epi64_mask(_sl, _max);
+
+									_DESTi = _mm512_or_si512(_source, _mm512_mask_slli_epi64(_hsb, _mask, _hsb, 1u));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_LOWEST_CLEAR)
+								{
+									__m512i _lowest = _mm512_and_si512(_source, _mm512_sub_epi64(_zero, _source));
+									_lowest = _mm512_srli_epi64(_lowest, 1u);
+									const __mmask8 _mask = _mm512_cmpgt_epi64_mask(_lowest, _zero);
+
+									_DESTi = _mm512_or_si512(_source, _mm512_mask_slli_epi64(_lowest, _mask, _lowest, 1u));
+								}//End if
+								else
+								{
+									[] <bool flag = false>()
+									{
+										static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int32_t> / uint32_t).");
+									}();
+								}//End else
+
+								//Store Result
+								_mm512_store_pd(&source[i], _mm512_castsi512_pd(_DESTi));
+							}//End for
+						}//End if hasAVX512
+						else if (tpa::hasAVX2)
 						{
-							//Set Values
-							_source = _mm256_castpd_si256(_mm256_load_pd(&source[i]));
+							const int32_t p = static_cast<int32_t>(pos);
 
-							if constexpr (INSTR == tpa::bit_mod::SET)
+							__m256i _source = _mm256_setzero_si256();
+							__m256 _sourcef = _mm256_setzero_si256();
+							__m256i _DESTi = _mm256_setzero_si256();
+							__m256i _temp = _mm256_setzero_si256();
+							const __m256i _zero = _mm256_setzero_si256();
+							const __m256i _one = _mm256_set1_epi64x(1ll);
+							const __m256i _max = _mm256_set1_epi64x(std::numeric_limits<uint64_t>::max());
+							const __m256i _shifted_left = _mm256_slli_epi64(_one, p);
+							const __m256i _not_shifted_left = tpa::simd::_mm256_not_si256(_shifted_left);
+
+							for (; (i + 4uz) < end; i += 4uz)
 							{
-								_DESTi = _mm256_or_si256(_shifted_left, _source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
-							{
-								_DESTi = _max;
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::CLEAR)
-							{
-								//~(1ull << pos) & source[i]
-								_DESTi = _mm256_and_si256(_not_shifted_left, _source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
-							{
-								_DESTi = _zero;
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
-							{
-								_DESTi = _mm256_xor_si256(_shifted_left, _source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
-							{
-								_DESTi = tpa::simd::_mm256_not_si256(_source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::REVERSE)
-							{
-								size_t bits = sizeof(T) * CHAR_BIT;
-								while (bits > 0uz)
+								//Set Values
+								_sourcef = _mm256_load_pd(&source[i]);
+								_source = _mm256_castpd_si256(_sourcef);
+
+								if constexpr (INSTR == tpa::bit_mod::SET)
 								{
-									_DESTi = _mm256_or_si256(_mm256_slli_epi64(_DESTi, 1), _mm256_and_si256(_source, _one));
-									_source = _mm256_srli_epi64(_source, 1);
-									bits -= 1uz;
-								}//End for
-							}//End if
-							else
-							{
-								[] <bool flag = false>()
+									_DESTi = _mm256_or_si256(_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
 								{
-									static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int32_t / uint32_t>).");
-								}();
-							}//End else
+									_DESTi = _max;
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR)
+								{
+									_DESTi = _mm256_and_si256(_not_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
+								{
+									_DESTi = _zero;
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
+								{
+									_DESTi = _mm256_xor_si256(_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
+								{
+									_DESTi = tpa::simd::_mm256_not_si256(_source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::REVERSE)
+								{
+									size_t bits = sizeof(T) * CHAR_BIT;
+									while (bits > 0uz)
+									{
+										_DESTi = _mm256_or_si256(_mm256_slli_epi64(_DESTi, 1), _mm256_and_si256(_source, _one));
+										_source = _mm256_srli_epi64(_source, 1);
+										bits -= 1uz;
+									}//End while
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_TRAILING_ZEROS)
+								{
+									_DESTi = _mm256_or_si256(_mm256_sub_epi64(_source, _one), _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_TRAILING_ONES)
+								{
+									_DESTi = _mm256_and_si256(_mm256_add_epi64(_source, _one), _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_LEADING_ZEROS)
+								{
+									_DESTi = tpa::simd::_mm256_lzset_epi64(_source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LEADING_ONES)
+								{
+									_DESTi = tpa::simd::_mm256_not_si256(tpa::simd::_mm256_lzset_epi64(tpa::simd::_mm256_not_si256(_source)));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::NEXT_LEXICOGRAPHIC_PERMUTATION)
+								{
+									_temp = _mm256_or_si256(_source, _mm256_sub_epi64(_source, _one));
 
-							//Store Result
-							_mm256_store_pd(&source[i], _mm256_castsi256_pd(_DESTi));
-						}//End for
-					}//End if hasAVX2
-					else if (tpa::has_SSE2)
-					{
-						const int32_t p = static_cast<int32_t>(pos);
+									__m256i _rhs = _mm256_add_epi64(tpa::simd::_mm256_bsf_epi64(_source), _one);
 
-						__m128i _source = _mm_setzero_si128();
-						__m128i _DESTi = _mm_setzero_si128();
-						const __m128i _zero = _mm_setzero_si128();
-						const __m128i _one = _mm_set1_epi64x(1ll);
-						const __m128i _shifted_left = _mm_slli_epi64(_one, p);
-						const __m128i _max = _mm_set1_epi64x(std::numeric_limits<uint64_t>::max());
-						const __m128i _not_shifted_left = tpa::simd::_mm_not_si128(_shifted_left);
+									__m256i _added = _mm256_add_epi64(_temp, _one);
+									__m256i _not_temp = tpa::simd::_mm256_not_si256(_temp);
+									__m256i _lhs = _mm256_sub_epi64(_mm256_and_si256(_not_temp, _mm256_sub_epi64(_zero, _not_temp)), _one);
+									__m256i _lhs_shifted_right = _mm256_srlv_epi64(_lhs, _rhs);
 
-						for (; (i + 2uz) < end; i += 2uz)
+									_DESTi = _mm256_or_si256(_added, _lhs_shifted_right);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_EVEN)
+								{
+									const __m256i _EVEN = _mm256_set1_epi64x(static_cast<T>(0b0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101));
+
+									_DESTi = _mm256_or_si256(_source, _EVEN);
+								}//End else
+								else if constexpr (INSTR == tpa::bit_mod::SET_ODD)
+								{
+									const __m256i _ODD = _mm256_set1_epi64x(static_cast<T>(0b1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010));
+
+									_DESTi = _mm256_or_si256(_source, _ODD);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_EVEN)
+								{
+									const __m256i _EVEN = _mm256_set1_epi64x(static_cast<T>(0b1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010));
+
+									_DESTi = _mm256_and_si256(_source, _EVEN);
+								}//End else
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_ODD)
+								{
+									const __m256i _ODD = _mm256_set1_epi64x(static_cast<T>(0b0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101));
+
+									_DESTi = _mm256_and_si256(_source, _ODD);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_EVEN)
+								{
+									_DESTi = _source;
+
+									for (int64_t x = static_cast<int32_t>(0); x != static_cast<int32_t>(64); x += static_cast<int32_t>(2))
+									{
+										_DESTi = _mm256_xor_si256(_DESTi, _mm256_slli_epi64(_one, x));
+									}//End for
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ODD)
+								{
+									_DESTi = _source;
+
+									for (int32_t x = static_cast<int32_t>(1); x != static_cast<int32_t>(65); x += static_cast<int32_t>(2))
+									{
+										_DESTi = _mm256_xor_si256(_DESTi, _mm256_slli_epi64(_one, x));
+									}//End for
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_MSB)
+								{
+									const __m256i _set_msb = _mm256_set1_epi64x(static_cast<int16_t>(0b1000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000));
+									_DESTi = _mm256_or_si256(_source, _set_msb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_MSB)
+								{
+									const __m256i _clear_msb = _mm256_set1_epi64x(static_cast<int16_t>(0b0111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111));
+									_DESTi = _mm256_and_si256(_source, _clear_msb);
+								}//End if                                                                   
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LSB)
+								{
+									const __m256i _clear_lsb = _mm256_set1_epi64x(static_cast<int16_t>(0b1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1110));
+									_DESTi = _mm256_and_si256(_source, _clear_lsb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_LSB)
+								{
+									const __m256i _clear_lsb = _mm256_set1_epi64x(static_cast<int16_t>(0b0000'0000'0000'0001'0000'0000'0000'0000'0000'0000'0000'0001'0000'0000'0000'0001));
+									_DESTi = _mm256_or_si256(_source, _clear_lsb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LOWEST_SET)
+								{
+									_DESTi = _mm256_xor_si256(_source, _mm256_and_si256(_source, _mm256_sub_epi64(_zero, _source)));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_HIGHEST_SET)
+								{
+									_DESTi = _mm256_xor_si256(_source, tpa::simd::_mm256_exthsb_epi64(_source));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_HIGHEST_CLEAR)
+								{
+									const __m256i _hsb = tpa::simd::_mm256_exthsb_epi64(_source);
+									const __m256i _sl = _mm256_slli_epi64(_hsb, 1);
+									__m256i _mask = _mm256_cmpgt_epi64(_max, _sl);
+									_mask = _mm256_and_si256(_sl, _mask);
+
+									_DESTi = _mm256_or_si256(_source, _mask);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_LOWEST_CLEAR)
+								{
+									__m256i _lowest = _mm256_and_si256(_source, _mm256_sub_epi64(_zero, _source));
+									_lowest = _mm256_srli_epi64(_lowest, 1);
+
+									__m256i _mask = _mm256_cmpgt_epi64(_lowest, _zero);
+									_mask = _mm256_and_si256(_lowest, _mask);
+
+									_DESTi = _mm256_or_si256(_source, _mask);
+								}//End if
+								else
+								{
+									[] <bool flag = false>()
+									{
+										static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int16_t / uint16_t>).");
+									}();
+								}//End else
+
+								//Store Result
+								_mm256_store_pd(&source[i], _mm256_castsi256_pd(_DESTi));
+							}//End for
+						}//End if hasAVX2
+						else if (tpa::has_SSE42)
 						{
-							//Set Values
-							_source = _mm_castpd_si128(_mm_load_pd(&source[i]));
+							const int32_t p = static_cast<int32_t>(pos);
 
-							if constexpr (INSTR == tpa::bit_mod::SET)
-							{
-								_DESTi = _mm_or_si128(_shifted_left, _source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
-							{
-								_DESTi = _max;
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::CLEAR)
-							{
-								//~(1ull << pos) & source[i]
-								_DESTi = _mm_and_si128(_not_shifted_left, _source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
-							{
-								_DESTi = _zero;
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
-							{
-								_DESTi = _mm_xor_si128(_shifted_left, _source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
-							{
-								_DESTi = tpa::simd::_mm_not_si128(_source);
-							}//End if
-							else if constexpr (INSTR == tpa::bit_mod::REVERSE)
-							{
-								size_t bits = sizeof(T) * CHAR_BIT;
-								while (bits > 0uz)
-								{
-									_DESTi = _mm_or_si128(_mm_slli_epi64(_DESTi, 1), _mm_and_si128(_source, _one));
-									_source = _mm_srli_epi64(_source, 1);
-									bits -= 1uz;
-								}//End for
-							}//End if
-							else
-							{
-								[] <bool flag = false>()
-								{
-									static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int32_t / uint32_t>).");
-								}();
-							}//End else
+							__m128i _source = _mm_setzero_si128();
+							__m128 _sourcef = _mm_setzero_si128();
+							__m128i _DESTi = _mm_setzero_si128();
+							__m128i _temp = _mm_setzero_si128();
+							const __m128i _zero = _mm_setzero_si128();
+							const __m128i _one = _mm_set1_epi64x(1ll);
+							const __m128i _max = _mm_set1_epi64x(std::numeric_limits<uint64_t>::max());
+							const __m128i _shifted_left = _mm_slli_epi64(_one, p);
+							const __m128i _not_shifted_left = tpa::simd::_mm_not_si128(_shifted_left);
 
-							//Store Result
-							_mm_store_pd(&source[i], _mm_castsi128_pd(_DESTi));
-						}//End for
-					}//End if
+							for (; (i + 2uz) < end; i += 2uz)
+							{
+								//Set Values
+								_sourcef = _mm_load_pd(&source[i]);
+								_source = _mm_castpd_si128(_sourcef);
+
+								if constexpr (INSTR == tpa::bit_mod::SET)
+								{
+									_DESTi = _mm_or_si128(_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_ALL)
+								{
+									_DESTi = _max;
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR)
+								{
+									_DESTi = _mm_and_si128(_not_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_ALL)
+								{
+									_DESTi = _zero;
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE)
+								{
+									_DESTi = _mm_xor_si128(_shifted_left, _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ALL)
+								{
+									_DESTi = tpa::simd::_mm_not_si128(_source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::REVERSE)
+								{
+									size_t bits = sizeof(T) * CHAR_BIT;
+									while (bits > 0)
+									{
+										_DESTi = _mm_or_si128(_mm_slli_epi64(_DESTi, 1), _mm_and_si128(_source, _one));
+										_source = _mm_srli_epi64(_source, 1);
+										bits -= 1;
+									}//End for
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_TRAILING_ZEROS)
+								{
+									_DESTi = _mm_or_si128(_mm_sub_epi64(_source, _one), _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_TRAILING_ONES)
+								{
+									_DESTi = _mm_and_si128(_mm_add_epi64(_source, _one), _source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_LEADING_ZEROS)
+								{
+									_DESTi = tpa::simd::_mm_lzset_epi64(_source);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LEADING_ONES)
+								{
+									_DESTi = tpa::simd::_mm_not_si128(tpa::simd::_mm_lzset_epi64(tpa::simd::_mm_not_si128(_source)));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::NEXT_LEXICOGRAPHIC_PERMUTATION)
+								{
+									_temp = _mm_or_si128(_source, _mm_sub_epi64(_source, _one));
+
+									__m128i _rhs = _mm_add_epi32(tpa::simd::_mm_bsf_epi32(_source), _one);
+
+									__m128i _added = _mm_add_epi64(_temp, _one);
+									__m128i _not_temp = tpa::simd::_mm_not_si128(_temp);
+									__m128i _lhs = _mm_sub_epi64(_mm_and_si128(_not_temp, _mm_sub_epi64(_zero, _not_temp)), _one);
+									__m128i _lhs_shifted_right = _mm_srlv_epi64(_lhs, _rhs);
+
+									_DESTi = _mm_or_si128(_added, _lhs_shifted_right);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_EVEN)
+								{
+									const __m128i _EVEN = _mm_set1_epi64x(static_cast<T>(0b0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101));
+
+									_DESTi = _mm_or_si128(_source, _EVEN);
+								}//End else
+								else if constexpr (INSTR == tpa::bit_mod::SET_ODD)
+								{
+									const __m128i _ODD = _mm_set1_epi64x(static_cast<T>(0b1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010));
+
+									_DESTi = _mm_or_si128(_source, _ODD);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_EVEN)
+								{
+									const __m128i _EVEN = _mm_set1_epi64x(static_cast<T>(0b1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010'1010));
+
+									_DESTi = _mm_and_si128(_source, _EVEN);
+								}//End else
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_ODD)
+								{
+									const __m128i _ODD = _mm_set1_epi64x(static_cast<T>(0b0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101'0101));
+
+									_DESTi = _mm_and_si128(_source, _ODD);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_EVEN)
+								{
+									_DESTi = _source;
+
+									for (int32_t x = static_cast<int32_t>(0); x != static_cast<int32_t>(64); x += static_cast<int32_t>(2))
+									{
+										_DESTi = _mm_xor_si128(_DESTi, _mm_slli_epi64(_one, x));
+									}//End for
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::TOGGLE_ODD)
+								{
+									_DESTi = _source;
+
+									for (int32_t x = static_cast<int32_t>(1); x != static_cast<int32_t>(65); x += static_cast<int32_t>(2))
+									{
+										_DESTi = _mm_xor_si128(_DESTi, _mm_slli_epi64(_one, x));
+									}//End for
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_MSB)
+								{
+									const __m128i _set_msb = _mm_set1_epi64x(static_cast<int64_t>(0b1000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000));
+									_DESTi = _mm_or_si128(_source, _set_msb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_MSB)
+								{
+									const __m128i _clear_msb = _mm_set1_epi64x(static_cast<int64_t>(0b0111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111));
+									_DESTi = _mm_and_si128(_source, _clear_msb);
+								}//End if                                                                   
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LSB)
+								{
+									const __m128i _clear_lsb = _mm_set1_epi64x(static_cast<int64_t>(0b1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1111'1110));
+									_DESTi = _mm_and_si128(_source, _clear_lsb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_LSB)
+								{
+									const __m128i _clear_lsb = _mm_set1_epi64x(static_cast<int64_t>(0b0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0001));
+									_DESTi = _mm_or_si128(_source, _clear_lsb);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_LOWEST_SET)
+								{
+									_DESTi = _mm_xor_si128(_source, _mm_and_si128(_source, _mm_sub_epi64(_zero, _source)));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::CLEAR_HIGHEST_SET)
+								{
+									_DESTi = _mm_xor_si128(_source, tpa::simd::_mm_exthsb_epi64(_source));
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_HIGHEST_CLEAR)
+								{
+									const __m128i _hsb = tpa::simd::_mm_exthsb_epi64(_source);
+									const __m128i _sl = _mm_slli_epi64(_hsb, 1);
+									__m128i _mask = _mm_cmpgt_epi64(_max, _sl);
+									_mask = _mm_and_si128(_sl, _mask);
+
+									_DESTi = _mm_or_si128(_source, _mask);
+								}//End if
+								else if constexpr (INSTR == tpa::bit_mod::SET_LOWEST_CLEAR)
+								{
+									__m128i _lowest = _mm_and_si128(_source, _mm_sub_epi64(_zero, _source));
+									_lowest = _mm_srli_epi64(_lowest, 1);
+
+									__m128i _mask = _mm_cmpgt_epi64(_lowest, _zero);
+									_mask = _mm_and_si128(_lowest, _mask);
+
+									_DESTi = _mm_or_si128(_source, _mask);
+								}//End if
+								else
+								{
+									[] <bool flag = false>()
+									{
+										static_assert(flag, " You have specifed an invalid SIMD instruction in tpa::simd::bit_manip::bit_modify<__UNDEFINED_PREDICATE__>(CONTAINER<int16_t / uint16_t>).");
+									}();
+								}//End else
+
+								//Store Result
+								_mm_store_pd(&source[i], _mm_castsi128_pd(_DESTi));
+							}//End for
+						}//End if has SSE2
 #endif
 					}//End if
 #pragma endregion
@@ -5169,6 +6387,7 @@ namespace bit_manip
 
 					return static_cast<uint32_t>(1);
 				
+					
 				});//End of lambda
 
 				results.emplace_back(std::move(temp));
@@ -5195,12 +6414,9 @@ namespace bit_manip
 		{
 			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
 			std::cerr << "Exception thrown in tpa::bit_manip::bit_modify: unknown!\n";
-		}//End catch
-	
+		}//End catch	
 	}//End of bit_modify
-};//End of bit_manip
 
-#pragma region generic
 	/// <summary>
 	/// <para>Performs bitwise operations on 2 aligned containers storing the result in a 3rd aligned container.</para> 
 	/// <para> Containers of different types are allowed but not recomended.</para>
@@ -8021,11 +9237,11 @@ namespace bit_manip
 	}//End of bitwise_const()
 
 	/// <summary>
-	/// <para>Shifts the element's bits in a container left by the number specified in the second container, storing the results in a 3rd container.</para>
+	/// <para>Shifts, Rotates or Merges the element's bits in a container the specified direction by the number specified in the second container, storing the results in a 3rd container.</para>
 	/// <para>Containers may be of differnt types, but not recommended.</para>
 	/// <para>Containers MUST have the same value_type.</para>
 	/// <para>Containers do not have to be a particular size, of passing containers of different sizes, will only execute upto the size of the smallest container, the destination container must be at least this size.</para>
-	/// <para>Non-standard integers will work. Floats are not supported and will generate a compile error.</para>
+	/// <para>Non-standard integers will work.</para>
 	/// <para>This implementation uses SIMD (if avaialble for type) and Multi-Threading.</para>
 	/// </summary>
 	/// <typeparam name="CONTAINER_A"></typeparam>
@@ -8034,8 +9250,8 @@ namespace bit_manip
 	/// <param name="source1"></param>
 	/// <param name="source2"></param>
 	/// <param name="dest"></param>
-	template<typename CONTAINER_A, typename CONTAINER_B, typename CONTAINER_C>
-	inline constexpr void bit_shift_left(
+	template<tpa::bit_move INSTR, typename CONTAINER_A, typename CONTAINER_B, typename CONTAINER_C>
+	inline constexpr void bit_move(
 		const CONTAINER_A& source1,
 		const CONTAINER_B& source2,
 		CONTAINER_C& dest)
@@ -8053,8 +9269,6 @@ namespace bit_manip
 				"Compile Error! The source and destination containers must be of the same value type!");
 
 			using T = CONTAINER_A::value_type;
-
-			static_assert(!std::is_floating_point<T>(),"Compile Error! You cannot bitshift a floating point type!");
 
 			//Determin the smallest container
 			smallest = tpa::util::min(source1.size(), source2.size());
@@ -8083,274 +9297,134 @@ namespace bit_manip
 						size_t i = beg;
 
 #pragma region short
-					if constexpr (std::is_same<T, int16_t>() == true)
+					if constexpr ((std::is_same<T, int16_t>()) || (std::is_same<T, uint16_t>()))
 					{
 #ifdef TPA_X86_64
 						if (tpa::hasAVX512_ByteWord)
 						{
 							__m512i _Ai, _Bi, _DESTi;
 
-							for (; i != end; i += 32)
+							for (; (i + 32uz) < end; i += 32uz)
 							{
-								if ((i + 32) > end) [[unlikely]]
-								{
-									break;
-								}//End if
-
 								//Set Values
 								_Ai = _mm512_loadu_epi16((__m512i*)&source1[i]);
 								_Bi = _mm512_loadu_epi16((__m512i*)&source2[i]);
 
-								//Shift Left
-								_DESTi = _mm512_sllv_epi16(_Ai, _Bi);
+								if constexpr (INSTR == tpa::bit_move::SHIFT_LEFT)
+								{
+									_DESTi = _mm512_sllv_epi16(_Ai, _Bi);
+								}//End  if
+								else if constexpr (INSTR == tpa::bit_move::SHIFT_LEFT_ARITHMETIC)
+								{
+									_DESTi = _mm512_sllv_epi16(_Ai, _Bi);
+								}//End  if
+								else if constexpr (INSTR == tpa::bit_move::SHIFT_RIGHT)
+								{
+									_DESTi = _mm512_srlv_epi16(_Ai, _Bi);
+								}//End  if
+								else if constexpr (INSTR == tpa::bit_move::SHIFT_RIGHT_ARITHMETIC)
+								{
+									_DESTi = _mm512_srav_epi16(_Ai, _Bi);
+								}//End  if
 
 								//Store Result
 								_mm512_storeu_epi16((__m256i*) & dest[i], _DESTi);
 							}//End for
 						}//End if hasAVX512
-#endif							
-					}//End if
-#pragma endregion
-#pragma region unsigned short
-					else if constexpr (std::is_same<T, uint16_t>() == true)
-					{
-#ifdef TPA_X86_64
-						if (tpa::hasAVX512_ByteWord)
+						else if (tpa::hasAVX2)
 						{
-							__m512i _Ai, _Bi, _DESTi;
+							__m256i _Ai, _Bi, _DESTi;
 
-							for (; i != end; i += 32)
+							for (; (i + 16uz) < end; i += 16uz)
 							{
-								if ((i + 32) > end) [[unlikely]]
-								{
-									break;
-								}//End if
-
 								//Set Values
-								_Ai = _mm512_loadu_epi16((__m512i*)&source1[i]);
-								_Bi = _mm512_loadu_epi16((__m512i*)&source2[i]);
+								_Ai = _mm256_load_si256((__m256i*)&source1[i]);
+								_Bi = _mm256_load_si256((__m256i*)&source2[i]);
 
-								//Shift Left
-								_DESTi = _mm512_sllv_epi16(_Ai, _Bi);
+								if constexpr (INSTR == tpa::bit_move::SHIFT_LEFT)
+								{
+									_DESTi = tpa::simd::_mm256_sllv_epi16(_Ai, _Bi);
+								}//End  if
+								else if constexpr (INSTR == tpa::bit_move::SHIFT_LEFT_ARITHMETIC)
+								{
+									_DESTi = tpa::simd::_mm256_sllv_epi16(_Ai, _Bi);
+								}//End  if
+								else if constexpr (INSTR == tpa::bit_move::SHIFT_RIGHT)
+								{
+									_DESTi = tpa::simd::_mm256_srlv_epi16(_Ai, _Bi);
+								}//End  if
+								else if constexpr (INSTR == tpa::bit_move::SHIFT_RIGHT_ARITHMETIC)
+								{
+									//_DESTi = tpa::simd::_mm256_srav_epi16(_Ai, _Bi);
+									//TO-DO Implement the above
+								}//End  if
 
 								//Store Result
-								_mm512_storeu_epi16((__m512i*)&dest[i], _DESTi);
+								_mm256_store_si256((__m256i*) & dest[i], _DESTi);
 							}//End for
-						}//End if							
-#endif 							
+						}//End if hasAVX2
+						else if (tpa::has_SSE2)
+						{
+							__m128i _Ai, _Bi, _DESTi;
+
+							for (; (i + 8uz) < end; i += 8uz)
+							{
+								//Set Values
+								_Ai = _mm_load_si128((__m128i*) & source1[i]);
+								_Bi = _mm_load_si128((__m128i*) & source2[i]);
+
+								if constexpr (INSTR == tpa::bit_move::SHIFT_LEFT)
+								{
+									_DESTi = tpa::simd::_mm_sllv_epi16(_Ai, _Bi);
+								}//End  if
+								else if constexpr (INSTR == tpa::bit_move::SHIFT_LEFT_ARITHMETIC)
+								{
+									_DESTi = tpa::simd::_mm_sllv_epi16(_Ai, _Bi);
+								}//End  if
+								else if constexpr (INSTR == tpa::bit_move::SHIFT_RIGHT)
+								{
+									_DESTi = tpa::simd::_mm_srlv_epi16(_Ai, _Bi);
+								}//End  if
+								else if constexpr (INSTR == tpa::bit_move::SHIFT_RIGHT_ARITHMETIC)
+								{
+									//_DESTi = tpa::simd::_mm_srav_epi16(_Ai, _Bi);
+									//TO-DO Implement the above
+								}//End  if
+
+								//Store Result
+								_mm_store_si128((__m128i*) & dest[i], _DESTi);
+							}//End for
+						}//End if hasSSE2
+#endif							
 					}//End if
-#pragma endregion
-#pragma region int
-						else if constexpr (std::is_same<T, int32_t>() == true)
-						{
-#ifdef TPA_X86_64
-							if (tpa::hasAVX512)
-							{
-								__m512i _Ai, _Bi, _DESTi;
-
-								for (; i != end; i += 16)
-								{
-									if ((i + 16) > end) [[unlikely]]
-									{
-										break;
-									}//End if
-
-									//Set Values
-									_Ai = _mm512_load_epi32((__m512i*)&source1[i]);
-									_Bi = _mm512_load_epi32((__m512i*)&source2[i]);
-
-									//Shift Left
-									_DESTi = _mm512_sllv_epi32(_Ai, _Bi);
-
-									//Store Result
-									_mm512_store_epi32((__m512i*)&dest[i], _DESTi);
-								}//End for
-							}//End if hasAVX512
-							else if (tpa::hasAVX2)
-							{
-								__m256i _Ai, _Bi, _DESTi;
-
-								for (; i != end; i += 8)
-								{
-									if ((i + 8) > end) [[unlikely]]
-									{
-										break;
-									}//End if
-
-									//Set Values
-									_Ai = _mm256_load_si256((__m256i*) & source1[i]);
-									_Bi = _mm256_load_si256((__m256i*) & source2[i]);
-
-									//Shift Left
-									_DESTi = _mm256_sllv_epi32(_Ai, _Bi);
-
-									//Store Result
-									_mm256_store_si256((__m256i*) & dest[i], _DESTi);
-								}//End for
-							}//End if hasAVX2
-#endif							
-						}//End if
-#pragma endregion
-#pragma region unsigned int
-						else if constexpr (std::is_same<T, uint32_t>() == true)
-						{
-#ifdef TPA_X86_64
-							if (tpa::hasAVX512)
-							{
-								__m512i _Ai, _Bi, _DESTi;
-
-								for (; i != end; i += 16)
-								{
-									if ((i + 16) > end) [[unlikely]]
-									{
-										break;
-									}//End if
-
-									//Set Values
-									_Ai = _mm512_load_epi32((__m512i*)&source1[i]);
-									_Bi = _mm512_load_epi32((__m512i*)&source2[i]);
-
-									//Shift Left
-									_DESTi = _mm512_sllv_epi32(_Ai, _Bi);
-
-									//Store Result
-									_mm512_store_epi32((__m512i*)&dest[i], _DESTi);
-								}//End for
-							}//End if
-							else if (tpa::hasAVX2)
-							{
-								__m256i _Ai, _Bi, _DESTi;
-
-								for (; i != end; i += 8)
-								{
-									if ((i + 8) > end) [[unlikely]]
-									{
-										break;
-									}//End if
-
-									//Set Values
-									_Ai = _mm256_load_si256((__m256i*) & source1[i]);
-									_Bi = _mm256_load_si256((__m256i*) & source2[i]);
-
-									//Shift Left
-									_DESTi = _mm256_sllv_epi32(_Ai, _Bi);
-
-									//Store Result
-									_mm256_store_si256((__m256i*) & dest[i], _DESTi);
-								}//End for
-							}//End if hasAVX2
-#endif							
-						}//End if
-#pragma endregion
-#pragma region long
-						else if constexpr (std::is_same<T, int64_t>() == true)
-						{
-#ifdef TPA_X86_64
-							if (tpa::hasAVX512)
-							{
-								__m512i _Ai, _Bi, _DESTi;
-
-								for (; i != end; i += 8)
-								{
-									if ((i + 8) > end) [[unlikely]]
-									{
-										break;
-									}//End if
-
-									//Set Values
-									_Ai = _mm512_load_epi64((__m512i*)&source1[i]);
-									_Bi = _mm512_load_epi64((__m512i*)&source2[i]);
-
-									//Shift Left
-									_DESTi = _mm512_sllv_epi64(_Ai, _Bi);
-
-									//Store Result
-									_mm512_store_epi64((__m256i*) & dest[i], _DESTi);
-								}//End for
-							}//End if hasAVX512
-							else if (tpa::hasAVX2)
-							{
-								__m256i _Ai, _Bi, _DESTi;
-
-								for (; i != end; i += 4)
-								{
-									if ((i + 4) > end) [[unlikely]]
-									{
-										break;
-									}//End if
-
-									//Set Values
-									_Ai = _mm256_load_si256((__m256i*) & source1[i]);
-									_Bi = _mm256_load_si256((__m256i*) & source2[i]);
-
-									//Shift Left
-									_DESTi = _mm256_sllv_epi64(_Ai, _Bi);
-
-									//Store Result
-									_mm256_store_si256((__m256i*) & dest[i], _DESTi);
-								}//End for
-							}//End if hasAVX2
-#endif							
-						}//End if
-#pragma endregion
-#pragma region unsigned long
-						else if constexpr (std::is_same<T, uint64_t>() == true)
-						{
-#ifdef TPA_X86_64
-							if (tpa::hasAVX512)
-							{
-								__m512i _Ai, _Bi, _DESTi;
-
-								for (; i != end; i += 8)
-								{
-
-									if ((i + 8) > end) [[unlikely]]
-									{
-										break;
-									}//End if
-
-									//Set Values
-									_Ai = _mm512_load_epi64((__m512i*)&source1[i]);
-									_Bi = _mm512_load_epi64((__m512i*)&source2[i]);
-
-									//Shift Left
-									_DESTi = _mm512_sllv_epi64(_Ai, _Bi);
-
-									//Store Result
-									_mm512_store_epi64((__m256i*) & dest[i], _DESTi);
-								}//End for
-							}//End if hasAVX512
-							else if (tpa::hasAVX2)
-							{
-								__m256i _Ai, _Bi, _DESTi;
-
-								for (; i != end; i += 4)
-								{
-
-									if ((i + 4) > end) [[unlikely]]
-									{
-										break;
-									}//End if
-
-									//Set Values
-									_Ai = _mm256_load_si256((__m256i*) & source1[i]);
-									_Bi = _mm256_load_si256((__m256i*) & source2[i]);
-
-									//Shift Left
-									_DESTi = _mm256_sllv_epi64(_Ai, _Bi);
-
-									//Store Result
-									_mm256_store_si256((__m256i*) & dest[i], _DESTi);
-								}//End for
-							}//End if hasAVX2
-#endif							
-						}//End if
 #pragma endregion
 #pragma region generic
 					for (; i != end; ++i)
 					{
-						//Shift Left
-						dest[i] = source1[i] << source2[i];
+						if constexpr (INSTR == tpa::bit_move::SHIFT_LEFT)
+						{
+							dest[i] = source1[i] << source2[i];
+						}//End if
+						else if constexpr (INSTR == tpa::bit_move::SHIFT_LEFT_ARITHMETIC)
+						{
+							dest[i] = source1[i] << source2[i];
+						}//End if
+						else if constexpr (INSTR == tpa::bit_move::SHIFT_RIGHT)
+						{
+							dest[i] = source1[i] >> source2[i];
+						}//End if
+						else if constexpr (INSTR == tpa::bit_move::SHIFT_RIGHT_ARITHMETIC)
+						{
+							dest[i] = source1[i] >> source2[i];
+						}//End if
+						else if constexpr (INSTR == tpa::bit_move::ROTATE_LEFT)
+						{
+							dest[i] = tpa::bit_manip::rotate_left(source1[i], source2[i]);
+						}//End if
+						else if constexpr (INSTR == tpa::bit_move::ROTATE_RIGHT)
+						{
+							dest[i] = tpa::bit_manip::rotate_right(source1[i], source2[i]);
+						}//End if
 					}//End for
 #pragma endregion
 						return static_cast<uint32_t>(1);
@@ -8374,52 +9448,51 @@ namespace bit_manip
 		catch (const tpa::exceptions::ArrayTooSmall& ex)
 		{
 			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
-			std::cerr << "Exception thrown in tpa::simd::bit_shift_left: " << ex.what() << "\n";
-			std::cerr << "tpa::simd::bit_shift_left will execute upto the current size of the container.";
+			std::cerr << "Exception thrown in tpa::simd::bit_move: " << ex.what() << "\n";
+			std::cerr << "tpa::simd::bit_move will execute upto the current size of the container.";
 			smallest = dest.size();
 			goto recover;
 		}//End catch
 		catch (const std::future_error& ex)
 		{
 			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
-			std::cerr << "Exception thrown in tpa::simd::bit_shift_left(): " << ex.code()
+			std::cerr << "Exception thrown in tpa::simd::bit_move(): " << ex.code()
 				<< " " << ex.what() << "\n";
 		}//End catch
 		catch (const std::bad_alloc& ex)
 		{
 			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
-			std::cerr << "Exception thrown in tpa::simd::bit_shift_left: " << ex.what() << "\n";
+			std::cerr << "Exception thrown in tpa::simd::bit_move: " << ex.what() << "\n";
 		}//End catch
 		catch (const std::exception& ex)
 		{
 			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
-			std::cerr << "Exception thrown in tpa::simd::bit_shift_left: " << ex.what() << "\n";
+			std::cerr << "Exception thrown in tpa::simd::bit_move: " << ex.what() << "\n";
 		}//End catch
 		catch (...)
 		{
 			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
-			std::cerr << "Exception thrown in tpa::simd::bit_shift_left: unknown!\n";
+			std::cerr << "Exception thrown in tpa::simd::bit_move: unknown!\n";
 		}//End catch
-	}//End of bit_shift_left()
+	}//End of bit_move()
 
 	/// <summary>
-	/// <para>Shifts the element's bits in a container left by the number specified in 'amount', storing the results in a 3rd container.</para>
+	/// <para>Shifts, Rotates or Merges the element's bits in a container the specified direction by the number specified in 'amount', storing the results in a 3rd container.</para>
 	/// <para>Containers may be of differnt types, but not recommended.</para>
 	/// <para>Containers MUST have the same value_type.</para>
 	/// <para>Containers do not have to be a particular size, of passing containers of different sizes, will only execute upto the size of the smallest container, the destination container must be at least this size.</para>
-	/// <para>Non-standard integers will work. Floats are not supported and will generate a compile error.</para>
+	/// <para>Non-standard integers will work.</para>
 	/// <para>This implementation uses SIMD (if avaialble for type) and Multi-Threading.</para>
 	/// </summary>
 	/// <typeparam name="CONTAINER_A"></typeparam>
-	/// <typeparam name="CONTAINER_B"></typeparam>
 	/// <typeparam name="CONTAINER_C"></typeparam>
 	/// <param name="source1"></param>
 	/// <param name="amount"></param>
 	/// <param name="dest"></param>
-	template<typename CONTAINER_A, typename CONTAINER_C>
-	inline constexpr void bit_shift_left(
+	template<tpa::bit_move INSTR, typename CONTAINER_A, typename CONTAINER_C>
+	inline constexpr void bit_move(
 		const CONTAINER_A& source1,
-		const uint8_t amount,
+		const uint32_t amount,
 		CONTAINER_C& dest)
 		requires tpa::util::contiguous_seqeunce<CONTAINER_A>&&
 		tpa::util::contiguous_seqeunce<CONTAINER_C>
@@ -8433,757 +9506,6 @@ namespace bit_manip
 				"Compile Error! The source and destination containers must be of the same value type!");
 
 			using T = CONTAINER_A::value_type;
-
-			static_assert(!std::is_floating_point<T>(), "Compile Error! You cannot bitshift a floating point type!");
-
-			//Determin the smallest container
-			smallest = source1.size();
-
-			if (dest.size() < smallest)
-			{
-				throw tpa::exceptions::ArrayTooSmall();
-			}//End if
-		recover:
-
-			std::vector<std::pair<size_t, size_t>> sections;
-			tpa::util::prepareThreading(sections, smallest);
-
-			std::vector<std::shared_future<uint32_t>> results;
-			results.reserve(tpa::nThreads);
-
-			std::shared_future<uint32_t> temp;
-
-			for (const auto& sec : sections)
-			{
-				//Launch lambda from multiple threads
-				temp = tpa::tp->addTask([&source1, &amount, &dest, &sec]()
-					{
-						const size_t beg = sec.first;
-						const size_t end = sec.second;
-						size_t i = beg;
-
-#pragma region short
-						if constexpr (std::is_same<T, int16_t>() == true)
-						{
-#ifdef TPA_X86_64
-							if (tpa::hasAVX512_ByteWord)
-							{
-								__m512i _Ai, _DESTi;
-
-								for (; i != end; i += 32)
-								{
-									if ((i + 32) > end) [[unlikely]]
-									{
-										break;
-									}//End if
-
-									//Set Values
-									_Ai = _mm512_loadu_epi16((__m512i*)&source1[i]);
-
-									//Shift Left
-									_DESTi = _mm512_slli_epi16(_Ai, amount);
-
-									//Store Result
-									_mm512_storeu_epi16((__m256i*) & dest[i], _DESTi);
-								}//End for
-							}//End if hasAVX512_BW
-							else if (tpa::hasAVX2)
-							{
-								__m256i _Ai, _DESTi;
-
-								for (; i != end; i += 16)
-								{
-									if ((i + 16) > end) [[unlikely]]
-									{
-										break;
-									}//End if
-
-									//Set Values
-									_Ai = _mm256_load_si256((__m256i*) & source1[i]);
-
-									//Shift Left
-									_DESTi = _mm256_slli_epi16(_Ai, amount);
-
-									//Store Result
-									_mm256_store_si256((__m256i*) & dest[i], _DESTi);
-								}//End for
-							}//End if hasAVX2
-#endif							
-						}//End if
-#pragma endregion
-#pragma region unsigned short
-						else if constexpr (std::is_same<T, uint16_t>() == true)
-						{
-#ifdef TPA_X86_64
-							if (tpa::hasAVX512_ByteWord)
-							{
-								__m512i _Ai, _DESTi;
-
-								for (; i != end; i += 32)
-								{
-									if ((i + 32) > end) [[unlikely]]
-									{
-										break;
-									}//End if
-
-									//Set Values
-									_Ai = _mm512_loadu_epi16((__m512i*)&source1[i]);
-
-									//Shift Left
-									_DESTi = _mm512_slli_epi16(_Ai, amount);
-
-									//Store Result
-									_mm512_storeu_epi16((__m512i*)&dest[i], _DESTi);
-								}//End for
-							}//End if has AVX512_BW				
-							else if (tpa::hasAVX2)
-							{
-								__m256i _Ai, _DESTi;
-
-								for (; i != end; i += 16)
-								{
-									if ((i + 16) > end) [[unlikely]]
-									{
-										break;
-									}//End if
-
-									//Set Values
-									_Ai = _mm256_load_si256((__m256i*) & source1[i]);
-
-									//Shift Left
-									_DESTi = _mm256_slli_epi16(_Ai, amount);
-
-									//Store Result
-									_mm256_store_si256((__m256i*) & dest[i], _DESTi);
-								}//End for
-							}//End if hasAVX2
-#endif 							
-						}//End if
-#pragma endregion
-#pragma region int
-						else if constexpr (std::is_same<T, int32_t>() == true)
-						{
-#ifdef TPA_X86_64
-							if (tpa::hasAVX512)
-							{
-								__m512i _Ai, _DESTi;
-
-								for (; i != end; i += 16)
-								{
-									if ((i + 16) > end) [[unlikely]]
-									{
-										break;
-									}//End if
-
-									//Set Values
-									_Ai = _mm512_load_epi32((__m512i*)&source1[i]);
-
-									//Shift Left
-									_DESTi = _mm512_slli_epi32(_Ai, amount);
-
-									//Store Result
-									_mm512_store_epi32((__m512i*)&dest[i], _DESTi);
-								}//End for
-							}//End if hasAVX512
-							else if (tpa::hasAVX2)
-							{
-								__m256i _Ai, _DESTi;
-
-								for (; i != end; i += 8)
-								{
-									if ((i + 8) > end) [[unlikely]]
-									{
-										break;
-									}//End if
-
-									//Set Values
-									_Ai = _mm256_load_si256((__m256i*) & source1[i]);
-
-									//Shift Left
-									_DESTi = _mm256_slli_epi32(_Ai, amount);
-
-									//Store Result
-									_mm256_store_si256((__m256i*) & dest[i], _DESTi);
-								}//End for
-							}//End if hasAVX2
-#endif							
-						}//End if
-#pragma endregion
-#pragma region unsigned int
-						else if constexpr (std::is_same<T, uint32_t>() == true)
-						{
-#ifdef TPA_X86_64
-							if (tpa::hasAVX512)
-							{
-								__m512i _Ai, _DESTi;
-
-								for (; i != end; i += 16)
-								{
-									if ((i + 16) > end) [[unlikely]]
-									{
-										break;
-									}//End if
-
-									//Set Values
-									_Ai = _mm512_load_epi32((__m512i*)&source1[i]);
-
-									//Shift Left
-									_DESTi = _mm512_slli_epi32(_Ai, amount);
-
-									//Store Result
-									_mm512_store_epi32((__m512i*)&dest[i], _DESTi);
-								}//End for
-							}//End if
-							else if (tpa::hasAVX2)
-							{
-								__m256i _Ai, _DESTi;
-
-								for (; i != end; i += 8)
-								{
-									if ((i + 8) > end) [[unlikely]]
-									{
-										break;
-									}//End if
-
-									//Set Values
-									_Ai = _mm256_load_si256((__m256i*) & source1[i]);
-
-									//Shift Left
-									_DESTi = _mm256_slli_epi32(_Ai, amount);
-
-									//Store Result
-									_mm256_store_si256((__m256i*) & dest[i], _DESTi);
-								}//End for
-							}//End if hasAVX2
-#endif							
-						}//End if
-#pragma endregion
-#pragma region long
-						else if constexpr (std::is_same<T, int64_t>() == true)
-						{
-#ifdef TPA_X86_64
-							if (tpa::hasAVX512)
-							{
-								__m512i _Ai, _DESTi;
-
-								for (; i != end; i += 8)
-								{
-									if ((i + 8) > end) [[unlikely]]
-									{
-										break;
-									}//End if
-
-									//Set Values
-									_Ai = _mm512_load_epi64((__m512i*)&source1[i]);
-
-									//Shift Left
-									_DESTi = _mm512_slli_epi64(_Ai, amount);
-
-									//Store Result
-									_mm512_store_epi64((__m256i*) & dest[i], _DESTi);
-								}//End for
-							}//End if hasAVX512
-							else if (tpa::hasAVX2)
-							{
-								__m256i _Ai, _DESTi;
-
-								for (; i != end; i += 4)
-								{
-									if ((i + 4) > end) [[unlikely]]
-									{
-										break;
-									}//End if
-
-									//Set Values
-									_Ai = _mm256_load_si256((__m256i*) & source1[i]);
-
-									//Shift Left
-									_DESTi = _mm256_slli_epi64(_Ai, amount);
-
-									//Store Result
-									_mm256_store_si256((__m256i*) & dest[i], _DESTi);
-								}//End for
-							}//End if hasAVX2
-#endif							
-						}//End if
-#pragma endregion
-#pragma region unsigned long
-						else if constexpr (std::is_same<T, uint64_t>() == true)
-						{
-#ifdef TPA_X86_64
-							if (tpa::hasAVX512)
-							{
-								__m512i _Ai, _DESTi;
-
-								for (; i != end; i += 8)
-								{
-
-									if ((i + 8) > end) [[unlikely]]
-									{
-										break;
-									}//End if
-
-									//Set Values
-									_Ai = _mm512_load_epi64((__m512i*)&source1[i]);
-
-									//Shift Left
-									_DESTi = _mm512_slli_epi64(_Ai, amount);
-
-									//Store Result
-									_mm512_store_epi64((__m256i*) & dest[i], _DESTi);
-								}//End for
-							}//End if hasAVX512
-							else if (tpa::hasAVX2)
-							{
-								__m256i _Ai, _DESTi;
-
-								for (; i != end; i += 4)
-								{
-
-									if ((i + 4) > end) [[unlikely]]
-									{
-										break;
-									}//End if
-
-									//Set Values
-									_Ai = _mm256_load_si256((__m256i*) & source1[i]);
-
-									//Shift Left
-									_DESTi = _mm256_slli_epi64(_Ai, amount);
-
-									//Store Result
-									_mm256_store_si256((__m256i*) & dest[i], _DESTi);
-								}//End for
-							}//End if hasAVX2
-#endif							
-						}//End if
-#pragma endregion
-#pragma region generic
-						for (; i != end; ++i)
-						{
-							//Shift Left
-							dest[i] = source1[i] << amount;
-						}//End for
-#pragma endregion
-						return static_cast<uint32_t>(1);
-					});//End of lambda
-
-				results.emplace_back(std::move(temp));
-			}//End for
-
-			for (const auto& fut : results)
-			{
-				complete += fut.get();
-			}//End for			
-
-			//Check all threads completed
-			if (complete != nThreads)
-			{
-				throw tpa::exceptions::NotAllThreadsCompleted(complete);
-			}//End if
-
-		}//End try
-		catch (const tpa::exceptions::ArrayTooSmall& ex)
-		{
-			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
-			std::cerr << "Exception thrown in tpa::simd::bit_shift_left: " << ex.what() << "\n";
-			std::cerr << "tpa::simd::bit_shift_left will execute upto the current size of the container.";
-			smallest = dest.size();
-			goto recover;
-		}//End catch
-		catch (const std::future_error& ex)
-		{
-			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
-			std::cerr << "Exception thrown in tpa::simd::bit_shift_left(): " << ex.code()
-				<< " " << ex.what() << "\n";
-		}//End catch
-		catch (const std::bad_alloc& ex)
-		{
-			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
-			std::cerr << "Exception thrown in tpa::simd::bit_shift_left: " << ex.what() << "\n";
-		}//End catch
-		catch (const std::exception& ex)
-		{
-			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
-			std::cerr << "Exception thrown in tpa::simd::bit_shift_left: " << ex.what() << "\n";
-		}//End catch
-		catch (...)
-		{
-			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
-			std::cerr << "Exception thrown in tpa::simd::bit_shift_left: unknown!\n";
-		}//End catch
-	}//End of bit_shift_left()
-
-		/// <summary>
-	/// <para>Shifts the element's bits in a container right by the number specified in the second container, storing the results in a 3rd container.</para>
-	/// <para>Containers may be of differnt types, but not recommended.</para>
-	/// <para>Containers MUST have the same value_type.</para>
-	/// <para>Containers do not have to be a particular size, of passing containers of different sizes, will only execute upto the size of the smallest container, the destination container must be at least this size.</para>
-	/// <para>Non-standard integers will work. Floats are not supported and will generate a compile error.</para>
-	/// <para>This implementation uses SIMD (if avaialble for type) and Multi-Threading.</para>
-	/// </summary>
-	/// <typeparam name="CONTAINER_A"></typeparam>
-	/// <typeparam name="CONTAINER_B"></typeparam>
-	/// <typeparam name="CONTAINER_C"></typeparam>
-	/// <param name="source1"></param>
-	/// <param name="source2"></param>
-	/// <param name="dest"></param>
-	template<typename CONTAINER_A, typename CONTAINER_B, typename CONTAINER_C>
-	inline constexpr void bit_shift_right(
-		const CONTAINER_A& source1,
-		const CONTAINER_B& source2,
-		CONTAINER_C& dest)
-		requires tpa::util::contiguous_seqeunce<CONTAINER_A>&&
-		tpa::util::contiguous_seqeunce<CONTAINER_B>&&
-		tpa::util::contiguous_seqeunce<CONTAINER_C>
-	{
-		size_t smallest = 0;
-		uint32_t complete = 0;
-		try
-		{
-			static_assert(
-				std::is_same<CONTAINER_A::value_type, CONTAINER_B::value_type>() &&
-				std::is_same<CONTAINER_A::value_type, CONTAINER_C::value_type>(),
-				"Compile Error! The source and destination containers must be of the same value type!");
-
-			using T = CONTAINER_A::value_type;
-
-			static_assert(!std::is_floating_point<T>(), "Compile Error! You cannot bitshift a floating point type!");
-
-			//Determin the smallest container
-			smallest = tpa::util::min(source1.size(), source2.size());
-
-			if (dest.size() < smallest)
-			{
-				throw tpa::exceptions::ArrayTooSmall();
-			}//End if
-		recover:
-
-			std::vector<std::pair<size_t, size_t>> sections;
-			tpa::util::prepareThreading(sections, smallest);
-
-			std::vector<std::shared_future<uint32_t>> results;
-			results.reserve(tpa::nThreads);
-
-			std::shared_future<uint32_t> temp;
-
-			for (const auto& sec : sections)
-			{
-				//Launch lambda from multiple threads
-				temp = tpa::tp->addTask([&source1, &source2, &dest, &sec]()
-					{
-						const size_t beg = sec.first;
-						const size_t end = sec.second;
-						size_t i = beg;
-
-#pragma region short
-						if constexpr (std::is_same<T, int16_t>() == true)
-						{
-#ifdef TPA_X86_64
-							if (tpa::hasAVX512_ByteWord)
-							{
-								__m512i _Ai, _Bi, _DESTi;
-
-								for (; i != end; i += 32)
-								{
-									if ((i + 32) > end) [[unlikely]]
-									{
-										break;
-									}//End if
-
-									//Set Values
-									_Ai = _mm512_loadu_epi16((__m512i*)&source1[i]);
-									_Bi = _mm512_loadu_epi16((__m512i*)&source2[i]);
-
-									//Shift Right
-									_DESTi = _mm512_srlv_epi16(_Ai, _Bi);
-
-									//Store Result
-									_mm512_storeu_epi16((__m256i*) & dest[i], _DESTi);
-								}//End for
-							}//End if hasAVX512
-#endif							
-						}//End if
-#pragma endregion
-#pragma region unsigned short
-						else if constexpr (std::is_same<T, uint16_t>() == true)
-						{
-#ifdef TPA_X86_64
-							if (tpa::hasAVX512_ByteWord)
-							{
-								__m512i _Ai, _Bi, _DESTi;
-
-								for (; i != end; i += 32)
-								{
-									if ((i + 32) > end) [[unlikely]]
-									{
-										break;
-									}//End if
-
-									//Set Values
-									_Ai = _mm512_loadu_epi16((__m512i*)&source1[i]);
-									_Bi = _mm512_loadu_epi16((__m512i*)&source2[i]);
-
-									//Shift Right
-									_DESTi = _mm512_srlv_epi16(_Ai, _Bi);
-
-									//Store Result
-									_mm512_storeu_epi16((__m512i*)&dest[i], _DESTi);
-								}//End for
-							}//End if							
-#endif 							
-						}//End if
-#pragma endregion
-#pragma region int
-						else if constexpr (std::is_same<T, int32_t>() == true)
-						{
-#ifdef TPA_X86_64
-							if (tpa::hasAVX512)
-							{
-								__m512i _Ai, _Bi, _DESTi;
-
-								for (; i != end; i += 16)
-								{
-									if ((i + 16) > end) [[unlikely]]
-									{
-										break;
-									}//End if
-
-									//Set Values
-									_Ai = _mm512_load_epi32((__m512i*)&source1[i]);
-									_Bi = _mm512_load_epi32((__m512i*)&source2[i]);
-
-									//Shift Right
-									_DESTi = _mm512_srav_epi32(_Ai, _Bi);
-
-									//Store Result
-									_mm512_store_epi32((__m512i*)&dest[i], _DESTi);
-								}//End for
-							}//End if hasAVX512
-							else if (tpa::hasAVX2)
-							{
-								__m256i _Ai, _Bi, _DESTi;
-
-								for (; i != end; i += 8)
-								{
-									if ((i + 8) > end) [[unlikely]]
-									{
-										break;
-									}//End if
-
-									//Set Values
-									_Ai = _mm256_load_si256((__m256i*) & source1[i]);
-									_Bi = _mm256_load_si256((__m256i*) & source2[i]);
-
-									//Shift Right
-									_DESTi = _mm256_srav_epi32(_Ai, _Bi);
-
-									//Store Result
-									_mm256_store_si256((__m256i*) & dest[i], _DESTi);
-								}//End for
-							}//End if hasAVX2
-#endif							
-						}//End if
-#pragma endregion
-#pragma region unsigned int
-						else if constexpr (std::is_same<T, uint32_t>() == true)
-						{
-#ifdef TPA_X86_64
-							if (tpa::hasAVX512)
-							{
-								__m512i _Ai, _Bi, _DESTi;
-
-								for (; i != end; i += 16)
-								{
-									if ((i + 16) > end) [[unlikely]]
-									{
-										break;
-									}//End if
-
-									//Set Values
-									_Ai = _mm512_load_epi32((__m512i*)&source1[i]);
-									_Bi = _mm512_load_epi32((__m512i*)&source2[i]);
-
-									//Shift Right
-									_DESTi = _mm512_srav_epi32(_Ai, _Bi);
-
-									//Store Result
-									_mm512_store_epi32((__m512i*)&dest[i], _DESTi);
-								}//End for
-							}//End if
-							else if (tpa::hasAVX2)
-							{
-								__m256i _Ai, _Bi, _DESTi;
-
-								for (; i != end; i += 8)
-								{
-									if ((i + 8) > end) [[unlikely]]
-									{
-										break;
-									}//End if
-
-									//Set Values
-									_Ai = _mm256_load_si256((__m256i*) & source1[i]);
-									_Bi = _mm256_load_si256((__m256i*) & source2[i]);
-
-									//Shift Right
-									_DESTi = _mm256_srav_epi32(_Ai, _Bi);
-
-									//Store Result
-									_mm256_store_si256((__m256i*) & dest[i], _DESTi);
-								}//End for
-							}//End if hasAVX2
-#endif							
-						}//End if
-#pragma endregion
-#pragma region long
-						else if constexpr (std::is_same<T, int64_t>() == true)
-						{
-#ifdef TPA_X86_64
-							if (tpa::hasAVX512)
-							{
-								__m512i _Ai, _Bi, _DESTi;
-
-								for (; i != end; i += 8)
-								{
-									if ((i + 8) > end) [[unlikely]]
-									{
-										break;
-									}//End if
-
-									//Set Values
-									_Ai = _mm512_load_epi64((__m512i*)&source1[i]);
-									_Bi = _mm512_load_epi64((__m512i*)&source2[i]);
-
-									//Shift Right
-									_DESTi = _mm512_srav_epi64(_Ai, _Bi);
-
-									//Store Result
-									_mm512_store_epi64((__m256i*) & dest[i], _DESTi);
-								}//End for
-							}//End if hasAVX512
-#endif							
-						}//End if
-#pragma endregion
-#pragma region unsigned long
-						else if constexpr (std::is_same<T, uint64_t>() == true)
-						{
-#ifdef TPA_X86_64
-							if (tpa::hasAVX512)
-							{
-								__m512i _Ai, _Bi, _DESTi;
-
-								for (; i != end; i += 8)
-								{
-
-									if ((i + 8) > end) [[unlikely]]
-									{
-										break;
-									}//End if
-
-									//Set Values
-									_Ai = _mm512_load_epi64((__m512i*)&source1[i]);
-									_Bi = _mm512_load_epi64((__m512i*)&source2[i]);
-
-									//Shift Right
-									_DESTi = _mm512_srav_epi64(_Ai, _Bi);
-
-									//Store Result
-									_mm512_store_epi64((__m256i*) & dest[i], _DESTi);
-								}//End for
-							}//End if hasAVX512
-#endif							
-						}//End if
-#pragma endregion
-#pragma region generic
-						for (; i != end; ++i)
-						{
-							//Shift Right
-							dest[i] = source1[i] >> source2[i];
-						}//End for
-#pragma endregion
-						return static_cast<uint32_t>(1);
-					});//End of lambda
-
-				results.emplace_back(std::move(temp));
-			}//End for
-
-			for (const auto& fut : results)
-			{
-				complete += fut.get();
-			}//End for			
-
-			//Check all threads completed
-			if (complete != nThreads)
-			{
-				throw tpa::exceptions::NotAllThreadsCompleted(complete);
-			}//End if
-
-		}//End try
-		catch (const tpa::exceptions::ArrayTooSmall& ex)
-		{
-			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
-			std::cerr << "Exception thrown in tpa::simd::bit_shift_right: " << ex.what() << "\n";
-			std::cerr << "tpa::simd::bit_shift_right will execute upto the current size of the container.";
-			smallest = dest.size();
-			goto recover;
-		}//End catch
-		catch (const std::future_error& ex)
-		{
-			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
-			std::cerr << "Exception thrown in tpa::simd::bit_shift_right(): " << ex.code()
-				<< " " << ex.what() << "\n";
-		}//End catch
-		catch (const std::bad_alloc& ex)
-		{
-			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
-			std::cerr << "Exception thrown in tpa::simd::bit_shift_right: " << ex.what() << "\n";
-		}//End catch
-		catch (const std::exception& ex)
-		{
-			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
-			std::cerr << "Exception thrown in tpa::simd::bit_shift_right: " << ex.what() << "\n";
-		}//End catch
-		catch (...)
-		{
-			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
-			std::cerr << "Exception thrown in tpa::simd::bit_shift_right: unknown!\n";
-		}//End catch
-	}//End of bit_shift_right()
-
-		/// <summary>
-	/// <para>Shifts the element's bits in a container right by the number specified in 'amount', storing the results in a 3rd container.</para>
-	/// <para>Containers may be of differnt types, but not recommended.</para>
-	/// <para>Containers MUST have the same value_type.</para>
-	/// <para>Containers do not have to be a particular size, of passing containers of different sizes, will only execute upto the size of the smallest container, the destination container must be at least this size.</para>
-	/// <para>Non-standard integers will work. Floats are not supported and will generate a compile error.</para>
-	/// <para>This implementation uses SIMD (if avaialble for type) and Multi-Threading.</para>
-	/// </summary>
-	/// <typeparam name="CONTAINER_A"></typeparam>
-	/// <typeparam name="CONTAINER_B"></typeparam>
-	/// <typeparam name="CONTAINER_C"></typeparam>
-	/// <param name="source1"></param>
-	/// <param name="amount"></param>
-	/// <param name="dest"></param>
-	template<typename CONTAINER_A, typename CONTAINER_C>
-	inline constexpr void bit_shift_right(
-		const CONTAINER_A& source1,
-		const uint8_t amount,
-		CONTAINER_C& dest)
-		requires tpa::util::contiguous_seqeunce<CONTAINER_A>&&
-		tpa::util::contiguous_seqeunce<CONTAINER_C>
-	{
-		size_t smallest = 0;
-		uint32_t complete = 0;
-		try
-		{
-			static_assert(
-				std::is_same<CONTAINER_A::value_type, CONTAINER_C::value_type>(),
-				"Compile Error! The source and destination containers must be of the same value type!");
-
-			using T = CONTAINER_A::value_type;
-
-			static_assert(!std::is_floating_point<T>(), "Compile Error! You cannot bitshift a floating point type!");
 
 			//Determin the smallest container
 			smallest = source1.size();
@@ -9535,33 +9857,33 @@ namespace bit_manip
 		catch (const tpa::exceptions::ArrayTooSmall& ex)
 		{
 			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
-			std::cerr << "Exception thrown in tpa::simd::bit_shift_right: " << ex.what() << "\n";
-			std::cerr << "tpa::simd::bit_shift_right will execute upto the current size of the container.";
+			std::cerr << "Exception thrown in tpa::simd::bit_move: " << ex.what() << "\n";
+			std::cerr << "tpa::simd::bit_move will execute upto the current size of the container.";
 			smallest = dest.size();
 			goto recover;
 		}//End catch
 		catch (const std::future_error& ex)
 		{
 			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
-			std::cerr << "Exception thrown in tpa::simd::bit_shift_right(): " << ex.code()
+			std::cerr << "Exception thrown in tpa::simd::bit_move(): " << ex.code()
 				<< " " << ex.what() << "\n";
 		}//End catch
 		catch (const std::bad_alloc& ex)
 		{
 			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
-			std::cerr << "Exception thrown in tpa::simd::bit_shift_right: " << ex.what() << "\n";
+			std::cerr << "Exception thrown in tpa::simd::bit_move: " << ex.what() << "\n";
 		}//End catch
 		catch (const std::exception& ex)
 		{
 			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
-			std::cerr << "Exception thrown in tpa::simd::bit_shift_right: " << ex.what() << "\n";
+			std::cerr << "Exception thrown in tpa::simd::bit_move: " << ex.what() << "\n";
 		}//End catch
 		catch (...)
 		{
 			std::scoped_lock<std::mutex> lock(tpa::util::consoleMtx);
-			std::cerr << "Exception thrown in tpa::simd::bit_shift_right: unknown!\n";
+			std::cerr << "Exception thrown in tpa::simd::bit_move: unknown!\n";
 		}//End catch
-	}//End of bit_shift_right()
+	}//End of bit_move()
 
 	/// <summary>
 	/// <para>Invert the bits of the elements in the source container and store the result in the destination container.</para>
@@ -10190,5 +10512,5 @@ namespace bit_manip
 		}//End catch
 	}//End of bitwise_not()
 
-#pragma endregion
-}//End of namespace
+	}//End of namespace bit_manip
+}//End of namespace tpa

@@ -1394,7 +1394,7 @@ namespace tpa::simd {
 		const __m128i xF0F0 = _mm_set1_epi32(0xf0f0f0f0);
 		const __m128i xCCCC = _mm_set1_epi32(0xcccccccc);
 		const __m128i xAAAA = _mm_set1_epi32(0xaaaaaaaa);
-
+		
 		const __m128i _zero = _mm_set1_epi32(0);
 		const __m128i _16 = _mm_set1_epi32(16);
 		const __m128i _8 = _mm_set1_epi32(8);
@@ -1411,19 +1411,19 @@ namespace tpa::simd {
 		_mask = tpa::simd::_mm_cmpneq_epi32(_mask, _zero);
 		_index = _mm_and_si128(_mask, _mm_add_epi32(_index, _16));
 
-		_mask = _mm_and_si128(_mask, xFFFF);
+		_mask = _mm_and_si128(_mask, xFF00);
 		_mask = tpa::simd::_mm_cmpneq_epi32(_mask, _zero);
 		_index = _mm_and_si128(_mask, _mm_add_epi32(_index, _8));
 
-		_mask = _mm_and_si128(_mask, xFFFF);
+		_mask = _mm_and_si128(_mask, xF0F0);
 		_mask = tpa::simd::_mm_cmpneq_epi32(_mask, _zero);
 		_index = _mm_and_si128(_mask, _mm_add_epi32(_index, _4));
 
-		_mask = _mm_and_si128(_mask, xFFFF);
+		_mask = _mm_and_si128(_mask, xCCCC);
 		_mask = tpa::simd::_mm_cmpneq_epi32(_mask, _zero);
 		_index = _mm_and_si128(_mask, _mm_add_epi32(_index, _2));
 
-		_mask = _mm_and_si128(_mask, xFFFF);
+		_mask = _mm_and_si128(_mask, xAAAA);
 		_mask = tpa::simd::_mm_cmpneq_epi32(_mask, _zero);
 		_index = _mm_and_si128(_mask, _mm_add_epi32(_index, _1));
 
@@ -1462,19 +1462,19 @@ namespace tpa::simd {
 		_mask = tpa::simd::_mm256_cmpneq_epi32(_mask, _zero);
 		_index = _mm256_and_si256(_mask, _mm256_add_epi32(_index, _16));
 
-		_mask = _mm256_and_si256(_mask, xFFFF);
+		_mask = _mm256_and_si256(_mask, xFF00);
 		_mask = tpa::simd::_mm256_cmpneq_epi32(_mask, _zero);
 		_index = _mm256_and_si256(_mask, _mm256_add_epi32(_index, _8));
 
-		_mask = _mm256_and_si256(_mask, xFFFF);
+		_mask = _mm256_and_si256(_mask, xF0F0);
 		_mask = tpa::simd::_mm256_cmpneq_epi32(_mask, _zero);
 		_index = _mm256_and_si256(_mask, _mm256_add_epi32(_index, _4));
 
-		_mask = _mm256_and_si256(_mask, xFFFF);
+		_mask = _mm256_and_si256(_mask, xCCCC);
 		_mask = tpa::simd::_mm256_cmpneq_epi32(_mask, _zero);
 		_index = _mm256_and_si256(_mask, _mm256_add_epi32(_index, _2));
 
-		_mask = _mm256_and_si256(_mask, xFFFF);
+		_mask = _mm256_and_si256(_mask, xAAAA);
 		_mask = tpa::simd::_mm256_cmpneq_epi32(_mask, _zero);
 		_index = _mm256_and_si256(_mask, _mm256_add_epi32(_index, _1));
 
@@ -1491,10 +1491,139 @@ namespace tpa::simd {
 	/// <returns>__m512i</returns>
 	[[nodiscard]] inline __m512i _mm512_bsf_epi32(__m512i x) noexcept
 	{
-		const __m512i _one = _mm512_set1_epi32(static_cast<int16_t>(1));
+		const __m512i _one = _mm512_set1_epi32(1);
 
 		return _mm512_add_epi32(_mm512_popcnt_epi32(_mm512_and_si512(_mm512_not_si512(x), _mm512_sub_epi32(x, _one))), _one);
 	}//End of _mm512_bsf_epi32
+
+	///<summary>
+	///<para> Returns the indexes of the lowest set bits of 64-bit integers in an __m128i.</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without SSE2.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m128i</returns>
+	[[nodiscard]] inline __m128i _mm_bsf_epi64(const __m128i& x) noexcept
+	{
+		const __m128i xFFFFx = _mm_set1_epi64x(0xffffffffll);
+		const __m128i xFFFF = _mm_set1_epi64x(0xffff0000ll);
+		const __m128i xFF00 = _mm_set1_epi64x(0xff00ff00ll);
+		const __m128i xF0F0 = _mm_set1_epi64x(0xf0f0f0f0ll);
+		const __m128i xCCCC = _mm_set1_epi64x(0xccccccccll);
+		const __m128i xAAAA = _mm_set1_epi64x(0xaaaaaaaall);
+
+		const __m128i _zero = _mm_set1_epi64x(0ll);
+		const __m128i _32 = _mm_set1_epi64x(32ll);
+		const __m128i _16 = _mm_set1_epi64x(16ll);
+		const __m128i _8 = _mm_set1_epi64x(8ll);
+		const __m128i _4 = _mm_set1_epi64x(4ll);
+		const __m128i _2 = _mm_set1_epi64x(2ll);
+		const __m128i _1 = _mm_set1_epi64x(1ll);
+
+		__m128i _index = _mm_setzero_si128();
+		__m128i _mask = _mm_setzero_si128();
+
+		_mask = _mm_and_si128(x, _mm_sub_epi64(_zero, x));
+
+		_mask = _mm_and_si128(_mask, xFFFFx);
+		_mask = tpa::simd::_mm_cmpneq_epi64(_mask, _zero);
+		_index = _mm_and_si128(_mask, _mm_add_epi64(_index, _32));
+
+		_mask = _mm_and_si128(_mask, xFFFF);
+		_mask = tpa::simd::_mm_cmpneq_epi64(_mask, _zero);
+		_index = _mm_and_si128(_mask, _mm_add_epi64(_index, _16));
+
+		_mask = _mm_and_si128(_mask, xFF00);
+		_mask = tpa::simd::_mm_cmpneq_epi64(_mask, _zero);
+		_index = _mm_and_si128(_mask, _mm_add_epi64(_index, _8));
+
+		_mask = _mm_and_si128(_mask, xF0F0);
+		_mask = tpa::simd::_mm_cmpneq_epi64(_mask, _zero);
+		_index = _mm_and_si128(_mask, _mm_add_epi64(_index, _4));
+
+		_mask = _mm_and_si128(_mask, xCCCC);
+		_mask = tpa::simd::_mm_cmpneq_epi64(_mask, _zero);
+		_index = _mm_and_si128(_mask, _mm_add_epi64(_index, _2));
+
+		_mask = _mm_and_si128(_mask, xAAAA);
+		_mask = tpa::simd::_mm_cmpneq_epi64(_mask, _zero);
+		_index = _mm_and_si128(_mask, _mm_add_epi64(_index, _1));
+
+		return _index;
+	}//End of _mm_bsf_epi64
+
+	///<summary>
+	///<para> Returns the indexes of the lowest set bits of 32-bit integers in an __m256i.</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without AVX2.</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m256i</returns>
+	[[nodiscard]] inline __m256i _mm256_bsf_epi64(const __m256i& x) noexcept
+	{
+		const __m256i xFFFFx = _mm256_set1_epi64x(0xffffffffll);
+		const __m256i xFFFF = _mm256_set1_epi64x(0xffff0000ll);
+		const __m256i xFF00 = _mm256_set1_epi64x(0xff00ff00ll);
+		const __m256i xF0F0 = _mm256_set1_epi64x(0xf0f0f0f0ll);
+		const __m256i xCCCC = _mm256_set1_epi64x(0xccccccccll);
+		const __m256i xAAAA = _mm256_set1_epi64x(0xaaaaaaaall);
+
+		const __m256i _zero = _mm256_set1_epi64x(0ll);
+		const __m256i _32 = _mm256_set1_epi64x(32ll);
+		const __m256i _16 = _mm256_set1_epi64x(16ll);
+		const __m256i _8 = _mm256_set1_epi64x(8ll);
+		const __m256i _4 = _mm256_set1_epi64x(4ll);
+		const __m256i _2 = _mm256_set1_epi64x(2ll);
+		const __m256i _1 = _mm256_set1_epi64x(1ll);
+
+		__m256i _index = _mm256_setzero_si256();
+		__m256i _mask = _mm256_setzero_si256();
+
+		_mask = _mm256_and_si256(x, _mm256_sub_epi64(_zero, x));
+
+		_mask = _mm256_and_si256(_mask, xFFFFx);
+		_mask = tpa::simd::_mm256_cmpneq_epi64(_mask, _zero);
+		_index = _mm256_and_si256(_mask, _mm256_add_epi64(_index, _16));
+
+		_mask = _mm256_and_si256(_mask, xFFFF);
+		_mask = tpa::simd::_mm256_cmpneq_epi64(_mask, _zero);
+		_index = _mm256_and_si256(_mask, _mm256_add_epi64(_index, _16));
+
+		_mask = _mm256_and_si256(_mask, xFF00);
+		_mask = tpa::simd::_mm256_cmpneq_epi64(_mask, _zero);
+		_index = _mm256_and_si256(_mask, _mm256_add_epi64(_index, _8));
+
+		_mask = _mm256_and_si256(_mask, xF0F0);
+		_mask = tpa::simd::_mm256_cmpneq_epi64(_mask, _zero);
+		_index = _mm256_and_si256(_mask, _mm256_add_epi64(_index, _4));
+
+		_mask = _mm256_and_si256(_mask, xCCCC);
+		_mask = tpa::simd::_mm256_cmpneq_epi64(_mask, _zero);
+		_index = _mm256_and_si256(_mask, _mm256_add_epi64(_index, _2));
+
+		_mask = _mm256_and_si256(_mask, xAAAA);
+		_mask = tpa::simd::_mm256_cmpneq_epi64(_mask, _zero);
+		_index = _mm256_and_si256(_mask, _mm256_add_epi64(_index, _1));
+
+		return _index;
+	}//End of _mm256_bsf_epi64
+
+	///<summary>
+	///<para> Returns the indexes of the lowest set bits of 32-bit integers in an __m512i.</para>
+	///<para>Note: This is not a hardware intrinsic, it is a function consisting of several instructions.</para>
+	///<para>Note: This function is a part of TPA and is not available by default within 'immintrin.h' or SVML.</para>
+	/// <para>Warning: This function is unsafe if called on a platform without AVX-512, AVX-512 BW and AVX-512 Bit Algorithms (BITALG).</para>
+	///</summary>
+	/// <param name="x"></param>
+	/// <returns>__m512i</returns>
+	[[nodiscard]] inline __m512i _mm512_bsf_epi64(__m512i x) noexcept
+	{
+		const __m512i _one = _mm512_set1_epi64(1ll);
+
+		return _mm512_add_epi32(_mm512_popcnt_epi64(_mm512_and_si512(_mm512_not_si512(x), _mm512_sub_epi64(x, _one))), _one);
+	}//End of _mm512_bsf_epi64
 
 	///<summary>
 	///<para> Multiply Packed 64-Bit Integers (Signed and Unsigned) in 'a' by 'b' and returns 'product' using AVX2</para>
