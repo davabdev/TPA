@@ -91,6 +91,8 @@ namespace tpa
 		ROTATE_RIGHT,			//Rotates bits right eg. 0011 -> 1001
 		SHIFT_LEFT,				//Shifts bits left eg. 1110 -> 1100
 		SHIFT_RIGHT,			//Shifts bits right eg. 1110 -> 0111
+		SHIFT_LEFT_ARITHMETIC,	//Shifts bits left eg. 1110 -> 1100 (leaves sign bit intact)
+		SHIFT_RIGHT_ARITHMETIC,	//Shifts bits right eg. 1110 -> 0111 (leaves sign bit intact)
 		MERGE_RIGHT,			//Moves all the 1 bits to the right eg. 01010110 -> 00001111
 		MERGE_LEFT			    //Moves all the 1 bits to the left eg. 01010110 -> 11110000
 	};//End of bit_move
